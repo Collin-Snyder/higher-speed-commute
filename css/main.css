@@ -1,0 +1,19 @@
+html, body {
+    margin: 0;
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+}
+
+h1 {
+    color: red;
+}
+
+canvas {
+    width: 1000px;
+    height: 625px;
+    margin: auto;
+    background-color: #81c76d;
+}
