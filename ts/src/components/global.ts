@@ -3,7 +3,7 @@ export const Global = {
         game: null,
         map: null,
         player: '<Entity>',
-        inputs: [],
+        inputs: {},
         spriteSheet: null,
         spriteMap: {}
     }

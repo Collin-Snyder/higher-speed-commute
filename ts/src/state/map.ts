@@ -7,6 +7,8 @@ export interface MapGridInterface {
   bossHome: number;
   office: number;
   lights: { [key: string]: number };
+  pixelWidth: number;
+  pixelHeight: number;
   generateTileMap: Function;
   get: Function;
   set: Function;
@@ -72,6 +74,8 @@ class MapGrid implements MapGridInterface {
   public bossHome: number;
   public office: number;
   public lights: { [key: string]: number };
+  public pixelHeight: number;
+  public pixelWidth: number;
 
   static fromMapObject(mapObj: MapObjectInterface): MapGrid {
     const {
@@ -106,6 +110,8 @@ class MapGrid implements MapGridInterface {
     this.bossHome = 0;
     this.office = 0;
     this.lights = {};
+    this.pixelWidth = this.width * 25;
+    this.pixelHeight = this.height * 25;
 
     for (let s = 1; s <= this.squareCount; s++) {
       this.squares.push(
@@ -197,26 +203,133 @@ class MapGrid implements MapGridInterface {
     //return the square object at the given coordinates
     X = Math.floor(X / 25) * 25;
     Y = Math.floor(Y / 25) * 25;
-    let row = 25 * Y;
-    let col = 25 * X + 1;
+    // let row = 25 * Y;
+    // let col = 25 * X + 1;
+    let row = Y / 25 + 1;
+    let col = X / 25;
     let id = row * 40 + col;
+    console.log(id, row, col)
     return this.get(id);
   }
 
-  getAttributeByCoords(X: number, Y: number, attribute: string): any {
+  getSurroundingSquares(x: number, y: number) {
+    if (x < 0 || y < 0) {
+      console.log("X and Y must be 0 or positive integers.");
+      return [];
+    }
+    let currentSquareX = Math.floor(x / 25) * 25;
+    let currentSquareY = Math.floor(y / 25) * 25;
+    let boundBoxX = currentSquareX - 25;
+    boundBoxX = boundBoxX < 0 ? 0 : boundBoxX;
+    boundBoxX = boundBoxX > this.width ? this.width : boundBoxX;
+    let boundBoxY = currentSquareY - 25;
+    boundBoxY = boundBoxY < 0 ? 0 : boundBoxY;
+    boundBoxX = boundBoxY > this.height ? this.height : boundBoxY;
+    console.log("boundboxX: ", boundBoxX)
+    console.log("boundboxY: ", boundBoxY)
+    let startSquare: Square = <Square>this.getSquareByCoords(boundBoxX, boundBoxY);
+    return [
+      startSquare,
+      this.get(startSquare.id + 1),
+      this.get(startSquare.id + 2),
+      this.get(startSquare.id + 40),
+      this.get(startSquare.id + 42),
+      this.get(startSquare.id + 80),
+      this.get(startSquare.id + 81),
+      this.get(startSquare.id + 82),
+    ];
+
+  }
+
+  getSquaresInVicinity(x: number, y: number, d: number) {
+    //d indicates how many squares in each direction around current square to include
+    let max = Math.max;
+
+    if (d < 1 || d > max(this.width, this.height)) {
+      console.log(
+        "Distance must be between 1 and the largest dimension of the map."
+      );
+      return [];
+    }
+    if (x < 0 || y < 0) {
+      console.log("X and Y must be positive integers.");
+      return [];
+    }
+    if (d === max(this.width, this.height)) return this.squares;
+
+    let currentSquareX = Math.floor(x / 25) * 25;
+    let currentSquareY = Math.floor(y / 25) * 25;
+    let boundBoxX = currentSquareX - 25;
+    boundBoxX = boundBoxX < 0 ? 0 : boundBoxX;
+    let boundBoxY = currentSquareY - 25;
+    boundBoxY = boundBoxY < 0 ? 0 : boundBoxY;
+    let startSquare: Square = <Square>this.getSquareByCoords(boundBoxX, boundBoxY);
+    let squares = [
+      startSquare,
+      this.get(startSquare.id + 1),
+      this.get(startSquare.id + 2),
+      this.get(startSquare.id + 40),
+      this.get(startSquare.id + 42),
+      this.get(startSquare.id + 80),
+      this.get(startSquare.id + 81),
+      this.get(startSquare.id + 82),
+    ];
+
+    //create "leftOf" = {left: "down", down: "right", right: "up", up: "left"}
+    const leftOf = { left: "down", down: "right", right: "up", up: "left" };
+    //create "current" = starting square
+    let current = this.getSquareByCoords(x, y);
+    //create "direction" variable - start at "left"
+    let direction = "left";
+    //create "count" variable - start at 0
+    let count = 0;
+    //create "layer" variable - start at 1
+    let layer = 1;
+    //"layer" will be current count / 8
+    //create "added" variable - {[startId]: true}
+    const added = {};
+    // added[current.id] = true;
+    //do while loop
+    do {
+      //check if left border has been added
+      //if not, loop through borders to find a starting direction that exists
+      //check if left border has been added
+      //if yes:
+      //current = current.borders[direction]
+      //add current to array
+      //add current.id to "added"
+      //count++
+      //check if count = 8 * layer
+      //if yes, increment layer
+      //if layer > d, end loop
+      //if no:
+      //current = current.borders[leftOf[direction]]
+      //add current to array
+      //add current.id to "added"
+      //count++
+    } while (layer <= d);
+  }
+
+  getAttributesByCoords(X: number, Y: number, attributes: string[]): any {
     let square = this.getSquareByCoords(X, Y);
+    let attrVals: object = {};
     if (!square) {
       console.log("Invalid coordinates - no valid square at this location.");
       return null;
     }
-    if (!square.hasOwnProperty(attribute)) {
-      console.log(
-        "Invalid attribute name. Accessible attributes are: ",
-        ...Object.keys(square)
-      );
-      return null;
+    for (let attribute of attributes) {
+      if (!square.hasOwnProperty(attribute)) {
+        console.log(
+          "Invalid attribute name. Accessible attributes are: ",
+          ...Object.keys(square)
+        );
+        continue;
+      }
+      //@ts-ignore
+      attrVals[attribute] = square[attribute];
     }
-   //@ts-ignore
+    if (Object.keys(attrVals).length === 0) return null;
+    //@ts-ignore
     return square[attribute];
   }
 

@@ -2,6 +2,7 @@ import ECS from "@fritzy/ecs";
 //@ts-ignore
 import testMapObject from "./scratch";
 import spriteMap from "./spriteMap";
+import keyCodes from "./keyCodes";
 import MapGrid, {
   MapGridInterface,
   MapObjectInterface,
@@ -9,6 +10,9 @@ import MapGrid, {
 } from "./state/map";
 import Components from "./components/index";
 import { LightTimer } from "./systems/lights";
+import { InputSystem } from "./systems/input";
+import { MovementSystem } from "./systems/move";
+import { CollisionSystem } from "./systems/collision";
 import { RenderTileMap, RenderCars, RenderLights } from "./systems/render";
 
 interface InputEventsInterface {
@@ -17,61 +21,6 @@ interface InputEventsInterface {
   mouseDown: boolean;
   keyPressMap: { [keyCode: number]: boolean };
 }
-
-const keyCodes: { [key: string]: number } = {
-  BACKSPACE: 8,
-  TAB: 9,
-  RETURN: 13,
-  ESC: 27,
-  SPACE: 32,
-  PAGEUP: 33,
-  PAGEDOWN: 34,
-  END: 35,
-  HOME: 36,
-  LEFT: 37,
-  UP: 38,
-  RIGHT: 39,
-  DOWN: 40,
-  INSERT: 45,
-  DELETE: 46,
-  ZERO: 48,
-  ONE: 49,
-  TWO: 50,
-  THREE: 51,
-  FOUR: 52,
-  FIVE: 53,
-  SIX: 54,
-  SEVEN: 55,
-  EIGHT: 56,
-  NINE: 57,
-  A: 65,
-  B: 66,
-  C: 67,
-  D: 68,
-  E: 69,
-  F: 70,
-  G: 71,
-  H: 72,
-  I: 73,
-  J: 74,
-  K: 75,
-  L: 76,
-  M: 77,
-  N: 78,
-  O: 79,
-  P: 80,
-  Q: 81,
-  R: 82,
-  S: 83,
-  T: 84,
-  U: 85,
-  V: 86,
-  W: 87,
-  X: 88,
-  Y: 89,
-  Z: 90,
-  TILDA: 192,
-};
 
 class Game {
   public start: number;
@@ -85,6 +34,7 @@ class Game {
   public spritesheet: HTMLImageElement;
   public spriteMap: { [entity: string]: { X: number; Y: number } };
   public spriteSheetIsLoaded: boolean;
+  public paused: boolean;
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private ecs: any;
@@ -108,6 +58,7 @@ class Game {
     this.map = MapGrid.fromMapObject(testMapObject);
     this.spritesheet = new Image();
     this.spriteSheetIsLoaded = false;
+    this.paused = false;
 
     this.spritesheet.src = "../spritesheet.png";
     this.spriteMap = spriteMap;
@@ -120,6 +71,7 @@ class Game {
       id: "global",
       Global: {
         game: this,
+        inputs: new InputEvents()
       },
     });
 
@@ -134,6 +86,7 @@ class Game {
     });
 
     this.playerEntity = this.ecs.createEntity({
+      id: "player",
       Coordinates: {
         ...(this.map.get(this.map.playerHome)
           ? this.map.get(this.map.playerHome).coordinates()
@@ -145,9 +98,11 @@ class Game {
       Caffeination: {},
       Velocity: {},
       Renderable: {},
+      Collision: {},
     });
 
     this.bossEntity = this.ecs.createEntity({
+      id: "boss",
       Coordinates: {
         ...(this.map.get(this.map.bossHome)
           ? this.map.get(this.map.bossHome).coordinates()
@@ -162,6 +117,7 @@ class Game {
         driver: "boss",
       },
       Renderable: {},
+      Collision: {},
     });
 
     this.lightEntities = {};
@@ -169,18 +125,20 @@ class Game {
     for (let id in this.map.lights) {
       const square = this.map.get(id);
       this.lightEntities[id] = this.ecs.createEntity({
-        id,
+        id: `light${id}`,
         Coordinates: {
           ...(square ? square.coordinates() : { X: 0, Y: 0 }),
         },
         Timer: {
           interval: this.map.lights[id],
-          timeSinceLastInterval: 0
+          timeSinceLastInterval: 0,
         },
         Color: {},
         Renderable: {},
+        Collision: {
+          movable: false,
+        },
       });
-      
     }
 
     this.global.Global.map = this.mapEntity;
@@ -193,6 +151,9 @@ class Game {
     };
 
     this.ecs.addSystem("lights", new LightTimer(this.ecs, this.step));
+    this.ecs.addSystem("input", new InputSystem(this.ecs));
+    this.ecs.addSystem("move", new MovementSystem(this.ecs));
+    this.ecs.addSystem("collision", new CollisionSystem(this.ecs));
     this.ecs.addSystem("render", new RenderTileMap(this.ecs, this.ctx));
     this.ecs.addSystem("render", new RenderLights(this.ecs, this.ctx));
     this.ecs.addSystem("render", new RenderCars(this.ecs, this.ctx));
@@ -231,39 +192,42 @@ class Game {
   }
 
   update(step: number) {
-    if (
-      this.inputs.keyPressMap[keyCodes.LEFT] &&
-      this.playerEntity.Velocity.vector.X >= 0
-    ) {
-      this.playerEntity.Velocity.vector.X = -1;
-      this.playerEntity.Velocity.vector.Y = 0;
-    } else if (
-      this.inputs.keyPressMap[keyCodes.RIGHT] &&
-      this.playerEntity.Velocity.vector.X <= 0
-    ) {
-      this.playerEntity.Velocity.vector.X = 1;
-      this.playerEntity.Velocity.vector.Y = 0;
-    } else if (
-      this.inputs.keyPressMap[keyCodes.UP] &&
-      this.playerEntity.Velocity.vector.Y >= 0
-    ) {
-      this.playerEntity.Velocity.vector.X = 0;
-      this.playerEntity.Velocity.vector.Y = -1;
-    } else if (
-      this.inputs.keyPressMap[keyCodes.DOWN] &&
-      this.playerEntity.Velocity.vector.Y <= 0
-    ) {
-      this.playerEntity.Velocity.vector.X = 0;
-      this.playerEntity.Velocity.vector.Y = 1;
-    }
-    this.playerEntity.Coordinates.X +=
-      this.playerEntity.Velocity.vector.X *
-      this.playerEntity.Velocity.speedConstant;
-    this.playerEntity.Coordinates.Y +=
-      this.playerEntity.Velocity.vector.Y *
-      this.playerEntity.Velocity.speedConstant;
+    // if (
+    //   this.inputs.keyPressMap[keyCodes.LEFT] &&
+    //   this.playerEntity.Velocity.vector.X >= 0
+    // ) {
+    //   this.playerEntity.Velocity.vector.X = -1;
+    //   this.playerEntity.Velocity.vector.Y = 0;
+    // } else if (
+    //   this.inputs.keyPressMap[keyCodes.RIGHT] &&
+    //   this.playerEntity.Velocity.vector.X <= 0
+    // ) {
+    //   this.playerEntity.Velocity.vector.X = 1;
+    //   this.playerEntity.Velocity.vector.Y = 0;
+    // } else if (
+    //   this.inputs.keyPressMap[keyCodes.UP] &&
+    //   this.playerEntity.Velocity.vector.Y >= 0
+    // ) {
+    //   this.playerEntity.Velocity.vector.X = 0;
+    //   this.playerEntity.Velocity.vector.Y = -1;
+    // } else if (
+    //   this.inputs.keyPressMap[keyCodes.DOWN] &&
+    //   this.playerEntity.Velocity.vector.Y <= 0
+    // ) {
+    //   this.playerEntity.Velocity.vector.X = 0;
+    //   this.playerEntity.Velocity.vector.Y = 1;
+    // }
+    // this.playerEntity.Coordinates.X +=
+    //   this.playerEntity.Velocity.vector.X *
+    //   this.playerEntity.Velocity.speedConstant;
+    // this.playerEntity.Coordinates.Y +=
+    //   this.playerEntity.Velocity.vector.Y *
+    //   this.playerEntity.Velocity.speedConstant;
 
     this.ecs.runSystemGroup("lights");
+    this.ecs.runSystemGroup("input");
+    this.ecs.runSystemGroup("move");
+    this.ecs.runSystemGroup("collision");
 
     this.ecs.tick();
   }

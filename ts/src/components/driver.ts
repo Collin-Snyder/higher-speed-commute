@@ -43,3 +43,15 @@ export const Path = {
     path: [],
   },
 };
+
+export const Collision = {
+  properties: {
+    movable: true
+  }
+}
+
+export const SchoolZone = {
+  properties: {
+    multiplier: 0.5
+  }
+}

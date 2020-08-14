@@ -82,3 +82,11 @@ export default testMapObject;
 
 // const testMap = prettify(formatLayout(testLayout));
 
+// let num = 0;
+// let start = new Date().getTime();
+// for (let i = 1; i <= 1000000000; i++) {
+//   num = i + 1;
+// }
+// let end = new Date().getTime();
+
+// console.log(`It took ${end - start}ms to count to ${num - 1}`);
