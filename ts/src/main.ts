@@ -1,4 +1,4 @@
-import ECS from "@fritzy/ecs";
+import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 //@ts-ignore
 import testMapObject from "./scratch";
 import spriteMap from "./spriteMap";
@@ -37,13 +37,14 @@ class Game {
   public paused: boolean;
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
-  private ecs: any;
-  private global: any;
-  private mapEntity: any;
-  private playerEntity: any;
-  private bossEntity: any;
-  private lightEntities: { [key: string]: any };
+  private ecs: ECS;
+  private global: Entity;
+  private mapEntity: Entity;
+  private playerEntity: Entity;
+  private bossEntity: Entity;
+  private lightEntities: { [key: string]: Entity };
   private map: MapGridInterface;
+  
 
   constructor() {
     this.start = this.timestamp();
@@ -63,7 +64,7 @@ class Game {
     this.spritesheet.src = "../spritesheet.png";
     this.spriteMap = spriteMap;
 
-    this.ecs = new ECS.ECS();
+    this.ecs = new EntityComponentSystem.ECS();
 
     this.registerComponents();
 
@@ -71,7 +72,7 @@ class Game {
       id: "global",
       Global: {
         game: this,
-        inputs: new InputEvents()
+        inputs: new InputEvents(),
       },
     });
 
@@ -144,6 +145,13 @@ class Game {
     this.global.Global.map = this.mapEntity;
     this.global.Global.player = this.playerEntity;
 
+    this.bossEntity.Path.path = this.map.findPath(
+      this.bossEntity.Coordinates.X,
+      this.bossEntity.Coordinates.Y,
+      this.map.get(this.map.office).coordinates().X,
+      this.map.get(this.map.office).coordinates().Y
+    );
+
     this.spritesheet.onload = () => {
       this.spriteSheetIsLoaded = true;
       this.global.Global.spriteSheet = this.spritesheet;
@@ -192,38 +200,6 @@ class Game {
   }
 
   update(step: number) {
-    // if (
-    //   this.inputs.keyPressMap[keyCodes.LEFT] &&
-    //   this.playerEntity.Velocity.vector.X >= 0
-    // ) {
-    //   this.playerEntity.Velocity.vector.X = -1;
-    //   this.playerEntity.Velocity.vector.Y = 0;
-    // } else if (
-    //   this.inputs.keyPressMap[keyCodes.RIGHT] &&
-    //   this.playerEntity.Velocity.vector.X <= 0
-    // ) {
-    //   this.playerEntity.Velocity.vector.X = 1;
-    //   this.playerEntity.Velocity.vector.Y = 0;
-    // } else if (
-    //   this.inputs.keyPressMap[keyCodes.UP] &&
-    //   this.playerEntity.Velocity.vector.Y >= 0
-    // ) {
-    //   this.playerEntity.Velocity.vector.X = 0;
-    //   this.playerEntity.Velocity.vector.Y = -1;
-    // } else if (
-    //   this.inputs.keyPressMap[keyCodes.DOWN] &&
-    //   this.playerEntity.Velocity.vector.Y <= 0
-    // ) {
-    //   this.playerEntity.Velocity.vector.X = 0;
-    //   this.playerEntity.Velocity.vector.Y = 1;
-    // }
-    // this.playerEntity.Coordinates.X +=
-    //   this.playerEntity.Velocity.vector.X *
-    //   this.playerEntity.Velocity.speedConstant;
-    // this.playerEntity.Coordinates.Y +=
-    //   this.playerEntity.Velocity.vector.Y *
-    //   this.playerEntity.Velocity.speedConstant;
-
     this.ecs.runSystemGroup("lights");
     this.ecs.runSystemGroup("input");
     this.ecs.runSystemGroup("move");

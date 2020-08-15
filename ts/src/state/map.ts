@@ -1,3 +1,10 @@
+enum Direction {
+  UP = "up",
+  DOWN = "down",
+  LEFT = "left",
+  RIGHT = "right"
+}
+
 export interface MapGridInterface {
   squares: SquareInterface[];
   squareCount: number;
@@ -12,6 +19,7 @@ export interface MapGridInterface {
   generateTileMap: Function;
   get: Function;
   set: Function;
+  findPath: Function;
 }
 
 export interface MapObjectInterface {
@@ -35,11 +43,12 @@ export interface SquareInterface {
   [key: string]: any;
 }
 
-interface BordersInterface {
-  up: SquareInterface | number | null;
-  down: SquareInterface | number | null;
-  left: SquareInterface | number | null;
-  right: SquareInterface | number | null;
+type BordersInterface = {
+  [direction in Direction]: SquareInterface | null;
+};
+
+type BordersCompressedInterface = {
+  [direction in Direction]: number | null;
 }
 
 type Tile =
@@ -205,7 +214,7 @@ class MapGrid implements MapGridInterface {
     Y = Math.floor(Y / 25) * 25;
     // let row = 25 * Y;
     // let col = 25 * X + 1;
-    let row = Y / 25 + 1;
+    let row = Y / 25;
     let col = X / 25;
     let id = row * 40 + col;
     console.log(id, row, col)
@@ -338,11 +347,96 @@ class MapGrid implements MapGridInterface {
     startY: number,
     endX: number,
     endY: number
-  ): string[] {
-    //calculate best path from start to end using BFS or A-star
-    //return array of XY coordinates corresponding to path (XY coords of all tiles in path)
-    return [];
+  ): Array[] | null {
+
+    let startSquare: Square = <Square>this.getSquareByCoords(startX, startY);
+    let endSquare: Square = <Square>this.getSquareByCoords(endX, endY);
+  
+    let frontier = new PathQueue();
+    let cameFrom: {[key: string]: any} = {};
+    let pathStack = [];
+    let foundTarget = false;
+  
+    //start the queue with the starting square (start)
+    frontier.put(startSquare);
+    //assign start's "cameFrom" property to null
+    cameFrom[startSquare.id] = null;
+  
+    //run a loop to expand the frontier in every direction on each iteration and break if end is reached
+    while (frontier.empty() === false) {
+      let currentId = frontier.get();
+  
+      let currentSquare: Square = <Square>this.squares[currentId - 1];
+       
+  
+      if (currentId === endSquare.id) {
+        foundTarget = true;
+        break;
+      }
+  
+      for (let direction in currentSquare.borders) {
+        let next = currentSquare.borders[<Direction>direction];
+        if (
+          next &&
+          next.drivable &&
+          !cameFrom.hasOwnProperty(next.id)
+        ) {
+          frontier.put(next);
+          cameFrom[next.id] = currentId;
+        }
+      }
+      
+    }
+  
+    if (!foundTarget) return null;
+  
+    let current = endSquare;
+    //loop backwards through the path taken to reach the end and add to stack
+    while (current.id !== startSquare.id) {
+      let {X, Y} = current.coordinates();
+      pathStack.push([X, Y]);
+      // current.bossPath = true;
+      current = <Square>this.get(cameFrom[current.id]);
+    }
+    console.log(pathStack);
+    return pathStack;
   }
+}
+
+class PathQueue {
+  public front: number;
+  public end: number;
+  public size: number;
+  public storage: {[key: string]: any};
+constructor() {
+  this.front = 0;
+  this.end = -1;
+  this.storage = {};
+  this.size = 0;
+}
+
+put(square: SquareInterface) {
+  this.end++;
+  this.size++;
+  this.storage[this.end] = square.id;
+}
+
+get() {
+  if (this.empty()) return null;
+
+  let oldFront = this.front;
+  let output = this.storage[oldFront];
+
+  this.front++;
+  delete this.storage[oldFront];
+  this.size--;
+
+  return output;
+}
+
+empty() {
+  return this.front > this.end;
+}
 }
 
 export default MapGrid;

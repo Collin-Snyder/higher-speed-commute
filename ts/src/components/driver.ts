@@ -1,13 +1,13 @@
 export const Coordinates = {
   properties: {
     X: 0,
-    Y: 0
-  }
-}
+    Y: 0,
+  },
+};
 
 export const Car = {
   properties: {
-    color: ""
+    color: "",
   },
 };
 
@@ -25,6 +25,7 @@ export const Velocity = {
       X: 0,
       Y: 0,
     },
+    altVectors: []
   },
 };
 
@@ -33,7 +34,7 @@ export const Renderable = {
     spriteWidth: 25,
     spriteHeight: 25,
     renderWidth: 25,
-    renderHeight: 25
+    renderHeight: 25,
   },
 };
 
@@ -41,17 +42,19 @@ export const Path = {
   properties: {
     driver: "",
     path: [],
+    nextTarget: ""
   },
 };
 
 export const Collision = {
   properties: {
-    movable: true
-  }
-}
+    movable: true,
+    fudgeFactor: 2
+  },
+};
 
 export const SchoolZone = {
   properties: {
-    multiplier: 0.5
-  }
-}
+    multiplier: 0.5,
+  },
+};

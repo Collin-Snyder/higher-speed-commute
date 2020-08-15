@@ -4,7 +4,7 @@
     "outDir": "build",
     "target": "es6",
     "noImplicitAny": true,
-    "typeRoots": ["./ts/types", "node-modules/@types"],
+    "typeRoots": ["./ts/@types", "node-modules/@types"],
     "lib": [
       "dom",
       "es6",
@@ -15,5 +15,5 @@
     "strict": true,
     "sourceMap": false
   },
-  "exclude": ["types", "node_modules"]
+  "exclude": ["@types", "node_modules"]
 }
