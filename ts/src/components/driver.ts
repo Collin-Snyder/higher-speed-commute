@@ -11,12 +11,12 @@ export const Car = {
   },
 };
 
-export const Caffeination = {
-  properties: {
-    caffeineLevel: 0,
-    max: 4,
-  },
-};
+// export const Caffeination = {
+//   properties: {
+//     caffeineLevel: 0,
+//     max: 4,
+//   },
+// };
 
 export const Velocity = {
   properties: {
@@ -31,6 +31,8 @@ export const Velocity = {
 
 export const Renderable = {
   properties: {
+    spriteX: 0,
+    spriteY: 0,
     spriteWidth: 25,
     spriteHeight: 25,
     renderWidth: 25,
@@ -48,7 +50,6 @@ export const Path = {
 
 export const Collision = {
   properties: {
-    movable: true,
     fudgeFactor: 2
   },
 };
@@ -58,3 +59,11 @@ export const SchoolZone = {
     multiplier: 0.5,
   },
 };
+
+export const CaffeineBoost = {
+  properties: {
+    wearOff: 5000,
+    multiplier: 1.5
+  },
+  multiset: true
+}

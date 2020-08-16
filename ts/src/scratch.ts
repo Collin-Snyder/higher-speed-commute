@@ -24,7 +24,9 @@ const addBordersBack = (layout: any[]) => {
   return layout;
 };
 
-const stoplights = {"53": 7000, "108": 10000, "444": 11000, "515": 4000, "536": 8000, "627": 9000, "789": 11000, "854": 4000, "884": 9000, "945": 9000}
+const lights = {"53": 7000, "108": 10000, "444": 11000, "515": 4000, "536": 8000, "627": 9000, "789": 11000, "854": 4000, "884": 9000, "945": 9000}
+
+const coffees = {"510": true, "534": true, "626": true, "975": true};
 
 const convertToMapObjectSquares = (bigLayout: any[]) => {
   let formattedLayout = bigLayout.map((s) => {
@@ -50,7 +52,8 @@ const testMapObject: MapObjectInterface = {
   playerHome: 1,
   bossHome: 1000,
   office: 500,
-  lights: stoplights,
+  lights,
+  coffees,
   squares: convertToMapObjectSquares(testLayout),
 };
 

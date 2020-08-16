@@ -2,6 +2,7 @@ export const Item = {};
 
 export const Caffeine = {
     properties: {
-        caffeineContent: 1
+        wearOff: 5000,
+        multiplier: 1.5
     }
 };

@@ -2,7 +2,7 @@ enum Direction {
   UP = "up",
   DOWN = "down",
   LEFT = "left",
-  RIGHT = "right"
+  RIGHT = "right",
 }
 
 export interface MapGridInterface {
@@ -14,6 +14,7 @@ export interface MapGridInterface {
   bossHome: number;
   office: number;
   lights: { [key: string]: number };
+  coffees: { [key: string]: boolean };
   pixelWidth: number;
   pixelHeight: number;
   generateTileMap: Function;
@@ -30,6 +31,7 @@ export interface MapObjectInterface {
   bossHome: number;
   office: number;
   lights: { [key: string]: number };
+  coffees: { [key: string]: boolean };
 }
 
 export interface SquareInterface {
@@ -49,7 +51,7 @@ type BordersInterface = {
 
 type BordersCompressedInterface = {
   [direction in Direction]: number | null;
-}
+};
 
 type Tile =
   | "street"
@@ -83,6 +85,7 @@ class MapGrid implements MapGridInterface {
   public bossHome: number;
   public office: number;
   public lights: { [key: string]: number };
+  public coffees: { [key: string]: boolean };
   public pixelHeight: number;
   public pixelWidth: number;
 
@@ -95,6 +98,7 @@ class MapGrid implements MapGridInterface {
       bossHome,
       office,
       lights,
+      coffees
     } = mapObj;
 
     const newMap = new this(width, height);
@@ -103,6 +107,7 @@ class MapGrid implements MapGridInterface {
     newMap.bossHome = bossHome;
     newMap.office = office;
     newMap.lights = lights;
+    newMap.coffees = coffees;
 
     for (let i = 0; i < squares.length; i++) {
       newMap.squares[i].drivable = squares[i].drivable;
@@ -119,6 +124,7 @@ class MapGrid implements MapGridInterface {
     this.bossHome = 0;
     this.office = 0;
     this.lights = {};
+    this.coffees = {};
     this.pixelWidth = this.width * 25;
     this.pixelHeight = this.height * 25;
 
@@ -217,7 +223,7 @@ class MapGrid implements MapGridInterface {
     let row = Y / 25;
     let col = X / 25;
     let id = row * 40 + col;
-    console.log(id, row, col)
+    console.log(id, row, col);
     return this.get(id);
   }
 
@@ -234,9 +240,11 @@ class MapGrid implements MapGridInterface {
     let boundBoxY = currentSquareY - 25;
     boundBoxY = boundBoxY < 0 ? 0 : boundBoxY;
     boundBoxX = boundBoxY > this.height ? this.height : boundBoxY;
-    console.log("boundboxX: ", boundBoxX)
-    console.log("boundboxY: ", boundBoxY)
-    let startSquare: Square = <Square>this.getSquareByCoords(boundBoxX, boundBoxY);
+    console.log("boundboxX: ", boundBoxX);
+    console.log("boundboxY: ", boundBoxY);
+    let startSquare: Square = <Square>(
+      this.getSquareByCoords(boundBoxX, boundBoxY)
+    );
     return [
       startSquare,
       this.get(startSquare.id + 1),
@@ -247,7 +255,6 @@ class MapGrid implements MapGridInterface {
       this.get(startSquare.id + 81),
       this.get(startSquare.id + 82),
     ];
-
   }
 
   getSquaresInVicinity(x: number, y: number, d: number) {
@@ -272,7 +279,9 @@ class MapGrid implements MapGridInterface {
     boundBoxX = boundBoxX < 0 ? 0 : boundBoxX;
     let boundBoxY = currentSquareY - 25;
     boundBoxY = boundBoxY < 0 ? 0 : boundBoxY;
-    let startSquare: Square = <Square>this.getSquareByCoords(boundBoxX, boundBoxY);
+    let startSquare: Square = <Square>(
+      this.getSquareByCoords(boundBoxX, boundBoxY)
+    );
     let squares = [
       startSquare,
       this.get(startSquare.id + 1),
@@ -347,53 +356,46 @@ class MapGrid implements MapGridInterface {
     startY: number,
     endX: number,
     endY: number
-  ): Array[] | null {
-
+  ): Array<number>[] | null {
     let startSquare: Square = <Square>this.getSquareByCoords(startX, startY);
     let endSquare: Square = <Square>this.getSquareByCoords(endX, endY);
-  
+
     let frontier = new PathQueue();
-    let cameFrom: {[key: string]: any} = {};
+    let cameFrom: { [key: string]: any } = {};
     let pathStack = [];
     let foundTarget = false;
-  
+
     //start the queue with the starting square (start)
     frontier.put(startSquare);
     //assign start's "cameFrom" property to null
     cameFrom[startSquare.id] = null;
-  
+
     //run a loop to expand the frontier in every direction on each iteration and break if end is reached
     while (frontier.empty() === false) {
       let currentId = frontier.get();
-  
+
       let currentSquare: Square = <Square>this.squares[currentId - 1];
-       
-  
+
       if (currentId === endSquare.id) {
         foundTarget = true;
         break;
       }
-  
+
       for (let direction in currentSquare.borders) {
         let next = currentSquare.borders[<Direction>direction];
-        if (
-          next &&
-          next.drivable &&
-          !cameFrom.hasOwnProperty(next.id)
-        ) {
+        if (next && next.drivable && !cameFrom.hasOwnProperty(next.id)) {
           frontier.put(next);
           cameFrom[next.id] = currentId;
         }
       }
-      
     }
-  
+
     if (!foundTarget) return null;
-  
+
     let current = endSquare;
     //loop backwards through the path taken to reach the end and add to stack
     while (current.id !== startSquare.id) {
-      let {X, Y} = current.coordinates();
+      let { X, Y } = current.coordinates();
       pathStack.push([X, Y]);
       // current.bossPath = true;
       current = <Square>this.get(cameFrom[current.id]);
@@ -407,36 +409,36 @@ class PathQueue {
   public front: number;
   public end: number;
   public size: number;
-  public storage: {[key: string]: any};
-constructor() {
-  this.front = 0;
-  this.end = -1;
-  this.storage = {};
-  this.size = 0;
-}
+  public storage: { [key: string]: any };
+  constructor() {
+    this.front = 0;
+    this.end = -1;
+    this.storage = {};
+    this.size = 0;
+  }
 
-put(square: SquareInterface) {
-  this.end++;
-  this.size++;
-  this.storage[this.end] = square.id;
-}
+  put(square: SquareInterface) {
+    this.end++;
+    this.size++;
+    this.storage[this.end] = square.id;
+  }
 
-get() {
-  if (this.empty()) return null;
+  get() {
+    if (this.empty()) return null;
 
-  let oldFront = this.front;
-  let output = this.storage[oldFront];
+    let oldFront = this.front;
+    let output = this.storage[oldFront];
 
-  this.front++;
-  delete this.storage[oldFront];
-  this.size--;
+    this.front++;
+    delete this.storage[oldFront];
+    this.size--;
 
-  return output;
-}
+    return output;
+  }
 
-empty() {
-  return this.front > this.end;
-}
+  empty() {
+    return this.front > this.end;
+  }
 }
 
 export default MapGrid;

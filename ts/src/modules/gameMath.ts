@@ -2,9 +2,21 @@ import { Entity } from "@fritzy/ecs";
 const abs = Math.abs;
 
 export function calculateSpeedConstant(entity: Entity): number {
-  return entity.SchoolZone
-    ? entity.Velocity.speedConstant * entity.SchoolZone.multiplier
-    : entity.Velocity.speedConstant;
+  let speed = entity.Velocity.speedConstant;
+  if (entity.has("SchoolZone")) {
+    return speed * entity.SchoolZone.multiplier;
+  }
+  if (entity.has("CaffeineBoost")) {
+    for (let cb of entity.CaffeineBoost) {
+      speed *= cb.multiplier;
+    }
+  }
+  return speed;
+
+  // let cf = entity.CaffeineBoost ? 
+  // return entity.SchoolZone
+  //   ? entity.Velocity.speedConstant * entity.SchoolZone.multiplier
+  //   : entity.Velocity.speedConstant;
 }
 
 export function canHasFudge(

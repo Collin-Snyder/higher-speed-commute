@@ -1,6 +1,6 @@
-import ECS from "@fritzy/ecs";
+import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 
-export class RenderTileMap extends ECS.System {
+export class RenderTileMap extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = { has: ["TileMap"] };
   private ctx: CanvasRenderingContext2D;
 
@@ -9,7 +9,7 @@ export class RenderTileMap extends ECS.System {
     this.ctx = ctx;
   }
 
-  update(tick: number, entities: Array<any>) {
+  update(tick: number, entities: Set<Entity>) {
     const mapEntity = [...entities][0];
     const tileMap = mapEntity.TileMap;
     const map = mapEntity.Map;
@@ -39,10 +39,9 @@ export class RenderTileMap extends ECS.System {
   }
 }
 
-export class RenderLights extends ECS.System {
+export class RenderEntities extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
     has: ["Coordinates", "Renderable"],
-    hasnt: ["Car"],
   };
   private ctx: CanvasRenderingContext2D;
 
@@ -51,56 +50,70 @@ export class RenderLights extends ECS.System {
     this.ctx = ctx;
   }
 
-  update(tick: number, entities: Array<any>) {
-    let lightEntities = [...entities];
+  update(tick: number, entities: Set<Entity>) {
     const global = this.ecs.getEntity("global").Global;
 
-    for (let lightEntity of lightEntities) {
-      let lightCoords: { X: number; Y: number } =
-        global.spriteMap[`${lightEntity.Color.color}Light`];
+    for (let entity of entities) {
       this.ctx.drawImage(
         global.spriteSheet,
-        lightCoords.X,
-        lightCoords.Y,
-        lightEntity.Renderable.spriteWidth,
-        lightEntity.Renderable.spriteHeight,
-        lightEntity.Coordinates.X,
-        lightEntity.Coordinates.Y,
-        lightEntity.Renderable.renderWidth,
-        lightEntity.Renderable.renderHeight
+        entity.Renderable.spriteX,
+        entity.Renderable.spriteY,
+        entity.Renderable.spriteWidth,
+        entity.Renderable.spriteHeight,
+        entity.Coordinates.X,
+        entity.Coordinates.Y,
+        entity.Renderable.renderWidth,
+        entity.Renderable.renderHeight
       );
     }
   }
 }
 
-export class RenderCars extends ECS.System {
-  static query: { has?: string[]; hasnt?: string[] } = { has: ["Car"] };
-  private ctx: CanvasRenderingContext2D;
+// export class RenderItems extends EntityComponentSystem.System {
+//   static query: { has?: string[]; hasnt?: string[] } = { has: ["Caffeine", "Coordinates", "Renderable"] };
+//   private ctx: CanvasRenderingContext2D;
 
-  constructor(ecs: any, ctx: CanvasRenderingContext2D) {
-    super(ecs);
-    this.ctx = ctx;
-  }
+//   constructor (ecs: ECS, ctx: CanvasRenderingContext2D) {
+//     super(ecs);
+//     this.ctx = ctx;
+//   }
 
-  update(tick: number, entities: Array<any>) {
-    let driverEntities = [...entities];
-    const global = this.ecs.getEntity("global").Global;
+//   update(tick: number, entities: Set<Entity>) {
+//     let coffeeEntities = [...entities];
+//     const global = this.ecs.getEntity("global").Global;
 
-    for (let driver of driverEntities) {
-      //@ts-ignore
-      let tileCoords: { X: number; Y: number } =
-        global.spriteMap[`${driver.Car.color}Car`];
-      this.ctx.drawImage(
-        global.spriteSheet,
-        tileCoords.X,
-        tileCoords.Y,
-        driver.Renderable.spriteWidth,
-        driver.Renderable.spriteHeight,
-        driver.Coordinates.X,
-        driver.Coordinates.Y,
-        driver.Renderable.renderWidth,
-        driver.Renderable.renderHeight
-      );
-    }
-  }
-}
+//     for (let coffeEntity of )
+//   }
+// }
+
+// export class RenderCars extends ECS.System {
+//   static query: { has?: string[]; hasnt?: string[] } = { has: ["Car"] };
+//   private ctx: CanvasRenderingContext2D;
+
+//   constructor(ecs: any, ctx: CanvasRenderingContext2D) {
+//     super(ecs);
+//     this.ctx = ctx;
+//   }
+
+//   update(tick: number, entities: Set<Entity>) {
+//     let driverEntities = [...entities];
+//     const global = this.ecs.getEntity("global").Global;
+
+//     for (let driver of driverEntities) {
+//       //@ts-ignore
+//       let tileCoords: { X: number; Y: number } =
+//         global.spriteMap[`${driver.Car.color}Car`];
+//       this.ctx.drawImage(
+//         global.spriteSheet,
+//         tileCoords.X,
+//         tileCoords.Y,
+//         driver.Renderable.spriteWidth,
+//         driver.Renderable.spriteHeight,
+//         driver.Coordinates.X,
+//         driver.Coordinates.Y,
+//         driver.Renderable.renderWidth,
+//         driver.Renderable.renderHeight
+//       );
+//     }
+//   }
+// }

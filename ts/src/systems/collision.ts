@@ -15,19 +15,24 @@ export class CollisionSystem extends ECS.System {
   static query: { has?: string[]; hasnt?: string[] } = {
     has: ["Collision", "Coordinates", "Renderable"],
   };
+  public collidables: Entity[];
+  public map: any;
 
   static subscriptions: string[] = ["Coordinates"];
 
   constructor(ecs: any) {
     super(ecs);
+    this.collidables = [];
   }
 
-  update(tick: number, entities: Array<any>) {
+  update(tick: number, entities: Set<Entity>) {
     this.collidables = [...entities];
     this.map = this.ecs.getEntity("global").Global.map.Map.map;
-    const mapCollisions = this.detectMapCollisions();
-    const entityCollisions = this.detectEntityCollisions();
-    this.resolveCollisions(mapCollisions, entityCollisions);
+    for (let change of this.changes) {
+      let entity = change.component.entity;
+      this.handleMapCollisions(entity);
+      this.handleEntityCollisions(entity);
+    }
   }
 
   checkEdgeCollision(x: number, y: number, w: number = 25, h: number = 25) {
@@ -59,20 +64,17 @@ export class CollisionSystem extends ECS.System {
   }
 
   checkEntityCollision(entity1: any, entity2: any) {
-    //ADD COLLISION CHECKING FOR CIRCULAR LIGHTS
-    if (
-      entity1.Coordinates.X <
-        entity2.Coordinates.X + entity2.Renderable.renderWidth &&
-      entity1.Coordinates.X + entity1.Renderable.renderWidth >
-        entity2.Coordinates.X &&
-      entity1.Coordinates.Y <
-        entity2.Coordinates.Y + entity2.Renderable.renderHeight &&
-      entity1.Coordinates.Y + entity1.Renderable.renderHeight >
-        entity2.Coordinates.Y
-    ) {
-      return true;
-    }
-    return false;
+    let fudge1 = entity1.Collision.fudgeFactor;
+    let fudge2 = entity2.Collision.fudgeFactor;
+    let x1 = entity1.Coordinates.X + fudge1;
+    let y1 = entity1.Coordinates.Y + fudge1;
+    let x2 = entity2.Coordinates.X + fudge2;
+    let y2 = entity2.Coordinates.Y + fudge2;
+    let w1 = entity1.Renderable.renderWidth - fudge1 * 2;
+    let h1 = entity1.Renderable.renderHeight - fudge1 * 2;
+    let w2 = entity2.Renderable.renderWidth - fudge2 * 2;
+    let h2 = entity2.Renderable.renderHeight - fudge2 * 2;
+    return this.checkTileCollision(x1, y1, x2, y2, w1, h1, w2, h2);
   }
 
   getPreviousCoordinate(
@@ -88,120 +90,93 @@ export class CollisionSystem extends ECS.System {
     };
   }
 
-  detectMapCollisions() {
-    let mapCollisions = new Map();
-    for (let change of this.changes) {
-      let entity = change.component.entity;
-      let collisions = [];
-      let x = entity.Coordinates.X;
-      let y = entity.Coordinates.Y;
-
-      if (
-        this.checkEdgeCollision(
-          x + entity.Collision.fudgeFactor,
-          y + entity.Collision.fudgeFactor,
-          entity.Renderable.renderWidth - entity.Collision.fudgeFactor * 2,
-          entity.Renderable.renderHeight - entity.Collision.fudgeFactor * 2
-        )
-      ) {
-        collisions.push(null);
-      } else {
-        for (let square of this.map.squares) {
-          if (!square) continue;
-          let sqCoords = square.coordinates();
-          if (
-            this.checkTileCollision(
-              entity.Coordinates.X + entity.Collision.fudgeFactor,
-              entity.Coordinates.Y + entity.Collision.fudgeFactor,
-              sqCoords.X,
-              sqCoords.Y,
-              entity.Renderable.renderWidth - entity.Collision.fudgeFactor * 2,
-              entity.Renderable.renderHeight - entity.Collision.fudgeFactor * 2,
-              25,
-              25
-            )
-          ) {
-            collisions.push(square);
-          }
-        }
-      }
-      //@ts-ignore
-      mapCollisions.set(entity.id, collisions);
-      collisions = [];
-    }
-    return mapCollisions;
-  }
-
-  detectEntityCollisions() {
-    //returns array of collision tuples
-    const collisions: any[] = [];
-    const collisionMap = new Map();
-    for (let change of this.changes) {
-      let entity1 = change.component.entity;
-      if (entity1.Collision.movable) {
-        for (let entity2 of this.collidables) {
-          if (
-            entity1 !== entity2 &&
-            this.checkEntityCollision(entity1, entity2) &&
-            !collisionMap.has(entity1) &&
-            !collisionMap.has(entity2)
-          ) {
-            collisionMap.set(entity1, entity2);
-            collisions.push([entity1, entity2]);
-          }
-        }
-      }
-    }
-    return collisions;
-  }
-
-  resolveCollisions(
-    mapCollisions: Map<any, Array<any>>,
-    entityCollisions: Array<any>
-  ) {
-    while (true) {
-      for (let [entityID, sq] of mapCollisions) {
-        let entity = this.ecs.getEntity(entityID);
-        let boundary: boolean = sq.some((s) => !s || !s.drivable);
-        let schoolZone: boolean = sq.some((s) => s && s.schoolZone);
-        if (boundary) {
-          this.stop(entity);
-          if (entity.Velocity.altVectors.length) {
-            entity.Velocity.vector = entity.Velocity.altVectors.shift();
-            this.move(entity);
-          }
-        } else if (schoolZone) {
-          if (!entity.SchoolZone) {
-            entity.addComponent("SchoolZone", { multiplier: 0.34 });
-          }
+  handleMapCollisions(entity: Entity) {
+    let mapCollision = this.detectMapCollision(entity);
+    if (mapCollision === "boundary") {
+      while (mapCollision === "boundary") {
+        this.stop(entity);
+        if (entity.Velocity.altVectors.length) {
+          entity.Velocity.vector = entity.Velocity.altVectors.shift();
+          this.move(entity);
         } else {
-          if (entity.SchoolZone) {
-            entity.removeComponentByType("SchoolZone");
-          }
+          break;
+        }
+        mapCollision = this.detectMapCollision(entity);
+      }
+    } else if (mapCollision === "schoolZone") {
+      if (!entity.SchoolZone) {
+        entity.addComponent("SchoolZone", { multiplier: 0.34 });
+      }
+    } else if (!mapCollision) {
+      if (entity.SchoolZone) {
+        entity.removeComponentByType("SchoolZone");
+      }
+    }
+  }
+
+  detectMapCollision(entity: Entity) {
+    let x = entity.Coordinates.X;
+    let y = entity.Coordinates.Y;
+
+    if (
+      this.checkEdgeCollision(
+        x + entity.Collision.fudgeFactor,
+        y + entity.Collision.fudgeFactor,
+        entity.Renderable.renderWidth - entity.Collision.fudgeFactor * 2,
+        entity.Renderable.renderHeight - entity.Collision.fudgeFactor * 2
+      )
+    ) {
+      return "boundary";
+    } else {
+      let schoolZone = false;
+      for (let square of this.map.squares) {
+        if (!square) continue;
+        let sqCoords = square.coordinates();
+        if (
+          this.checkTileCollision(
+            entity.Coordinates.X + entity.Collision.fudgeFactor,
+            entity.Coordinates.Y + entity.Collision.fudgeFactor,
+            sqCoords.X,
+            sqCoords.Y,
+            entity.Renderable.renderWidth - entity.Collision.fudgeFactor * 2,
+            entity.Renderable.renderHeight - entity.Collision.fudgeFactor * 2,
+            25,
+            25
+          )
+        ) {
+          if (!square.drivable) return "boundary";
+          if (square.schoolZone) schoolZone = true;
         }
       }
-      break;
+      if (schoolZone) return "schoolZone";
     }
+    return "";
+  }
 
-    for (let ec of entityCollisions) {
-      let collider = ec[0];
-      let target = ec[1];
-      if (
-        target.has("Timer") &&
-        target.has("Color") &&
-        target.Color.color === "red"
-      ) {
-        this.stop(collider);
+  handleEntityCollisions(entity: Entity) {
+    let collisions = this.detectEntityCollisions(entity);
+    for (let c of collisions) {
+      if (c.has("Timer") && c.has("Color") && c.Color.color === "red") {
+        this.stop(entity);
+      }
+      if (c.has("Caffeine")) {
+        c.removeComponentByType("Renderable");
+        this.collidables = this.collidables.filter((e) => e !== c);
+        entity.addComponent("CaffeineBoost", c.Caffeine);
       }
     }
+  }
+
+  detectEntityCollisions(entity: Entity) {
+    return this.collidables.filter(
+      (c: Entity) => entity !== c && this.checkEntityCollision(entity, c)
+    );
   }
 
   move(entity: Entity) {
     const speedConstant = calculateSpeedConstant(entity);
-    entity.Coordinates.X +=
-      entity.Velocity.vector.X * speedConstant;
-    entity.Coordinates.Y +=
-      entity.Velocity.vector.Y * speedConstant;
+    entity.Coordinates.X += entity.Velocity.vector.X * speedConstant;
+    entity.Coordinates.Y += entity.Velocity.vector.Y * speedConstant;
   }
 
   stop(entity: Entity) {

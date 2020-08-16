@@ -1,8 +1,8 @@
-import ECS, { BaseComponent, Entity } from "@fritzy/ecs";
+import ECS, { Entity } from "@fritzy/ecs";
 import keyCodes from "../keyCodes";
 
 export class InputSystem extends ECS.System {
-  public keyPressMap: { [key: string]: booleans };
+  public keyPressMap: { [key: string]: boolean };
   static query: { has?: string[]; hasnt?: string[] } = {
     has: ["Car", "Velocity"],
   };
@@ -14,51 +14,8 @@ export class InputSystem extends ECS.System {
     ].inputs.keyPressMap;
   }
 
-  update(tick: number, entities: Array<any>) {
-    entities = [...entities];
-    const playerEntity = entities[0];
-
-    // if (!this.global.game.paused) {
-    // if (
-    //   this.keyPressMap[keyCodes.LEFT] &&
-    //   playerEntity.Velocity.vector.X >= 0
-    // ) {
-    //   playerEntity.Velocity.vector.X = -1;
-    //   playerEntity.Velocity.vector.Y = 0;
-    // } else if (
-    //   this.keyPressMap[keyCodes.RIGHT] &&
-    //   playerEntity.Velocity.vector.X <= 0
-    // ) {
-    //   playerEntity.Velocity.vector.X = 1;
-    //   playerEntity.Velocity.vector.Y = 0;
-    // } else if (
-    //   this.keyPressMap[keyCodes.UP] &&
-    //   playerEntity.Velocity.vector.Y >= 0
-    // ) {
-    //   playerEntity.Velocity.vector.X = 0;
-    //   playerEntity.Velocity.vector.Y = -1;
-    // } else if (
-    //   this.keyPressMap[keyCodes.DOWN] &&
-    //   playerEntity.Velocity.vector.Y <= 0
-    // ) {
-    //   playerEntity.Velocity.vector.X = 0;
-    //   playerEntity.Velocity.vector.Y = 1;
-    // } else if (
-    //   !this.keyPressMap[keyCodes.DOWN] &&
-    //   !this.keyPressMap[keyCodes.UP] &&
-    //   !this.keyPressMap[keyCodes.RIGHT] &&
-    //   !this.keyPressMap[keyCodes.LEFT]
-    // ) {
-    //   playerEntity.Velocity.vector.X = 0;
-    //   playerEntity.Velocity.vector.Y = 0;
-    // }
-    // } else {
-    //   for (let entity of entities) {
-    //     entity.Velocity.vector.X = 0;
-    //     entity.Velocity.vector.Y = 0;
-    //   }
-    // }
-
+  update(tick: number, entities: Set<Entity>) {
+    const playerEntity = entities.values().next().value;
     playerEntity.Velocity.altVectors = this.getPotentialVectors();
   }
 
@@ -76,6 +33,4 @@ export class InputSystem extends ECS.System {
     return potentials;
   }
 
-  //if arrow keys pressed, update player speed/vector
-  //if space key pressed, update all entities speed (0 or game speed constant)
 }

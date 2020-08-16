@@ -6,7 +6,7 @@ const spriteMap = {
   playerHome: { X: 375, Y: 0 },
   bossHome: { X: 425, Y: 0 },
   office: { X: 25, Y: 25 },
-  blueCar: { X: 0, Y: 0 },
+  blueCar: { X: 75, Y: 25 },
   greenCar: { X: 25, Y: 0 },
   orangeCar: { X: 50, Y: 0 },
   pinkCar: { X: 75, Y: 0 },

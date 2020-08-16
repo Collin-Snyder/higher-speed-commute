@@ -13,7 +13,8 @@ import { LightTimer } from "./systems/lights";
 import { InputSystem } from "./systems/input";
 import { MovementSystem } from "./systems/move";
 import { CollisionSystem } from "./systems/collision";
-import { RenderTileMap, RenderCars, RenderLights } from "./systems/render";
+import { CaffeineSystem } from "./systems/caffeine";
+import { RenderTileMap, RenderEntities } from "./systems/render";
 
 interface InputEventsInterface {
   mouseX: number;
@@ -43,8 +44,8 @@ class Game {
   private playerEntity: Entity;
   private bossEntity: Entity;
   private lightEntities: { [key: string]: Entity };
+  private coffeeEntities: { [key: string]: Entity };
   private map: MapGridInterface;
-  
 
   constructor() {
     this.start = this.timestamp();
@@ -96,7 +97,6 @@ class Game {
       Car: {
         color: "blue",
       },
-      Caffeination: {},
       Velocity: {},
       Renderable: {},
       Collision: {},
@@ -112,8 +112,9 @@ class Game {
       Car: {
         color: "red",
       },
-      Caffeination: {},
-      Velocity: {},
+      Velocity: {
+        speedConstant: 0
+      },
       Path: {
         driver: "boss",
       },
@@ -122,6 +123,7 @@ class Game {
     });
 
     this.lightEntities = {};
+    this.coffeeEntities = {};
 
     for (let id in this.map.lights) {
       const square = this.map.get(id);
@@ -135,11 +137,28 @@ class Game {
           timeSinceLastInterval: 0,
         },
         Color: {},
-        Renderable: {},
-        Collision: {
-          movable: false,
+        Renderable: {
+          spriteX: 200,
+          spriteY: 0
         },
+        Collision: {},
       });
+    }
+
+    for (let id in this.map.coffees) {
+      const square = this.map.get(id);
+      this.coffeeEntities[id] = this.ecs.createEntity({
+        id: `coffee${id}`,
+        Coordinates: {
+          ...(square ? square.coordinates() : { X: 0, Y: 0 }),
+        },
+        Renderable: {
+          spriteX: 250,
+          spriteY: 0
+        },
+        Collision: {},
+        Caffeine: {}
+      })
     }
 
     this.global.Global.map = this.mapEntity;
@@ -156,15 +175,25 @@ class Game {
       this.spriteSheetIsLoaded = true;
       this.global.Global.spriteSheet = this.spritesheet;
       this.global.Global.spriteMap = this.spriteMap;
+
+      let playerSpriteCoords = this.spriteMap[`${this.playerEntity.Car.color}Car`];
+      this.playerEntity.Renderable.spriteX = playerSpriteCoords.X;
+      this.playerEntity.Renderable.spriteY = playerSpriteCoords.Y;
+  
+      let bossSpriteCoords = this.spriteMap[`${this.bossEntity.Car.color}Car`];
+      this.bossEntity.Renderable.spriteX = bossSpriteCoords.X;
+      this.bossEntity.Renderable.spriteY = bossSpriteCoords.Y;
     };
 
+    
+
     this.ecs.addSystem("lights", new LightTimer(this.ecs, this.step));
+    this.ecs.addSystem("caffeine", new CaffeineSystem(this.ecs, this.step));
     this.ecs.addSystem("input", new InputSystem(this.ecs));
     this.ecs.addSystem("move", new MovementSystem(this.ecs));
     this.ecs.addSystem("collision", new CollisionSystem(this.ecs));
     this.ecs.addSystem("render", new RenderTileMap(this.ecs, this.ctx));
-    this.ecs.addSystem("render", new RenderLights(this.ecs, this.ctx));
-    this.ecs.addSystem("render", new RenderCars(this.ecs, this.ctx));
+    this.ecs.addSystem("render", new RenderEntities(this.ecs, this.ctx));
   }
 
   timestamp(): number {
@@ -201,6 +230,7 @@ class Game {
 
   update(step: number) {
     this.ecs.runSystemGroup("lights");
+    this.ecs.runSystemGroup("caffeine");
     this.ecs.runSystemGroup("input");
     this.ecs.runSystemGroup("move");
     this.ecs.runSystemGroup("collision");

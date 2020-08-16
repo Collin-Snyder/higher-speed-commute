@@ -17,9 +17,9 @@ export class Entity {
     has(tagOrComponent: any): Array<BaseComponent>;
     addTag(tag: any): void;
     removeTag(tag: any): void;
-    addComponent(type: any, definition: any, delayCache: any): BaseComponent;
+    addComponent(type: any, definition: any, delayCache?: any): BaseComponent;
     removeComponentByType(cname: any): void;
-    removeComponent(component: any, delayCache: any, destroy?: boolean): void;
+    removeComponent(component: any, delayCache?: any, destroy?: boolean): void;
     getObject(): any;
 
     destroy(): void;

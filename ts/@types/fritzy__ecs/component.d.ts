@@ -10,6 +10,7 @@ export class BaseComponent {
     type: string;
     id: string;
     updated: number;
+    [key: string]: any;
 
     destroy(remove?: boolean): void;
 }
