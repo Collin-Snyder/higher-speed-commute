@@ -1,3 +1,4 @@
+import { calculateSurroundingSquareCount } from "../modules/gameMath";
 enum Direction {
   UP = "up",
   DOWN = "down",
@@ -89,31 +90,37 @@ class MapGrid implements MapGridInterface {
   public pixelHeight: number;
   public pixelWidth: number;
 
-  static fromMapObject(mapObj: MapObjectInterface): MapGrid {
+  static fromMapObject(mapObj: any): MapGrid {
     const {
-      width,
-      height,
+      board_width,
+      board_height,
       squares,
-      playerHome,
-      bossHome,
+      player_home,
+      boss_home,
       office,
       lights,
-      coffees
+      coffees,
     } = mapObj;
 
-    const newMap = new this(width, height);
+    const newMap = new this(board_width, board_height);
 
-    newMap.playerHome = playerHome;
-    newMap.bossHome = bossHome;
+    newMap.playerHome = player_home;
+    newMap.bossHome = boss_home;
     newMap.office = office;
     newMap.lights = lights;
     newMap.coffees = coffees;
 
+    let updateIndividualSquaresStart = window.performance.now();
     for (let i = 0; i < squares.length; i++) {
       newMap.squares[i].drivable = squares[i].drivable;
       newMap.squares[i].schoolZone = squares[i].schoolZone;
     }
-
+    let updateIndividualSquaresEnd = window.performance.now();
+    console.log(
+      `UPDATING SQUARES WITH DRIVABLE/SCHOOLZONE PROPERTIES TOOK ${
+        updateIndividualSquaresEnd - updateIndividualSquaresStart
+      }ms`
+    );
     return newMap;
   }
 
@@ -215,117 +222,45 @@ class MapGrid implements MapGridInterface {
   }
 
   getSquareByCoords(X: number, Y: number): Square | null {
-    //return the square object at the given coordinates
     X = Math.floor(X / 25) * 25;
     Y = Math.floor(Y / 25) * 25;
-    // let row = 25 * Y;
-    // let col = 25 * X + 1;
     let row = Y / 25;
-    let col = X / 25;
+    let col = X / 25 + 1;
     let id = row * 40 + col;
-    console.log(id, row, col);
     return this.get(id);
   }
 
-  getSurroundingSquares(x: number, y: number) {
-    if (x < 0 || y < 0) {
-      console.log("X and Y must be 0 or positive integers.");
-      return [];
-    }
-    let currentSquareX = Math.floor(x / 25) * 25;
-    let currentSquareY = Math.floor(y / 25) * 25;
-    let boundBoxX = currentSquareX - 25;
-    boundBoxX = boundBoxX < 0 ? 0 : boundBoxX;
-    boundBoxX = boundBoxX > this.width ? this.width : boundBoxX;
-    let boundBoxY = currentSquareY - 25;
-    boundBoxY = boundBoxY < 0 ? 0 : boundBoxY;
-    boundBoxX = boundBoxY > this.height ? this.height : boundBoxY;
-    console.log("boundboxX: ", boundBoxX);
-    console.log("boundboxY: ", boundBoxY);
+  getSurroundingSquares(x: number, y: number, layers: number) {
     let startSquare: Square = <Square>(
-      this.getSquareByCoords(boundBoxX, boundBoxY)
+      this.getSquareByCoords(x < 0 ? 0 : x, y < 0 ? 0 : y)
     );
-    return [
-      startSquare,
-      this.get(startSquare.id + 1),
-      this.get(startSquare.id + 2),
-      this.get(startSquare.id + 40),
-      this.get(startSquare.id + 42),
-      this.get(startSquare.id + 80),
-      this.get(startSquare.id + 81),
-      this.get(startSquare.id + 82),
-    ];
-  }
-
-  getSquaresInVicinity(x: number, y: number, d: number) {
-    //d indicates how many squares in each direction around current square to include
-    let max = Math.max;
-
-    if (d < 1 || d > max(this.width, this.height)) {
-      console.log(
-        "Distance must be between 1 and the largest dimension of the map."
-      );
-      return [];
-    }
-    if (x < 0 || y < 0) {
-      console.log("X and Y must be positive integers.");
-      return [];
-    }
-    if (d === max(this.width, this.height)) return this.squares;
-
-    let currentSquareX = Math.floor(x / 25) * 25;
-    let currentSquareY = Math.floor(y / 25) * 25;
-    let boundBoxX = currentSquareX - 25;
-    boundBoxX = boundBoxX < 0 ? 0 : boundBoxX;
-    let boundBoxY = currentSquareY - 25;
-    boundBoxY = boundBoxY < 0 ? 0 : boundBoxY;
-    let startSquare: Square = <Square>(
-      this.getSquareByCoords(boundBoxX, boundBoxY)
-    );
-    let squares = [
-      startSquare,
-      this.get(startSquare.id + 1),
-      this.get(startSquare.id + 2),
-      this.get(startSquare.id + 40),
-      this.get(startSquare.id + 42),
-      this.get(startSquare.id + 80),
-      this.get(startSquare.id + 81),
-      this.get(startSquare.id + 82),
-    ];
-
-    //create "leftOf" = {left: "down", down: "right", right: "up", up: "left"}
-    const leftOf = { left: "down", down: "right", right: "up", up: "left" };
-    //create "current" = starting square
-    let current = this.getSquareByCoords(x, y);
-    //create "direction" variable - start at "left"
-    let direction = "left";
-    //create "count" variable - start at 0
+    let queue = new PathQueue();
+    let visited: { [key: string]: boolean } = {};
+    let toInclude: Square[] = [];
+    let sqCount = calculateSurroundingSquareCount(layers);
     let count = 0;
-    //create "layer" variable - start at 1
-    let layer = 1;
-    //"layer" will be current count / 8
-    //create "added" variable - {[startId]: true}
-    const added = {};
-    // added[current.id] = true;
-    //do while loop
-    do {
-      //check if left border has been added
-      //if not, loop through borders to find a starting direction that exists
-      //check if left border has been added
-      //if yes:
-      //current = current.borders[direction]
-      //add current to array
-      //add current.id to "added"
-      //count++
-      //check if count = 8 * layer
-      //if yes, increment layer
-      //if layer > d, end loop
-      //if no:
-      //current = current.borders[leftOf[direction]]
-      //add current to array
-      //add current.id to "added"
-      //count++
-    } while (layer <= d);
+
+    queue.put(startSquare);
+    visited[startSquare.id] = true;
+    toInclude.push(startSquare);
+
+    while (!queue.empty() && count < sqCount) {
+      let currentId = queue.get();
+      let currentSquare: Square = <Square>this.get(currentId);
+
+      toInclude.push(currentSquare);
+
+      for (let direction in currentSquare.borders) {
+        let next = currentSquare.borders[<Direction>direction];
+        if (next && !visited.hasOwnProperty(next.id)) {
+          queue.put(next);
+          visited[next.id] = true;
+        }
+      }
+      count++;
+    }
+    // console.log(toInclude);
+    return toInclude;
   }
 
   getAttributesByCoords(X: number, Y: number, attributes: string[]): any {
@@ -376,7 +311,7 @@ class MapGrid implements MapGridInterface {
 
       let currentSquare: Square = <Square>this.squares[currentId - 1];
 
-      if (currentId === endSquare.id) {
+      if (currentId == endSquare.id) {
         foundTarget = true;
         break;
       }
@@ -390,7 +325,12 @@ class MapGrid implements MapGridInterface {
       }
     }
 
-    if (!foundTarget) return null;
+    if (!foundTarget) {
+      console.log(
+        `No valid path from square ${startSquare.id} to square ${endSquare.id}`
+      );
+      return [[0, 0]];
+    }
 
     let current = endSquare;
     //loop backwards through the path taken to reach the end and add to stack
@@ -400,7 +340,7 @@ class MapGrid implements MapGridInterface {
       // current.bossPath = true;
       current = <Square>this.get(cameFrom[current.id]);
     }
-    console.log(pathStack);
+    pathStack.push([startX, startY]);
     return pathStack;
   }
 }

@@ -92,29 +92,40 @@ export class CollisionSystem extends ECS.System {
 
   handleMapCollisions(entity: Entity) {
     let mapCollision = this.detectMapCollision(entity);
-    if (mapCollision === "boundary") {
-      while (mapCollision === "boundary") {
-        this.stop(entity);
-        if (entity.Velocity.altVectors.length) {
-          entity.Velocity.vector = entity.Velocity.altVectors.shift();
-          this.move(entity);
-        } else {
-          break;
+    switch (mapCollision) {
+      case "boundary":
+        while (mapCollision === "boundary") {
+          this.stop(entity);
+          if (entity.Velocity.altVectors.length) {
+            entity.Velocity.vector = entity.Velocity.altVectors.shift();
+            this.move(entity);
+          } else {
+            break;
+          }
+          mapCollision = this.detectMapCollision(entity);
         }
-        mapCollision = this.detectMapCollision(entity);
-      }
-    } else if (mapCollision === "schoolZone") {
-      if (!entity.SchoolZone) {
-        entity.addComponent("SchoolZone", { multiplier: 0.34 });
-      }
-    } else if (!mapCollision) {
-      if (entity.SchoolZone) {
-        entity.removeComponentByType("SchoolZone");
-      }
+        break;
+      case "office":
+        if (entity.id === "player") {
+          console.log ("YOU WIN!");
+        } else if (entity.id === "boss") {
+          console.log("YOU LOSE!");
+        }
+        entity.Velocity.speedConstant = 0;
+        break;
+      case "schoolZone":
+        if (!entity.SchoolZone) {
+          entity.addComponent("SchoolZone", { multiplier: 0.34 });
+        }
+        break;
+      default: 
+        if (entity.SchoolZone) {
+         entity.removeComponentByType("SchoolZone");
+        }
     }
   }
 
-  detectMapCollision(entity: Entity) {
+  detectMapCollision(entity: Entity): "boundary" | "office" | "schoolZone" | "" {
     let x = entity.Coordinates.X;
     let y = entity.Coordinates.Y;
 
@@ -129,7 +140,7 @@ export class CollisionSystem extends ECS.System {
       return "boundary";
     } else {
       let schoolZone = false;
-      for (let square of this.map.squares) {
+      for (let square of this.map.getSurroundingSquares(x, y, 2)) {
         if (!square) continue;
         let sqCoords = square.coordinates();
         if (
@@ -145,6 +156,7 @@ export class CollisionSystem extends ECS.System {
           )
         ) {
           if (!square.drivable) return "boundary";
+          if (square.id == this.map.office) return "office";
           if (square.schoolZone) schoolZone = true;
         }
       }
@@ -156,6 +168,11 @@ export class CollisionSystem extends ECS.System {
   handleEntityCollisions(entity: Entity) {
     let collisions = this.detectEntityCollisions(entity);
     for (let c of collisions) {
+      if (c.has("Car")) {
+        console.log(`${entity.id} hit ${c.id} - GAME OVER`);
+        entity.Velocity.speedConstant = 0;
+        c.Velocity.speedConstant = 0;
+      }
       if (c.has("Timer") && c.has("Color") && c.Color.color === "red") {
         this.stop(entity);
       }

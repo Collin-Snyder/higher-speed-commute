@@ -1,22 +1,33 @@
-import ECS, { Entity } from "@fritzy/ecs";
+import ECS, { Entity, BaseComponent } from "@fritzy/ecs";
 import keyCodes from "../keyCodes";
 
 export class InputSystem extends ECS.System {
   public keyPressMap: { [key: string]: boolean };
+  public global: BaseComponent;
+  public spaceBarTime: number;
   static query: { has?: string[]; hasnt?: string[] } = {
     has: ["Car", "Velocity"],
   };
 
   constructor(ecs: any) {
     super(ecs);
-    this.keyPressMap = this.ecs.getEntity("global")[
-      "Global"
-    ].inputs.keyPressMap;
+    this.global = this.ecs.getEntity("global")["Global"];
+    this.keyPressMap = this.global.inputs.keyPressMap;
+    this.spaceBarTime = 20;
   }
 
   update(tick: number, entities: Set<Entity>) {
-    const playerEntity = entities.values().next().value;
-    playerEntity.Velocity.altVectors = this.getPotentialVectors();
+    let newTime = this.spaceBarTime - tick;
+    if (newTime <= 0) {
+      if (this.keyPressMap[keyCodes.SPACE]) {
+        this.global.paused = !this.global.paused;
+        this.spaceBarTime = tick + 20;
+      }
+    }
+    if (!this.global.paused) {
+      const playerEntity = entities.values().next().value;
+      playerEntity.Velocity.altVectors = this.getPotentialVectors();
+    }
   }
 
   getPotentialVectors() {
@@ -32,5 +43,4 @@ export class InputSystem extends ECS.System {
     if (!potentials.length) potentials.push({ X: 0, Y: 0 });
     return potentials;
   }
-
 }

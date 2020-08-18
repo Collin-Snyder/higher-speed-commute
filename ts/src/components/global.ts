@@ -5,6 +5,7 @@ export const Global = {
         player: '<Entity>',
         inputs: {},
         spriteSheet: null,
-        spriteMap: {}
+        spriteMap: {},
+        paused: true
     }
 };

@@ -1,5 +1,6 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 
+
 export class RenderTileMap extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = { has: ["TileMap"] };
   private ctx: CanvasRenderingContext2D;
@@ -10,7 +11,7 @@ export class RenderTileMap extends EntityComponentSystem.System {
   }
 
   update(tick: number, entities: Set<Entity>) {
-    const mapEntity = [...entities][0];
+    const mapEntity = entities.values().next().value;
     const tileMap = mapEntity.TileMap;
     const map = mapEntity.Map;
     const global = this.ecs.getEntity("global").Global;

@@ -1,14 +1,17 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
+import { average } from "./modules/gameMath";
 //@ts-ignore
-import testMapObject from "./scratch";
+import axios from "axios";
 import spriteMap from "./spriteMap";
 import keyCodes from "./keyCodes";
 import MapGrid, {
   MapGridInterface,
   MapObjectInterface,
   Square,
+  SquareInterface,
 } from "./state/map";
 import Components from "./components/index";
+import { MapSystem } from "./systems/map";
 import { LightTimer } from "./systems/lights";
 import { InputSystem } from "./systems/input";
 import { MovementSystem } from "./systems/move";
@@ -29,6 +32,7 @@ class Game {
   public totalElapsedTime: number;
   public frameElapsedTime: number;
   private step: number = 17; //1/60s
+  private tickTimes: number[];
   public inputs: InputEventsInterface;
   public width: number;
   public height: number;
@@ -38,7 +42,7 @@ class Game {
   public paused: boolean;
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
-  private ecs: ECS;
+  public ecs: ECS;
   private global: Entity;
   private mapEntity: Entity;
   private playerEntity: Entity;
@@ -52,15 +56,16 @@ class Game {
     this.lastTick = this.start;
     this.totalElapsedTime = 0;
     this.frameElapsedTime = 0;
+    this.tickTimes = [];
     this.width = 1000;
     this.height = 625;
     this.inputs = new InputEvents();
-    this.canvas = document.getElementsByTagName("canvas")[0];
+    this.canvas = <HTMLCanvasElement>document.getElementById("game");
     this.ctx = <CanvasRenderingContext2D>this.canvas.getContext("2d");
-    this.map = MapGrid.fromMapObject(testMapObject);
+    this.map = new MapGrid(40, 25);
     this.spritesheet = new Image();
     this.spriteSheetIsLoaded = false;
-    this.paused = false;
+    this.paused = true;
 
     this.spritesheet.src = "../spritesheet.png";
     this.spriteMap = spriteMap;
@@ -104,17 +109,11 @@ class Game {
 
     this.bossEntity = this.ecs.createEntity({
       id: "boss",
-      Coordinates: {
-        ...(this.map.get(this.map.bossHome)
-          ? this.map.get(this.map.bossHome).coordinates()
-          : { X: 0, Y: 0 }),
-      },
+      Coordinates: {},
       Car: {
         color: "red",
       },
-      Velocity: {
-        speedConstant: 0
-      },
+      Velocity: {},
       Path: {
         driver: "boss",
       },
@@ -125,67 +124,24 @@ class Game {
     this.lightEntities = {};
     this.coffeeEntities = {};
 
-    for (let id in this.map.lights) {
-      const square = this.map.get(id);
-      this.lightEntities[id] = this.ecs.createEntity({
-        id: `light${id}`,
-        Coordinates: {
-          ...(square ? square.coordinates() : { X: 0, Y: 0 }),
-        },
-        Timer: {
-          interval: this.map.lights[id],
-          timeSinceLastInterval: 0,
-        },
-        Color: {},
-        Renderable: {
-          spriteX: 200,
-          spriteY: 0
-        },
-        Collision: {},
-      });
-    }
-
-    for (let id in this.map.coffees) {
-      const square = this.map.get(id);
-      this.coffeeEntities[id] = this.ecs.createEntity({
-        id: `coffee${id}`,
-        Coordinates: {
-          ...(square ? square.coordinates() : { X: 0, Y: 0 }),
-        },
-        Renderable: {
-          spriteX: 250,
-          spriteY: 0
-        },
-        Collision: {},
-        Caffeine: {}
-      })
-    }
-
     this.global.Global.map = this.mapEntity;
     this.global.Global.player = this.playerEntity;
-
-    this.bossEntity.Path.path = this.map.findPath(
-      this.bossEntity.Coordinates.X,
-      this.bossEntity.Coordinates.Y,
-      this.map.get(this.map.office).coordinates().X,
-      this.map.get(this.map.office).coordinates().Y
-    );
 
     this.spritesheet.onload = () => {
       this.spriteSheetIsLoaded = true;
       this.global.Global.spriteSheet = this.spritesheet;
       this.global.Global.spriteMap = this.spriteMap;
 
-      let playerSpriteCoords = this.spriteMap[`${this.playerEntity.Car.color}Car`];
+      let playerSpriteCoords = this.spriteMap[
+        `${this.playerEntity.Car.color}Car`
+      ];
       this.playerEntity.Renderable.spriteX = playerSpriteCoords.X;
       this.playerEntity.Renderable.spriteY = playerSpriteCoords.Y;
-  
+
       let bossSpriteCoords = this.spriteMap[`${this.bossEntity.Car.color}Car`];
       this.bossEntity.Renderable.spriteX = bossSpriteCoords.X;
       this.bossEntity.Renderable.spriteY = bossSpriteCoords.Y;
     };
-
-    
 
     this.ecs.addSystem("lights", new LightTimer(this.ecs, this.step));
     this.ecs.addSystem("caffeine", new CaffeineSystem(this.ecs, this.step));
@@ -194,6 +150,8 @@ class Game {
     this.ecs.addSystem("collision", new CollisionSystem(this.ecs));
     this.ecs.addSystem("render", new RenderTileMap(this.ecs, this.ctx));
     this.ecs.addSystem("render", new RenderEntities(this.ecs, this.ctx));
+    this.ecs.addSystem("map", new MapSystem(this.ecs));
+    this.loadMap = this.loadMap.bind(this);
   }
 
   timestamp(): number {
@@ -211,6 +169,21 @@ class Game {
     }
   }
 
+  loadMap(id: number): void {
+    axios
+      .get(`/${id}`)
+      //@ts-ignore
+      .then((data) => {
+        let mapInfo = data.data;
+        this.mapEntity.Map.map = MapGrid.fromMapObject(mapInfo);
+        this.ecs.runSystemGroup("map");
+      })
+      //@ts-ignore
+      .catch((err) => {
+        console.error(err);
+      });
+  }
+
   tick() {
     let now = this.timestamp();
     this.totalElapsedTime = now - this.start;
@@ -224,16 +197,20 @@ class Game {
     this.lastTick = now;
 
     this.render();
-
+    // let newNow = window.performance.now();
+    // this.tickTimes.push(newNow - now);
+    // console.log(`The new tick average time is ${average(this.tickTimes)}ms`);
     requestAnimationFrame(this.tick.bind(this));
   }
 
   update(step: number) {
-    this.ecs.runSystemGroup("lights");
-    this.ecs.runSystemGroup("caffeine");
     this.ecs.runSystemGroup("input");
-    this.ecs.runSystemGroup("move");
-    this.ecs.runSystemGroup("collision");
+    if (!this.global.Global.paused) {
+      this.ecs.runSystemGroup("lights");
+      this.ecs.runSystemGroup("caffeine");
+      this.ecs.runSystemGroup("move");
+      this.ecs.runSystemGroup("collision");
+    }
 
     this.ecs.tick();
   }
@@ -267,6 +244,7 @@ class InputEvents {
 
     document.addEventListener("keydown", (e) => this.handleKeypress(e));
     document.addEventListener("keyup", (e) => this.handleKeypress(e));
+    document.addEventListener("keypress", (e) => this.handleKeypress(e));
     canvas.addEventListener("mousedown", (e) => this.handleMouseEvent(e));
     canvas.addEventListener("mouseup", (e) => this.handleMouseEvent(e));
     canvas.addEventListener("mousemove", (e) => this.handleMouseEvent(e));
@@ -303,6 +281,7 @@ class InputEvents {
 }
 
 const game = new Game();
+game.loadMap(17);
 
 requestAnimationFrame(game.tick.bind(game));
 

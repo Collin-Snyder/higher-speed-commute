@@ -3,6 +3,7 @@ import {
   calculateSpeedConstant,
   canHasFudge,
   normalize,
+  checkVelocityZero,
 } from "../modules/gameMath";
 
 export class MovementSystem extends ECS.System {
@@ -44,10 +45,15 @@ export class MovementSystem extends ECS.System {
 
     //NPC movement
     for (let entity of npcEntities) {
+      const path = entity.Path.path;
       let { X, Y } = entity.Coordinates;
-      let [X2, Y2] = entity.Path.path[entity.Path.path.length - 1];
-      if (canHasFudge(X, Y, X2, Y2, entity.Collision.fudgeFactor)) {
-        let [newX, newY] = entity.Path.path[entity.Path.path.length - 2];
+      let [X2, Y2] = path[path.length - 1];
+      if (
+        (canHasFudge(X, Y, X2, Y2, entity.Collision.fudgeFactor) ||
+          checkVelocityZero(entity.Velocity.vector)) &&
+        path.length > 1
+      ) {
+        let [newX, newY] = path[path.length - 2];
         let Xdiff = newX - X;
         let Ydiff = newY - Y;
         if (Math.abs(Xdiff) > Math.abs(Ydiff)) {
@@ -55,8 +61,9 @@ export class MovementSystem extends ECS.System {
         } else {
           entity.Velocity.vector = { X: 0, Y: Math.sign(Ydiff) };
         }
-        entity.Path.path.pop();
+        path.pop();
       }
+
       let entitySpeedConstant = calculateSpeedConstant(entity);
       entity.Coordinates.X += entity.Velocity.vector.X * entitySpeedConstant;
       entity.Coordinates.Y += entity.Velocity.vector.Y * entitySpeedConstant;
@@ -64,14 +71,3 @@ export class MovementSystem extends ECS.System {
   }
 }
 
-// export class MoveNPC extends ECS.System {
-//   static query: { has?: string[]; hasnt?: string[] } = {
-//     has: ["Car", "Velocity", "Path"],
-//   };
-
-//   constructor(ecs: any) {
-//     super(ecs);
-//   }
-
-//   update(tick: number, entities: Set<Entity>) {}
-// }
