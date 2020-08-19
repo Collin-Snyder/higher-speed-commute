@@ -13,6 +13,7 @@ import MapGrid, {
 import GameModeMachine from "./state/mode";
 import { MenuButtons } from "./state/menu";
 import Components from "./components/index";
+import Tags from "./tags/tags";
 import { MapSystem } from "./systems/map";
 import { LightTimer } from "./systems/lights";
 import { InputSystem } from "./systems/input";
@@ -84,6 +85,7 @@ class Game {
     this.ecs = new EntityComponentSystem.ECS();
 
     this.registerComponents();
+    this.registerTags();
     this.registerDefaultSubscribers();
 
     this.global = this.ecs.createEntity({
@@ -186,6 +188,12 @@ class Game {
       console.log(`Registering ${name}`);
       this.ecs.registerComponent(name, Components[name]);
     }
+  }
+
+  registerTags(): void {
+    console.log("Loading tags...");
+
+    this.ecs.registerTags(Tags);
   }
 
   registerDefaultSubscribers(): void {
@@ -293,12 +301,16 @@ class Game {
 }
 
 class InputEvents {
+  public gameCanvas: undefined | HTMLCanvasElement;
+  public UICanvas: undefined | HTMLCanvasElement;
   public mouseX: number;
   public mouseY: number;
   public mouseDown: boolean;
   public keyPressMap: { [keyCode: number]: boolean };
 
   constructor() {
+    this.gameCanvas;
+    this.UICanvas;
     this.mouseX = 0;
     this.mouseY = 0;
     this.mouseDown = false;
@@ -308,25 +320,39 @@ class InputEvents {
       this.keyPressMap[keyCodes[keyName]] = false;
     }
 
-    const gameCanvas = <HTMLCanvasElement>document.getElementById("game");
-    const UICanvas = <HTMLCanvasElement>document.getElementById("ui");
+    this.gameCanvas = <HTMLCanvasElement>document.getElementById("game");
+    this.UICanvas = <HTMLCanvasElement>document.getElementById("ui");
 
+    window.addEventListener("resize", (e) => this.handleWindowResize(e));
     document.addEventListener("keydown", (e) => this.handleKeypress(e));
     document.addEventListener("keyup", (e) => this.handleKeypress(e));
     document.addEventListener("keypress", (e) => this.handleKeypress(e));
-    UICanvas.addEventListener("mousedown", (e) => this.handleUIMouseEvent(e));
-    UICanvas.addEventListener("mouseup", (e) => this.handleUIMouseEvent(e));
-    UICanvas.addEventListener("mousemove", (e) => this.handleUIMouseEvent(e));
-    gameCanvas.addEventListener("mousedown", (e) =>
+    this.UICanvas.addEventListener("mousedown", (e) =>
+      this.handleUIMouseEvent(e)
+    );
+    this.UICanvas.addEventListener("mouseup", (e) =>
+      this.handleUIMouseEvent(e)
+    );
+    this.UICanvas.addEventListener("mousemove", (e) =>
+      this.handleUIMouseEvent(e)
+    );
+    this.gameCanvas.addEventListener("mousedown", (e) =>
       this.handleDesignMouseEvent(e)
     );
-    gameCanvas.addEventListener("mouseup", (e) =>
+    this.gameCanvas.addEventListener("mouseup", (e) =>
       this.handleDesignMouseEvent(e)
     );
-    gameCanvas.addEventListener("mousemove", (e) =>
+    this.gameCanvas.addEventListener("mousemove", (e) =>
       this.handleDesignMouseEvent(e)
     );
   }
+
+  handleWindowResize = (e: UIEvent) => {
+    if (this.UICanvas) {
+      this.UICanvas.width = window.innerWidth;
+      this.UICanvas.height = window.innerHeight;
+    }
+  };
 
   handleKeypress = (e: KeyboardEvent) => {
     switch (e.type) {
@@ -357,7 +383,7 @@ class InputEvents {
         this.mouseDown = false;
         break;
       case "mousemove":
-        
+
       default:
         return;
     }
@@ -378,7 +404,6 @@ class InputEvents {
         console.log(`MOUSE UP AT ${this.mouseX}x${this.mouseY} on ${id}`);
         this.mouseDown = false;
         break;
-    
 
       default:
         return;

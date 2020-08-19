@@ -78,33 +78,47 @@ class GameModeMachine {
       onmenu: function () {
         //load menu
         let y = 125;
+        let buttons = [];
         //@ts-ignore
         for (let button of this.menuButtons.main) {
           //@ts-ignore
           let coords = this.ecs.getEntity("global").Global.spriteMap[
             `${button.name}Button`
           ];
-          //@ts-ignore
-          this.ecs.createEntity({
-            id: `${button.name}Button`,
-            Button: { name: button.name },
-            Clickable: { onClick: button.onClick },
-            Coordinates: {
-              X: 500,
-              Y: y,
-            },
-            Renderable: {
-              spriteX: coords.X,
-              spriteY: coords.Y,
-              spriteWidth: button.width,
-              spriteHeight: button.height,
-              renderWidth: button.width,
-              renderHeight: button.height,
-            },
-          });
+          buttons.push(
+            //@ts-ignore
+            this.ecs.createEntity({
+              id: `${button.name}Button`,
+              Button: { name: button.name },
+              Clickable: { onClick: button.onClick },
+              Coordinates: {
+                X: 500,
+                Y: y,
+              },
+              Renderable: {
+                spriteX: coords.X,
+                spriteY: coords.Y,
+                spriteWidth: button.width,
+                spriteHeight: button.height,
+                renderWidth: button.width,
+                renderHeight: button.height,
+              },
+            })
+          );
           y += 125;
         }
+        for (let btn of buttons) {
+          btn.addTag("menu");
+          btn.addTag("main");
+        }
         console.log("menu loaded");
+      },
+      onleaveMenu: function () {
+        //@ts-ignore
+        let menuButtons = this.ecs.queryEntities({ has: ["menu", "main"] });
+        for (let button of menuButtons) {
+          button.destroy();
+        }
       },
       onstart: function () {
         //load game canvas
@@ -137,7 +151,6 @@ class GameModeMachine {
         this.global.Global.mode = to;
         //stop game music/animations
         //render win animation and gameover options
-
       },
       onlose: function () {
         let [from, to] = [...arguments].slice(0, 2);
