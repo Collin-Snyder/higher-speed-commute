@@ -14,8 +14,7 @@ export class RenderMenu extends EntityComponentSystem.System {
   update(tick: number, entities: Set<Entity>) {
     const global = this.ecs.getEntity("global").Global;
     let mode = global.mode;
-
-    if (mode === "menu") {
+    if (mode === "menu" || mode === "designing") {
       for (let entity of entities) {
         this.ctx.drawImage(
           global.spriteSheet,
@@ -32,6 +31,12 @@ export class RenderMenu extends EntityComponentSystem.System {
     }
   }
 }
+
+// class RenderDesignUI extends  EntityComponentSystem.System {
+//   static query: { has?: string[]; hasnt?: string[] } = {
+//     has: ["Button", "Coordinates", "Renderable"],
+//   };
+// }
 
 export class RenderTileMap extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = { has: ["TileMap"] };

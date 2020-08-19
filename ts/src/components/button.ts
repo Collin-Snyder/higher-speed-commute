@@ -1,6 +1,7 @@
 export const Button = {
     properties: {
-        name: ""
+        name: "",
+        enabled: true
     }
 }
 

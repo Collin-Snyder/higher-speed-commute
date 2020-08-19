@@ -1,4 +1,5 @@
 import { Entity } from "@fritzy/ecs";
+import { findCenteredElementSpread } from "../modules/gameMath";
 type Mode =
   | "init"
   | "menu"
@@ -179,7 +180,67 @@ class GameModeMachine {
       },
       ondesign: function () {
         //load design canvas
+        let gameCanvas = <HTMLCanvasElement>document.getElementById("game");
+        let UICanvas = <HTMLCanvasElement>document.getElementById("ui");
+        if (gameCanvas) {
+          gameCanvas.height = 625;
+          gameCanvas.width = 1000;
+          console.log("canvas loaded");
+        } else {
+          console.log(`Error: no such canvas with id "game"`);
+        }
         //load design tools/ui
+
+        let buttons = [];
+        //@ts-ignore
+        for (let button of this.menuButtons.design.toolbar) {
+          //@ts-ignore
+          let coords = this.ecs.getEntity("global").Global.spriteMap[
+            `${button.name}Button`
+          ];
+          buttons.push(
+            //@ts-ignore
+            this.ecs.createEntity({
+              id: `${button.name}Button`,
+              Button: { name: button.name },
+              Clickable: { onClick: button.onClick },
+              Coordinates: {},
+              Renderable: {
+                spriteX: coords.X,
+                spriteY: coords.Y,
+                spriteWidth: button.width,
+                spriteHeight: button.height,
+                renderWidth: button.width,
+                renderHeight: button.height,
+              },
+            })
+          );
+        }
+        let centeredX = findCenteredElementSpread(
+          UICanvas.width,
+          buttons[0].Renderable.renderWidth,
+          buttons.length,
+          "spaceEvenly",
+          1000
+        );
+        let centeredY = findCenteredElementSpread(
+          (UICanvas.height - gameCanvas.height) / 2,
+          buttons[0].Renderable.renderHeight,
+          1,
+          "spaceEvenly"
+        );
+        let x = centeredX.start;
+        for (let btn of buttons) {
+          btn.Coordinates.Y = centeredY.start;
+          btn.Coordinates.X = x;
+          x += centeredX.step;
+          btn.addTag("menu");
+          btn.addTag("design");
+          btn.addTag("toolbar");
+        }
+        console.log("design mode loaded");
+        //@ts-ignore
+        this.global.Global.mode = "designing";
         //(eventually) if first time, play walk-through
       },
       onbeforeleaveDesign: function () {

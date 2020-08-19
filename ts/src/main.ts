@@ -4,12 +4,7 @@ import { average } from "./modules/gameMath";
 import axios from "axios";
 import spriteMap from "./spriteMap";
 import keyCodes from "./keyCodes";
-import MapGrid, {
-  MapGridInterface,
-  MapObjectInterface,
-  Square,
-  SquareInterface,
-} from "./state/map";
+import MapGrid, { MapGridInterface } from "./state/map";
 import GameModeMachine from "./state/mode";
 import { MenuButtons } from "./state/menu";
 import Components from "./components/index";
@@ -64,7 +59,8 @@ class Game {
     this.totalElapsedTime = 0;
     this.frameElapsedTime = 0;
     this.tickTimes = [];
-    this.menuButtons = new MenuButtons(this).buttons;
+    this.modeMachine = new GameModeMachine("init");
+    this.ecs = new EntityComponentSystem.ECS();
     this.width = 1000;
     this.height = 625;
     this.inputs = new InputEvents();
@@ -72,17 +68,17 @@ class Game {
     this.gamectx = <CanvasRenderingContext2D>this.gameCanvas.getContext("2d");
     this.UICanvas = <HTMLCanvasElement>document.getElementById("ui");
     this.uictx = <CanvasRenderingContext2D>this.UICanvas.getContext("2d");
-    this.modeMachine = new GameModeMachine("init");
     this.subscribers = {};
     this.map = new MapGrid(40, 25);
+    this.menuButtons = new MenuButtons(this).buttons;
     this.spritesheet = new Image();
     this.spriteSheetIsLoaded = false;
-    this.spritesheet.src = "../spritesheet.png";
     this.spriteMap = spriteMap;
+
+    this.spritesheet.src = "../spritesheet.png";
     this.UICanvas.width = window.innerWidth;
     this.UICanvas.height = window.innerHeight;
-
-    this.ecs = new EntityComponentSystem.ECS();
+    this.uictx.imageSmoothingEnabled = false;
 
     this.registerComponents();
     this.registerTags();
@@ -170,9 +166,8 @@ class Game {
     this.ecs.addSystem("render", new RenderTileMap(this.ecs, this.gamectx));
     this.ecs.addSystem("render", new RenderEntities(this.ecs, this.gamectx));
     this.ecs.addSystem("map", new MapSystem(this.ecs));
+
     this.loadMap = this.loadMap.bind(this);
-    // this.subscribe = this.subscribe.bind(this);
-    // this.publish = this.publish.bind(this);
   }
 
   timestamp(): number {
@@ -274,7 +269,7 @@ class Game {
   }
 
   render() {
-    this.gamectx.fillStyle = "#81c76d";
+    this.gamectx.fillStyle = this.global.Global.mode === "designing" ? "lightgray" : "#81c76d";
     this.uictx.fillStyle = "#50cdff";
     this.gamectx.fillRect(0, 0, this.width, this.height);
     this.uictx.fillRect(0, 0, window.innerWidth, window.innerHeight);
@@ -414,7 +409,6 @@ class InputEvents {
 const game = new Game();
 //@ts-ignore
 window.game = game;
-// game.loadMap(3);
 
 requestAnimationFrame(game.tick.bind(game));
 

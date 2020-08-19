@@ -65,3 +65,42 @@ export function checkForMouseCollision(
 ) {
   return mx >= ex && my >= ey && mx <= ex + ew && my <= ey + eh;
 }
+
+export function findCenteredElementSpread(
+  p: number,
+  e: number,
+  n: number,
+  style: "spaceEvenly" | "spaceBetween",
+  c?: number
+) {
+  //requires that elements have uniform dimension - either height or width
+  //p is parent dimension - either the width or height of containing element, depending on if centering horizontally or vertically
+  //e is element dimension - either width or height of elements to be centered
+  //n is number of elements to be arranged
+  //c is container dimension - if it's present, center elements according to container and adjust to center container within parent element
+  let output = { start: 0, step: 0 };
+  let container = c ? (c < p ? c : p) : p;
+  let total = n * e;
+  if (total > container) {
+    console.log(
+      "You are trying to place too many elements into too small of a container."
+    );
+    return output;
+  }
+  let space = container - total;
+
+  if (style === "spaceBetween") {
+    output.step = space / (n - 1);
+  } else if (style === "spaceEvenly") {
+    output.step = space / (n + 1);
+    output.start = output.step;
+  }
+  output.step += e;
+
+  if (c && c < p) {
+    let cStart = (p - c) / 2;
+    output.start += cStart;
+  }
+
+  return output;
+}

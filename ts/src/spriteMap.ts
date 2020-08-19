@@ -18,6 +18,13 @@ const spriteMap = {
   yellowLight: { X: 225, Y: 0 },
   playButton: { X: 0, Y: 50 },
   designButton: { X: 0, Y: 125 },
+  playerHomeButton: { X: 200, Y: 125 },
+  bossHomeButton: { X: 275, Y: 125 },
+  officeButton: { X: 350, Y: 125 },
+  streetButton: { X: 200, Y: 50 },
+  lightButton: { X: 350, Y: 50 },
+  schoolZoneButton: { X: 275, Y: 50 },
+  coffeeButton: { X: 425, Y: 50 },
 };
 
 export default spriteMap;
