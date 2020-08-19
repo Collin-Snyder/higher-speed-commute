@@ -10,6 +10,8 @@ import MapGrid, {
   Square,
   SquareInterface,
 } from "./state/map";
+import GameModeMachine from "./state/mode";
+import { MenuButtons } from "./state/menu";
 import Components from "./components/index";
 import { MapSystem } from "./systems/map";
 import { LightTimer } from "./systems/lights";
@@ -17,7 +19,7 @@ import { InputSystem } from "./systems/input";
 import { MovementSystem } from "./systems/move";
 import { CollisionSystem } from "./systems/collision";
 import { CaffeineSystem } from "./systems/caffeine";
-import { RenderTileMap, RenderEntities } from "./systems/render";
+import { RenderTileMap, RenderEntities, RenderMenu } from "./systems/render";
 
 interface InputEventsInterface {
   mouseX: number;
@@ -34,14 +36,18 @@ class Game {
   private step: number = 17; //1/60s
   private tickTimes: number[];
   public inputs: InputEventsInterface;
+  public menuButtons: any;
   public width: number;
   public height: number;
+  public modeMachine: GameModeMachine;
+  public subscribers: { [key: string]: Function[] };
   public spritesheet: HTMLImageElement;
   public spriteMap: { [entity: string]: { X: number; Y: number } };
   public spriteSheetIsLoaded: boolean;
-  public paused: boolean;
-  private canvas: HTMLCanvasElement;
-  private ctx: CanvasRenderingContext2D;
+  private gameCanvas: HTMLCanvasElement;
+  private UICanvas: HTMLCanvasElement;
+  private gamectx: CanvasRenderingContext2D;
+  private uictx: CanvasRenderingContext2D;
   public ecs: ECS;
   private global: Entity;
   private mapEntity: Entity;
@@ -57,22 +63,28 @@ class Game {
     this.totalElapsedTime = 0;
     this.frameElapsedTime = 0;
     this.tickTimes = [];
+    this.menuButtons = new MenuButtons(this).buttons;
     this.width = 1000;
     this.height = 625;
     this.inputs = new InputEvents();
-    this.canvas = <HTMLCanvasElement>document.getElementById("game");
-    this.ctx = <CanvasRenderingContext2D>this.canvas.getContext("2d");
+    this.gameCanvas = <HTMLCanvasElement>document.getElementById("game");
+    this.gamectx = <CanvasRenderingContext2D>this.gameCanvas.getContext("2d");
+    this.UICanvas = <HTMLCanvasElement>document.getElementById("ui");
+    this.uictx = <CanvasRenderingContext2D>this.UICanvas.getContext("2d");
+    this.modeMachine = new GameModeMachine("init");
+    this.subscribers = {};
     this.map = new MapGrid(40, 25);
     this.spritesheet = new Image();
     this.spriteSheetIsLoaded = false;
-    this.paused = true;
-
     this.spritesheet.src = "../spritesheet.png";
     this.spriteMap = spriteMap;
+    this.UICanvas.width = window.innerWidth;
+    this.UICanvas.height = window.innerHeight;
 
     this.ecs = new EntityComponentSystem.ECS();
 
     this.registerComponents();
+    this.registerDefaultSubscribers();
 
     this.global = this.ecs.createEntity({
       id: "global",
@@ -113,7 +125,9 @@ class Game {
       Car: {
         color: "red",
       },
-      Velocity: {},
+      Velocity: {
+        speedConstant: 2,
+      },
       Path: {
         driver: "boss",
       },
@@ -141,6 +155,8 @@ class Game {
       let bossSpriteCoords = this.spriteMap[`${this.bossEntity.Car.color}Car`];
       this.bossEntity.Renderable.spriteX = bossSpriteCoords.X;
       this.bossEntity.Renderable.spriteY = bossSpriteCoords.Y;
+
+      this.publish("ready");
     };
 
     this.ecs.addSystem("lights", new LightTimer(this.ecs, this.step));
@@ -148,10 +164,13 @@ class Game {
     this.ecs.addSystem("input", new InputSystem(this.ecs));
     this.ecs.addSystem("move", new MovementSystem(this.ecs));
     this.ecs.addSystem("collision", new CollisionSystem(this.ecs));
-    this.ecs.addSystem("render", new RenderTileMap(this.ecs, this.ctx));
-    this.ecs.addSystem("render", new RenderEntities(this.ecs, this.ctx));
+    this.ecs.addSystem("render", new RenderMenu(this.ecs, this.uictx));
+    this.ecs.addSystem("render", new RenderTileMap(this.ecs, this.gamectx));
+    this.ecs.addSystem("render", new RenderEntities(this.ecs, this.gamectx));
     this.ecs.addSystem("map", new MapSystem(this.ecs));
     this.loadMap = this.loadMap.bind(this);
+    // this.subscribe = this.subscribe.bind(this);
+    // this.publish = this.publish.bind(this);
   }
 
   timestamp(): number {
@@ -169,6 +188,35 @@ class Game {
     }
   }
 
+  registerDefaultSubscribers(): void {
+    console.log("Subscribing events...");
+    for (let event of this.modeMachine.events) {
+      if (event.name === "ready") {
+        this.subscribe(
+          event.name,
+          this.modeMachine.actions[`on${event.name}`].bind(
+            this,
+            event.from,
+            event.to
+          )
+        );
+      } else {
+        let onbefore = this.modeMachine.actions[`onbefore${event.name}`];
+        let on = this.modeMachine.actions[`on${event.name}`];
+        if (onbefore) {
+          this.subscribe(event.name, onbefore.bind(this, event.from, event.to));
+        }
+        if (on) {
+          this.subscribe(event.name, on.bind(this, event.from, event.to));
+        }
+      }
+      let onNewState = this.modeMachine.actions[`on${event.to}`];
+      if (onNewState) {
+        this.subscribe(event.name, onNewState.bind(this));
+      }
+    }
+  }
+
   loadMap(id: number): void {
     axios
       .get(`/${id}`)
@@ -177,6 +225,8 @@ class Game {
         let mapInfo = data.data;
         this.mapEntity.Map.map = MapGrid.fromMapObject(mapInfo);
         this.ecs.runSystemGroup("map");
+        this.publish("play");
+        this.publish("pause");
       })
       //@ts-ignore
       .catch((err) => {
@@ -205,7 +255,7 @@ class Game {
 
   update(step: number) {
     this.ecs.runSystemGroup("input");
-    if (!this.global.Global.paused) {
+    if (this.global.Global.mode === "playing") {
       this.ecs.runSystemGroup("lights");
       this.ecs.runSystemGroup("caffeine");
       this.ecs.runSystemGroup("move");
@@ -216,10 +266,28 @@ class Game {
   }
 
   render() {
-    this.ctx.fillStyle = "#81c76d";
-    this.ctx.fillRect(0, 0, this.width, this.height);
+    this.gamectx.fillStyle = "#81c76d";
+    this.uictx.fillStyle = "#50cdff";
+    this.gamectx.fillRect(0, 0, this.width, this.height);
+    this.uictx.fillRect(0, 0, window.innerWidth, window.innerHeight);
     if (this.spriteSheetIsLoaded) {
       this.ecs.runSystemGroup("render");
+    }
+  }
+
+  subscribe(event: any, callback: Function) {
+    this.subscribers = this.subscribers || {};
+    this.subscribers[event] = this.subscribers[event] || [];
+    this.subscribers[event].push(callback);
+  }
+
+  publish(event: any) {
+    if (this.subscribers && this.subscribers[event]) {
+      const subs = this.subscribers[event];
+      const args = [].slice.call(arguments, 1);
+      for (let n = 0; n < subs.length; n++) {
+        subs[n].apply(this, args);
+      }
     }
   }
 }
@@ -240,14 +308,24 @@ class InputEvents {
       this.keyPressMap[keyCodes[keyName]] = false;
     }
 
-    const canvas = document.getElementsByTagName("canvas")[0];
+    const gameCanvas = <HTMLCanvasElement>document.getElementById("game");
+    const UICanvas = <HTMLCanvasElement>document.getElementById("ui");
 
     document.addEventListener("keydown", (e) => this.handleKeypress(e));
     document.addEventListener("keyup", (e) => this.handleKeypress(e));
     document.addEventListener("keypress", (e) => this.handleKeypress(e));
-    canvas.addEventListener("mousedown", (e) => this.handleMouseEvent(e));
-    canvas.addEventListener("mouseup", (e) => this.handleMouseEvent(e));
-    canvas.addEventListener("mousemove", (e) => this.handleMouseEvent(e));
+    UICanvas.addEventListener("mousedown", (e) => this.handleUIMouseEvent(e));
+    UICanvas.addEventListener("mouseup", (e) => this.handleUIMouseEvent(e));
+    UICanvas.addEventListener("mousemove", (e) => this.handleUIMouseEvent(e));
+    gameCanvas.addEventListener("mousedown", (e) =>
+      this.handleDesignMouseEvent(e)
+    );
+    gameCanvas.addEventListener("mouseup", (e) =>
+      this.handleDesignMouseEvent(e)
+    );
+    gameCanvas.addEventListener("mousemove", (e) =>
+      this.handleDesignMouseEvent(e)
+    );
   }
 
   handleKeypress = (e: KeyboardEvent) => {
@@ -263,17 +341,45 @@ class InputEvents {
     }
   };
 
-  handleMouseEvent = (e: MouseEvent) => {
+  handleUIMouseEvent = (e: MouseEvent) => {
     this.mouseX = e.clientX;
     this.mouseY = e.clientY;
+    //@ts-ignore
+    let id = e.currentTarget.id;
 
     switch (e.type) {
       case "mousedown":
+        console.log(`MOUSE DOWN AT ${this.mouseX}x${this.mouseY} on ${id}`);
         this.mouseDown = true;
         break;
       case "mouseup":
+        console.log(`MOUSE UP AT ${this.mouseX}x${this.mouseY} on ${id}`);
         this.mouseDown = false;
         break;
+      case "mousemove":
+        
+      default:
+        return;
+    }
+  };
+
+  handleDesignMouseEvent = (e: MouseEvent) => {
+    this.mouseX = e.clientX;
+    this.mouseY = e.clientY;
+    //@ts-ignore
+    let id = e.currentTarget.id;
+
+    switch (e.type) {
+      case "mousedown":
+        console.log(`MOUSE DOWN AT ${this.mouseX}x${this.mouseY} on ${id}`);
+        this.mouseDown = true;
+        break;
+      case "mouseup":
+        console.log(`MOUSE UP AT ${this.mouseX}x${this.mouseY} on ${id}`);
+        this.mouseDown = false;
+        break;
+    
+
       default:
         return;
     }
@@ -281,7 +387,9 @@ class InputEvents {
 }
 
 const game = new Game();
-game.loadMap(17);
+//@ts-ignore
+window.game = game;
+// game.loadMap(3);
 
 requestAnimationFrame(game.tick.bind(game));
 

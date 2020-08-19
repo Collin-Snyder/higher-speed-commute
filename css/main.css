@@ -7,7 +7,8 @@ body {
   width: 100vw;
   height: 100vh;
   position: relative;
-  background-color: rgb(80, 205, 255);
+  background-color: #fff;
+  /* background-color: #50cdff; */
 }
 
 h1 {
@@ -15,10 +16,10 @@ h1 {
 }
 
 #game {
-  width: 1000px;
-  height: 625px;
+  /* width: 1000px;
+  height: 625px; */
   margin: auto;
-  background-color: #81c76d;
+  /* background-color: #81c76d; */
   position: absolute;
   top: 50%;
   margin-top: -312px;
@@ -28,8 +29,8 @@ h1 {
 }
 
 #ui {
-  width: 100vw;
-  height: 100vh;
+  /* width: 1146px; */
+  /* height: 819px; */
   position: absolute;
   top: 0;
   left: 0;

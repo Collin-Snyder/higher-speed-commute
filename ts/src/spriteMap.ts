@@ -16,6 +16,8 @@ const spriteMap = {
   redLight: { X: 175, Y: 0 },
   greenLight: { X: 200, Y: 0 },
   yellowLight: { X: 225, Y: 0 },
+  playButton: { X: 0, Y: 50 },
+  designButton: { X: 0, Y: 125 },
 };
 
 export default spriteMap;

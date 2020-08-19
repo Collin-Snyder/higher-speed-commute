@@ -17,21 +17,27 @@ export class CollisionSystem extends ECS.System {
   };
   public collidables: Entity[];
   public map: any;
+  public game: any;
+  public global: Entity;
 
   static subscriptions: string[] = ["Coordinates"];
 
   constructor(ecs: any) {
     super(ecs);
     this.collidables = [];
+    this.global = this.ecs.getEntity("global");
   }
 
   update(tick: number, entities: Set<Entity>) {
     this.collidables = [...entities];
-    this.map = this.ecs.getEntity("global").Global.map.Map.map;
+    this.game = this.global.Global.game;
+    this.map = this.global.Global.map.Map.map;
     for (let change of this.changes) {
       let entity = change.component.entity;
-      this.handleMapCollisions(entity);
-      this.handleEntityCollisions(entity);
+      if (entity.has("Car")) {
+        this.handleMapCollisions(entity);
+        this.handleEntityCollisions(entity);
+      }
     }
   }
 
@@ -107,9 +113,9 @@ export class CollisionSystem extends ECS.System {
         break;
       case "office":
         if (entity.id === "player") {
-          console.log ("YOU WIN!");
+          this.game.publish("win");
         } else if (entity.id === "boss") {
-          console.log("YOU LOSE!");
+          this.game.publish("lose");
         }
         entity.Velocity.speedConstant = 0;
         break;
@@ -118,14 +124,16 @@ export class CollisionSystem extends ECS.System {
           entity.addComponent("SchoolZone", { multiplier: 0.34 });
         }
         break;
-      default: 
+      default:
         if (entity.SchoolZone) {
-         entity.removeComponentByType("SchoolZone");
+          entity.removeComponentByType("SchoolZone");
         }
     }
   }
 
-  detectMapCollision(entity: Entity): "boundary" | "office" | "schoolZone" | "" {
+  detectMapCollision(
+    entity: Entity
+  ): "boundary" | "office" | "schoolZone" | "" {
     let x = entity.Coordinates.X;
     let y = entity.Coordinates.Y;
 
@@ -170,8 +178,9 @@ export class CollisionSystem extends ECS.System {
     for (let c of collisions) {
       if (c.has("Car")) {
         console.log(`${entity.id} hit ${c.id} - GAME OVER`);
-        entity.Velocity.speedConstant = 0;
-        c.Velocity.speedConstant = 0;
+        this.game.publish("lose");
+        // entity.Velocity.speedConstant = 0;
+        // c.Velocity.speedConstant = 0;
       }
       if (c.has("Timer") && c.has("Color") && c.Color.color === "red") {
         this.stop(entity);

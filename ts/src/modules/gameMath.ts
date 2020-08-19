@@ -54,3 +54,14 @@ export function average(nums: number[]) {
   let sum = nums.reduce((sum, n) => n + sum);
   return sum / nums.length;
 }
+
+export function checkForMouseCollision(
+  mx: number,
+  my: number,
+  ex: number,
+  ey: number,
+  ew: number,
+  eh: number
+) {
+  return mx >= ex && my >= ey && mx <= ex + ew && my <= ey + eh;
+}
