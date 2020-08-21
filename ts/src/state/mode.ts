@@ -1,5 +1,7 @@
 import { Entity } from "@fritzy/ecs";
+import { Game } from "../main";
 import { findCenteredElementSpread } from "../modules/gameMath";
+import { MapGrid, DesignMapGrid } from "./map";
 type Mode =
   | "init"
   | "menu"
@@ -72,23 +74,23 @@ class GameModeMachine {
     //all actions are this-bound to the game instance in main.ts
     this.actions = {
       onready: function () {
-        console.log("running onready");
-        //@ts-ignore
-        this.global.Global.mode = "menu";
+        let game = <Game><unknown>this;
+        game.globalEntity.Global.mode = "menu";
       },
       onmenu: function () {
+        let game = <Game><unknown>this;
         //load menu
         let y = 125;
         let buttons = [];
         //@ts-ignore
-        for (let button of this.menuButtons.main) {
+        for (let button of game.menuButtons.main) {
           //@ts-ignore
-          let coords = this.ecs.getEntity("global").Global.spriteMap[
+          let coords = game.ecs.getEntity("global").Global.spriteMap[
             `${button.name}Button`
           ];
           buttons.push(
             //@ts-ignore
-            this.ecs.createEntity({
+            game.ecs.createEntity({
               id: `${button.name}Button`,
               Button: { name: button.name },
               Clickable: { onClick: button.onClick },
@@ -115,8 +117,8 @@ class GameModeMachine {
         console.log("menu loaded");
       },
       onleaveMenu: function () {
-        //@ts-ignore
-        let menuButtons = this.ecs.queryEntities({ has: ["menu", "main"] });
+        let game = <Game><unknown>this;
+        let menuButtons = game.ecs.queryEntities({ has: ["menu", "main"] });
         for (let button of menuButtons) {
           button.destroy();
         }
@@ -133,13 +135,14 @@ class GameModeMachine {
         //play starting animations
       },
       onplay: function () {
-        //@ts-ignore
-        this.global.Global.mode = "playing";
+        let game = <Game><unknown>this;
+        game.globalEntity.Global.mode = "playing";
       },
       onwin: function () {
+        let game = <Game><unknown>this;
         let [from, to] = [...arguments].slice(0, 2);
-        // @ts-ignore
-        let currentMode = this.global.Global.mode;
+        let currentMode = game.globalEntity.Global.mode;
+
         if (currentMode !== from) {
           console.log(
             `Invalid state transition. "Win" event must transition from mode "playing", but mode is currently "${currentMode}"`
@@ -147,16 +150,17 @@ class GameModeMachine {
           return;
         }
         console.log("YOU WIN!");
-        this.current = to;
-        //@ts-ignore
-        this.global.Global.mode = to;
+
+        game.modeMachine.current = to;
+        game.globalEntity.Global.mode = to;
         //stop game music/animations
         //render win animation and gameover options
       },
       onlose: function () {
+        let game = <Game><unknown>this;
         let [from, to] = [...arguments].slice(0, 2);
-        // @ts-ignore
-        let currentMode = this.global.Global.mode;
+        let currentMode = game.globalEntity.Global.mode;
+
         if (currentMode !== from) {
           console.log(
             `Invalid state transition. "Lose" event must transition from mode "playing", but mode is currently "${currentMode}"`
@@ -164,22 +168,23 @@ class GameModeMachine {
           return;
         }
         console.log("YOU LOSE");
-        this.current = to;
-        //@ts-ignore
-        this.global.Global.mode = to;
+
+        game.modeMachine.current = to;
+        game.globalEntity.Global.mode = to;
         //stop game music/animations
         //render lose animation and game over options
       },
       onpause: function () {
         //show paused menu
-        //@ts-ignore
-        this.global.Global.mode = "paused";
+        let game = <Game><unknown>this;
+        game.globalEntity.Global.mode = "paused";
       },
       onresume: function () {
         //hide paused menu
       },
       ondesign: function () {
         //load design canvas
+        let game = <Game><unknown>this;
         let gameCanvas = <HTMLCanvasElement>document.getElementById("game");
         let UICanvas = <HTMLCanvasElement>document.getElementById("ui");
         if (gameCanvas) {
@@ -189,18 +194,23 @@ class GameModeMachine {
         } else {
           console.log(`Error: no such canvas with id "game"`);
         }
-        //load design tools/ui
 
+        //create design entities
+        let mapEntity = game.ecs.getEntity("map");
+        let designMap = new DesignMapGrid(40, 25);
+
+        mapEntity.Map.map = designMap;
+        mapEntity.TileMap.tiles = designMap.generateTileMap();
+
+        //load toolbar buttons
         let buttons = [];
-        //@ts-ignore
-        for (let button of this.menuButtons.design.toolbar) {
-          //@ts-ignore
-          let coords = this.ecs.getEntity("global").Global.spriteMap[
+
+        for (let button of game.menuButtons.design.toolbar) {
+          let coords = game.ecs.getEntity("global").Global.spriteMap[
             `${button.name}Button`
           ];
           buttons.push(
-            //@ts-ignore
-            this.ecs.createEntity({
+            game.ecs.createEntity({
               id: `${button.name}Button`,
               Button: { name: button.name },
               Clickable: { onClick: button.onClick },
@@ -238,9 +248,14 @@ class GameModeMachine {
           btn.addTag("design");
           btn.addTag("toolbar");
         }
-        console.log("design mode loaded");
-        //@ts-ignore
-        this.global.Global.mode = "designing";
+        console.log("toolbar loaded");
+
+        //load admin menu buttons
+        console.log("admin menu loaded");
+        //load config menu buttons
+        console.log("config menu loaded");
+
+        game.globalEntity.Global.mode = "designing";
         //(eventually) if first time, play walk-through
       },
       onbeforeleaveDesign: function () {
@@ -277,9 +292,6 @@ class GameModeMachine {
     ];
   }
 
-  //   transition(action: Action) {
-  //     this.current = <Mode>this.states[this.current].on[action];
-  //   }
 }
 
 export enum EVENT {

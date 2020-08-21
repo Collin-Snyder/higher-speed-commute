@@ -18,20 +18,20 @@ export class CollisionSystem extends ECS.System {
   public collidables: Entity[];
   public map: any;
   public game: any;
-  public global: Entity;
+  public globalEntity: Entity;
 
   static subscriptions: string[] = ["Coordinates"];
 
   constructor(ecs: any) {
     super(ecs);
     this.collidables = [];
-    this.global = this.ecs.getEntity("global");
+    this.globalEntity = this.ecs.getEntity("global");
   }
 
   update(tick: number, entities: Set<Entity>) {
     this.collidables = [...entities];
-    this.game = this.global.Global.game;
-    this.map = this.global.Global.map.Map.map;
+    this.game = this.globalEntity.Global.game;
+    this.map = this.globalEntity.Global.map.Map.map;
     for (let change of this.changes) {
       let entity = change.component.entity;
       if (entity.has("Car")) {

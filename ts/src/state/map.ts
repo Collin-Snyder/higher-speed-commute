@@ -79,7 +79,8 @@ export class Square implements SquareInterface {
   }
 }
 
-class MapGrid implements MapGridInterface {
+
+export class MapGrid implements MapGridInterface {
   public squareCount: number;
   public squares: SquareInterface[];
   public playerHome: number;
@@ -135,6 +136,14 @@ class MapGrid implements MapGridInterface {
     this.pixelWidth = this.width * 25;
     this.pixelHeight = this.height * 25;
 
+    this.generateSquares();
+
+    this.get = this.get.bind(this);
+    this.set = this.set.bind(this);
+    this.addBorders = this.addBorders.bind(this);
+  }
+
+  generateSquares() {
     for (let s = 1; s <= this.squareCount; s++) {
       this.squares.push(
         new Square(
@@ -150,10 +159,6 @@ class MapGrid implements MapGridInterface {
     this.squares.forEach((square) => {
       this.addBorders(square);
     });
-
-    this.get = this.get.bind(this);
-    this.set = this.set.bind(this);
-    this.addBorders = this.addBorders.bind(this);
   }
 
   addBorders(square: SquareInterface) {
@@ -381,4 +386,45 @@ class PathQueue {
   }
 }
 
-export default MapGrid;
+export class DesignMapGrid extends MapGrid {
+  constructor(width: number, height: number) {
+    super(width, height);
+  }
+
+  generateTileMap() {
+    return this.squares.map((s: SquareInterface) => {
+      if (s.drivable) {
+        if (s.schoolZone) return "schoolZone";
+        if (this.playerHome === s.id) return "playerHome";
+        if (this.bossHome === s.id) return "bossHome";
+        if (this.office === s.id) return "office";
+        return "street";
+      }
+      return "";
+    });
+  }
+
+  handlePlayerHomeAction() {
+    console.log("Adding player home");
+  }
+  handleBossHomeAction() {
+    console.log("Adding boss home");
+  }
+  handleOfficeAction() {
+    console.log("Adding office");
+  }
+  handleStreetAction() {
+    console.log("Adding street");
+  }
+  handleSchoolZoneAction() {
+    console.log("Adding school zone");
+  }
+  handleLightAction() {
+    console.log("Adding light");
+  }
+  handleCoffeeAction() {
+    console.log("Adding coffee");
+  }
+}
+
+// export default MapGrid;

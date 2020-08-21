@@ -68,7 +68,7 @@ export class MenuButtons {
           {
             name: "playerHome",
             onClick: function () {
-              console.log("You clicked player home")
+              console.log("You clicked player home");
               //set selectedTool to "playerHome"
               //set draggable to false
             },
@@ -78,7 +78,7 @@ export class MenuButtons {
           {
             name: "bossHome",
             onClick: function () {
-              console.log("You clicked boss home")
+              console.log("You clicked boss home");
               //set selectedTool to "bossHome"
               //set draggable to false
             },
@@ -88,7 +88,7 @@ export class MenuButtons {
           {
             name: "office",
             onClick: function () {
-              console.log("You clicked office")
+              console.log("You clicked office");
               //set selectedTool to "office"
               //set draggable to false
             },
@@ -98,7 +98,7 @@ export class MenuButtons {
           {
             name: "street",
             onClick: function () {
-              console.log("You clicked street")
+              console.log("You clicked street");
               //set selectedTool to "street"
               //set draggable to true
             },
@@ -108,7 +108,7 @@ export class MenuButtons {
           {
             name: "light",
             onClick: function () {
-              console.log("You clicked stoplight")
+              console.log("You clicked stoplight");
               //set selectedTool to "light"
               //set draggable to false
             },
@@ -118,7 +118,7 @@ export class MenuButtons {
           {
             name: "schoolZone",
             onClick: function () {
-              console.log("You clicked school zone")
+              console.log("You clicked school zone");
               //set selectedTool to "schoolZone"
               //set draggable to true
             },
@@ -128,7 +128,7 @@ export class MenuButtons {
           {
             name: "coffee",
             onClick: function () {
-              console.log("You clicked coffee")
+              console.log("You clicked coffee");
               //set selectedTool to "coffee"
               //set draggable to false
             },
@@ -160,13 +160,17 @@ export class MenuButtons {
           {
             name: "saveAs",
             onClick: function () {
-              //send ping to the server to create new level with current info
+              //prompt user for level name
+              //send ping to the server to create new level with current info + name
               //on success, change saved to true
               //on failure, display failure message
             },
             height: 0,
             width: 0,
           },
+          { name: "loadSaved", onClick: function () {
+            //send request to server asking for level id based on selected level name
+          }, width: 0, height: 0 },
           {
             name: "erase",
             onClick: function () {

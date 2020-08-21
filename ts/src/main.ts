@@ -4,7 +4,8 @@ import { average } from "./modules/gameMath";
 import axios from "axios";
 import spriteMap from "./spriteMap";
 import keyCodes from "./keyCodes";
-import MapGrid, { MapGridInterface } from "./state/map";
+import DesignModule from "./modules/designModule";
+import { MapGrid, MapGridInterface } from "./state/map";
 import GameModeMachine from "./state/mode";
 import { MenuButtons } from "./state/menu";
 import Components from "./components/index";
@@ -24,7 +25,7 @@ interface InputEventsInterface {
   keyPressMap: { [keyCode: number]: boolean };
 }
 
-class Game {
+export class Game {
   public start: number;
   public lastTick: number;
   public totalElapsedTime: number;
@@ -45,8 +46,9 @@ class Game {
   private gamectx: CanvasRenderingContext2D;
   private uictx: CanvasRenderingContext2D;
   public ecs: ECS;
-  private global: Entity;
+  public globalEntity: Entity;
   private mapEntity: Entity;
+  public designModule: DesignModule;
   private playerEntity: Entity;
   private bossEntity: Entity;
   private lightEntities: { [key: string]: Entity };
@@ -70,6 +72,7 @@ class Game {
     this.uictx = <CanvasRenderingContext2D>this.UICanvas.getContext("2d");
     this.subscribers = {};
     this.map = new MapGrid(40, 25);
+    this.designModule = new DesignModule();
     this.menuButtons = new MenuButtons(this).buttons;
     this.spritesheet = new Image();
     this.spriteSheetIsLoaded = false;
@@ -84,7 +87,7 @@ class Game {
     this.registerTags();
     this.registerDefaultSubscribers();
 
-    this.global = this.ecs.createEntity({
+    this.globalEntity = this.ecs.createEntity({
       id: "global",
       Global: {
         game: this,
@@ -136,13 +139,13 @@ class Game {
     this.lightEntities = {};
     this.coffeeEntities = {};
 
-    this.global.Global.map = this.mapEntity;
-    this.global.Global.player = this.playerEntity;
+    this.globalEntity.Global.map = this.mapEntity;
+    this.globalEntity.Global.player = this.playerEntity;
 
     this.spritesheet.onload = () => {
       this.spriteSheetIsLoaded = true;
-      this.global.Global.spriteSheet = this.spritesheet;
-      this.global.Global.spriteMap = this.spriteMap;
+      this.globalEntity.Global.spriteSheet = this.spritesheet;
+      this.globalEntity.Global.spriteMap = this.spriteMap;
 
       let playerSpriteCoords = this.spriteMap[
         `${this.playerEntity.Car.color}Car`
@@ -258,7 +261,7 @@ class Game {
 
   update(step: number) {
     this.ecs.runSystemGroup("input");
-    if (this.global.Global.mode === "playing") {
+    if (this.globalEntity.Global.mode === "playing") {
       this.ecs.runSystemGroup("lights");
       this.ecs.runSystemGroup("caffeine");
       this.ecs.runSystemGroup("move");
@@ -269,7 +272,15 @@ class Game {
   }
 
   render() {
-    this.gamectx.fillStyle = this.global.Global.mode === "designing" ? "lightgray" : "#81c76d";
+    // let dpi = window.devicePixelRatio;
+    // this.gameCanvas.height = this.gameCanvas.height * dpi;
+    // this.gameCanvas.width = this.gameCanvas.width * dpi;
+    // this.UICanvas.height = this.UICanvas.height * dpi;
+    // this.UICanvas.width = this.UICanvas.width * dpi;
+    this.gamectx.fillStyle =
+      this.globalEntity.Global.mode === "designing"
+        ? "lightgray"
+        : "#81c76d" /*"#e6d093"*/;
     this.uictx.fillStyle = "#50cdff";
     this.gamectx.fillRect(0, 0, this.width, this.height);
     this.uictx.fillRect(0, 0, window.innerWidth, window.innerHeight);

@@ -47,10 +47,12 @@ export class RenderTileMap extends EntityComponentSystem.System {
     this.ctx = ctx;
   }
 
-  update(tick: number, entities: Set<Entity>) {
+  update(tick: number, entities: Set<Entity> | Array<Entity>) {
     let mode = this.ecs.getEntity("global").Global.mode;
-    if (mode === "playing" || mode === "paused") {
-      const mapEntity = entities.values().next().value;
+    if (mode === "playing" || mode === "paused" || mode === "designing") {
+      // console.log(entities);
+      entities = [...entities];
+      const mapEntity = mode === "designing" ? entities[1] : entities[0];
       const tileMap = mapEntity.TileMap;
       const map = mapEntity.Map;
       const global = this.ecs.getEntity("global").Global;
@@ -75,6 +77,13 @@ export class RenderTileMap extends EntityComponentSystem.System {
           x = 0;
           y++;
         }
+      }
+      if (mode === "designing" && global.game.designModule.gridLoaded) {
+        this.ctx.drawImage(
+          global.game.designModule.gridOverlay,
+          0,
+          0
+        )
       }
     }
   }
