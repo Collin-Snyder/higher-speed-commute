@@ -42,7 +42,6 @@ export interface SquareInterface {
   borders: BordersInterface;
   drivable: boolean;
   schoolZone: boolean;
-  coordinates: Function;
   [key: string]: any;
 }
 
@@ -62,6 +61,8 @@ type Tile =
   | "bossHome"
   | "office"
   | "schoolZone"
+  | "greenLight"
+  | "coffee"
   | "";
 
 export class Square implements SquareInterface {
@@ -176,7 +177,7 @@ export class MapGrid implements MapGridInterface {
     return square;
   }
 
-  get(s: number): Square | null {
+  get(s: number): SquareInterface | null {
     if (!this.squares[s - 1]) {
       console.log("Invalid square id");
       return null;
@@ -194,7 +195,7 @@ export class MapGrid implements MapGridInterface {
     return this.squares[s - 1];
   }
 
-  generateTileMap(): Tile[] {
+  generateTileMap(): (Tile | Tile[])[]{
     return this.squares.map((s: SquareInterface) => {
       if (s.drivable) {
         if (s.schoolZone) return "schoolZone";
@@ -225,7 +226,7 @@ export class MapGrid implements MapGridInterface {
     });
   }
 
-  getSquareByCoords(X: number, Y: number): Square | null {
+  getSquareByCoords(X: number, Y: number): SquareInterface | null {
     X = Math.floor(X / 25) * 25;
     Y = Math.floor(Y / 25) * 25;
     let row = Y / 25;
@@ -235,12 +236,12 @@ export class MapGrid implements MapGridInterface {
   }
 
   getSurroundingSquares(x: number, y: number, layers: number) {
-    let startSquare: Square = <Square>(
+    let startSquare: SquareInterface = <SquareInterface>(
       this.getSquareByCoords(x < 0 ? 0 : x, y < 0 ? 0 : y)
     );
     let queue = new PathQueue();
     let visited: { [key: string]: boolean } = {};
-    let toInclude: Square[] = [];
+    let toInclude: SquareInterface[] = [];
     let sqCount = calculateSurroundingSquareCount(layers);
     let count = 0;
 
@@ -250,7 +251,7 @@ export class MapGrid implements MapGridInterface {
 
     while (!queue.empty() && count < sqCount) {
       let currentId = queue.get();
-      let currentSquare: Square = <Square>this.get(currentId);
+      let currentSquare: SquareInterface = <SquareInterface>this.get(currentId);
 
       toInclude.push(currentSquare);
 
@@ -296,8 +297,8 @@ export class MapGrid implements MapGridInterface {
     endX: number,
     endY: number
   ): Array<number>[] | null {
-    let startSquare: Square = <Square>this.getSquareByCoords(startX, startY);
-    let endSquare: Square = <Square>this.getSquareByCoords(endX, endY);
+    let startSquare: SquareInterface = <SquareInterface>this.getSquareByCoords(startX, startY);
+    let endSquare: SquareInterface = <SquareInterface>this.getSquareByCoords(endX, endY);
 
     let frontier = new PathQueue();
     let cameFrom: { [key: string]: any } = {};
@@ -313,7 +314,7 @@ export class MapGrid implements MapGridInterface {
     while (frontier.empty() === false) {
       let currentId = frontier.get();
 
-      let currentSquare: Square = <Square>this.squares[currentId - 1];
+      let currentSquare: SquareInterface = <SquareInterface>this.squares[currentId - 1];
 
       if (currentId == endSquare.id) {
         foundTarget = true;
@@ -342,7 +343,7 @@ export class MapGrid implements MapGridInterface {
       let { X, Y } = current.coordinates();
       pathStack.push([X, Y]);
       // current.bossPath = true;
-      current = <Square>this.get(cameFrom[current.id]);
+      current = <SquareInterface>this.get(cameFrom[current.id]);
     }
     pathStack.push([startX, startY]);
     return pathStack;
@@ -390,8 +391,8 @@ export class DesignMapGrid extends MapGrid {
     super(width, height);
   }
 
-  generateTileMap() {
-    return this.squares.map(this.determineTileValue);
+  generateTileMap(): (Tile | Tile[])[] {
+    return this.squares.map((s: SquareInterface) => this.determineTileValue(s));
   }
 
   isKeySquare(id: number): boolean {
@@ -399,16 +400,14 @@ export class DesignMapGrid extends MapGrid {
   }
 
   determineTileValue = (
-    square: SquareInterface,
-    i?: number,
-    arr?: Array<any>
-  ) => {
+    square: SquareInterface
+  ): Tile | Tile[] => {
     if (square.drivable) {
       if (this.playerHome === square.id) return "playerHome";
       if (this.bossHome === square.id) return "bossHome";
       if (this.office === square.id) return "office";
 
-      let tiles = [];
+      let tiles: Tile[] = [];
 
       if (square.schoolZone) tiles.push("schoolZone");
       else tiles.push("street");
@@ -422,7 +421,7 @@ export class DesignMapGrid extends MapGrid {
   };
 
   handleKeySquareAction(
-    square: Square,
+    square: SquareInterface,
     tool: "playerHome" | "bossHome" | "office"
   ) {
     console.log(`Adding ${tool}!`);
@@ -444,7 +443,7 @@ export class DesignMapGrid extends MapGrid {
     return tileChanges;
   }
 
-  handleStreetAction(square: Square) {
+  handleStreetAction(square: SquareInterface) {
     console.log("Adding street");
     let id = square.id;
     let tileChanges = [];
@@ -471,7 +470,7 @@ export class DesignMapGrid extends MapGrid {
 
     return tileChanges;
   }
-  handleSchoolZoneAction(square: Square) {
+  handleSchoolZoneAction(square: SquareInterface) {
     console.log("Adding school zone");
     let id = square.id;
     let tileChanges = [];
@@ -494,7 +493,7 @@ export class DesignMapGrid extends MapGrid {
 
     return tileChanges;
   }
-  handleLightAction(square: Square) {
+  handleLightAction(square: SquareInterface) {
     console.log("Adding light");
     let id = square.id;
     let tileChanges = [];
@@ -513,7 +512,7 @@ export class DesignMapGrid extends MapGrid {
     }
     return tileChanges;
   }
-  handleCoffeeAction(square: Square) {
+  handleCoffeeAction(square: SquareInterface) {
     console.log("Adding coffee");
     let id = square.id;
     let tileChanges = [];
