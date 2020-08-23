@@ -142,6 +142,15 @@ export class MenuButtons {
             height: 75,
             width: 75,
           },
+          {
+            name: "eraser",
+            onClick: function () {
+              console.log("You clicked eraser");
+              this.publish("setDesignTool", "eraser");
+            },
+            height: 75,
+            width: 75,
+          },
         ],
         admin: [
           {
@@ -175,9 +184,14 @@ export class MenuButtons {
             height: 0,
             width: 0,
           },
-          { name: "loadSaved", onClick: function () {
-            //send request to server asking for level id based on selected level name
-          }, width: 0, height: 0 },
+          {
+            name: "loadSaved",
+            onClick: function () {
+              //send request to server asking for level id based on selected level name
+            },
+            width: 0,
+            height: 0,
+          },
           {
             name: "erase",
             onClick: function () {

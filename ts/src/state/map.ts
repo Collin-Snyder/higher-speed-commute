@@ -532,6 +532,24 @@ export class DesignMapGrid extends MapGrid {
 
     return tileChanges;
   }
+  handleEraserAction(square: SquareInterface) {
+    let id = square.id;
+    let tileChanges = [];
+
+    if (this.playerHome === id) this.playerHome = 0;
+    else if (this.bossHome === id) this.bossHome = 0;
+    else if (this.office === id) this.office = 0;
+
+    this.set(id, "drivable", false);
+    this.set(id, "schoolZone", false);
+
+    if (this.lights.hasOwnProperty(id)) delete this.lights[id];
+    if (this.coffees.hasOwnProperty(id)) delete this.coffees[id];
+
+    tileChanges.push([id - 1, ""]);
+
+    return tileChanges;
+  }
 }
 
 // export default MapGrid;

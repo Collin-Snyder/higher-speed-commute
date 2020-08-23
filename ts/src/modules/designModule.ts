@@ -1,4 +1,6 @@
 import { Entity } from "@fritzy/ecs";
+//@ts-ignore
+import axios from "axios";
 import { capitalize } from "../modules/gameHelpers";
 
 export type Tool =
@@ -34,16 +36,19 @@ class DesignModule {
   }
 
   editDesign() {
-      console.log("edit design running with tool: ", this.selectedTool)
+    console.log("edit design running with tool: ", this.selectedTool);
     if (!this.selectedTool) return;
     let global = this.game.ecs.getEntity("global").Global;
     let mx = global.inputs.mouseX;
     let my = global.inputs.mouseY;
     let mapEntity = global.map;
     let designMap = mapEntity.Map.map;
-    let newTileIndex, newTileValue;
+
     //find which square was clicked
-    let square = designMap.getSquareByCoords(mx - mapEntity.Coordinates.X, my - mapEntity.Coordinates.Y);
+    let square = designMap.getSquareByCoords(
+      mx - mapEntity.Coordinates.X,
+      my - mapEntity.Coordinates.Y
+    );
 
     //perform design map action on that square
     if (!square) {
@@ -52,7 +57,6 @@ class DesignModule {
       );
       return;
     }
-
     let actionType;
     switch (this.selectedTool) {
       case "playerHome":
@@ -64,21 +68,27 @@ class DesignModule {
         actionType = capitalize(this.selectedTool);
     }
     const tileChanges = designMap[`handle${actionType}Action`](
-        square,
-        this.selectedTool
+      square,
+      this.selectedTool
     );
 
     //update tile map on map entity
-    tileChanges.forEach((change: Array<string|number>) => {
-        let [index, tile] = change;
-        let oldTileValue = mapEntity.TileMap.tiles[index];
-        if (JSON.stringify(oldTileValue) !== JSON.stringify(tile)) {
-          mapEntity.TileMap.tiles[index] = tile;
-          //update save state
-          this.saved = false;
-        }
-    })
+    tileChanges.forEach((change: Array<string | number>) => {
+      let [index, tile] = change;
+      let oldTileValue = mapEntity.TileMap.tiles[index];
+      if (JSON.stringify(oldTileValue) !== JSON.stringify(tile)) {
+        mapEntity.TileMap.tiles[index] = tile;
+        //update save state
+        this.saved = false;
+      }
+    });
   }
+
+  save() {}
+
+  saveAs() {}
+
+  loadSaved() {}
 }
 
 export default DesignModule;

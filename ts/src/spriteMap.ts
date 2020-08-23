@@ -26,6 +26,7 @@ const spriteMap = {
   lightButton: { X: 350, Y: 50 },
   schoolZoneButton: { X: 275, Y: 50 },
   coffeeButton: { X: 425, Y: 50 },
+  eraserButton: {X: 425, Y: 125}
 };
 
 export default spriteMap;
