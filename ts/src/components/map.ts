@@ -11,9 +11,12 @@ export const TileMap = {
     tiles: [],
     tileWidth: 25,
     tileHeight: 25,
-    spriteSheet: null,
-    spriteMap: {},
   },
 };
 
-
+export const Canvas = {
+  properties: {
+    canvas: null,
+    ctx: null,
+  }
+};

@@ -68,8 +68,9 @@ export class MenuButtons {
           {
             name: "playerHome",
             onClick: function () {
-              console.log("You clicked player home");
+              console.log("Selected design tool: playerHome");
               //set selectedTool to "playerHome"
+              this.publish("setDesignTool", "playerHome");
               //set draggable to false
             },
             height: 75,
@@ -78,8 +79,9 @@ export class MenuButtons {
           {
             name: "bossHome",
             onClick: function () {
-              console.log("You clicked boss home");
+              console.log("Selected design tool: bossHome");
               //set selectedTool to "bossHome"
+              this.publish("setDesignTool", "bossHome");
               //set draggable to false
             },
             height: 75,
@@ -88,8 +90,9 @@ export class MenuButtons {
           {
             name: "office",
             onClick: function () {
-              console.log("You clicked office");
+              console.log("Selected design tool: office");
               //set selectedTool to "office"
+              this.publish("setDesignTool", "office");
               //set draggable to false
             },
             height: 75,
@@ -100,6 +103,7 @@ export class MenuButtons {
             onClick: function () {
               console.log("You clicked street");
               //set selectedTool to "street"
+              this.publish("setDesignTool", "street");
               //set draggable to true
             },
             height: 75,
@@ -110,6 +114,7 @@ export class MenuButtons {
             onClick: function () {
               console.log("You clicked stoplight");
               //set selectedTool to "light"
+              this.publish("setDesignTool", "light");
               //set draggable to false
             },
             height: 75,
@@ -120,6 +125,7 @@ export class MenuButtons {
             onClick: function () {
               console.log("You clicked school zone");
               //set selectedTool to "schoolZone"
+              this.publish("setDesignTool", "schoolZone");
               //set draggable to true
             },
             height: 75,
@@ -130,6 +136,7 @@ export class MenuButtons {
             onClick: function () {
               console.log("You clicked coffee");
               //set selectedTool to "coffee"
+              this.publish("setDesignTool", "coffee");
               //set draggable to false
             },
             height: 75,

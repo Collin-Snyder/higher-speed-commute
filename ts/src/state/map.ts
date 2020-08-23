@@ -1,4 +1,4 @@
-import { calculateSurroundingSquareCount } from "../modules/gameMath";
+import { calculateSurroundingSquareCount, randomNumBtwn } from "../modules/gameMath";
 enum Direction {
   UP = "up",
   DOWN = "down",
@@ -78,7 +78,6 @@ export class Square implements SquareInterface {
     return { X: (this.column - 1) * 25, Y: (this.row - 1) * 25 };
   }
 }
-
 
 export class MapGrid implements MapGridInterface {
   public squareCount: number;
@@ -392,38 +391,147 @@ export class DesignMapGrid extends MapGrid {
   }
 
   generateTileMap() {
-    return this.squares.map((s: SquareInterface) => {
-      if (s.drivable) {
-        if (s.schoolZone) return "schoolZone";
-        if (this.playerHome === s.id) return "playerHome";
-        if (this.bossHome === s.id) return "bossHome";
-        if (this.office === s.id) return "office";
-        return "street";
-      }
-      return "";
-    });
+    return this.squares.map(this.determineTileValue);
   }
 
-  handlePlayerHomeAction() {
-    console.log("Adding player home");
+  isKeySquare(id: number): boolean {
+    return this.playerHome == id || this.bossHome == id || this.office == id;
   }
-  handleBossHomeAction() {
-    console.log("Adding boss home");
+
+  determineTileValue = (
+    square: SquareInterface,
+    i?: number,
+    arr?: Array<any>
+  ) => {
+    if (square.drivable) {
+      if (this.playerHome === square.id) return "playerHome";
+      if (this.bossHome === square.id) return "bossHome";
+      if (this.office === square.id) return "office";
+
+      let tiles = [];
+
+      if (square.schoolZone) tiles.push("schoolZone");
+      else tiles.push("street");
+
+      if (this.lights.hasOwnProperty(square.id)) tiles.push("greenLight");
+      else if (this.coffees.hasOwnProperty(square.id)) tiles.push("coffee");
+
+      return tiles.length > 1 ? tiles : tiles[0];
+    }
+    return "";
+  };
+
+  handleKeySquareAction(
+    square: Square,
+    tool: "playerHome" | "bossHome" | "office"
+  ) {
+    console.log(`Adding ${tool}!`);
+    let tileChanges = [];
+    let newTile = "";
+    if (this[tool] === square.id) {
+      square.drivable = false;
+      this[tool] = 0;
+    } else {
+      if (this[tool] > 0) {
+        this.set(this[tool], "drivable", false);
+        tileChanges.push([this[tool] - 1, ""]);
+      }
+      square.drivable = true;
+      this[tool] = square.id;
+      newTile = tool;
+    }
+    tileChanges.push([square.id - 1, newTile]);
+    return tileChanges;
   }
-  handleOfficeAction() {
-    console.log("Adding office");
-  }
-  handleStreetAction() {
+
+  handleStreetAction(square: Square) {
     console.log("Adding street");
+    let id = square.id;
+    let tileChanges = [];
+
+    if (!this.isKeySquare(id)) {
+      if (this.lights.hasOwnProperty(id)) {
+        delete this.lights[id];
+      }
+      if (this.coffees.hasOwnProperty(id)) {
+        delete this.coffees[id];
+      }
+      if (square.drivable && square.schoolZone) {
+        square.schoolZone = false;
+      } else if (square.drivable) {
+        square.drivable = false;
+        tileChanges.push([id - 1, ""]);
+      } else {
+        square.drivable = true;
+      }
+      if (!tileChanges.length) {
+        tileChanges.push([id - 1, "street"]);
+      }
+    }
+
+    return tileChanges;
   }
-  handleSchoolZoneAction() {
+  handleSchoolZoneAction(square: Square) {
     console.log("Adding school zone");
+    let id = square.id;
+    let tileChanges = [];
+
+    if (!this.isKeySquare(id)) {
+      if (square.drivable && square.schoolZone) {
+        square.schoolZone = false;
+        square.drivable = false;
+        tileChanges.push([id - 1, ""]);
+      } else if (square.drivable) {
+        square.schoolZone = true;
+      } else {
+        square.drivable = true;
+        square.schoolZone = true;
+      }
+      if (!tileChanges.length) {
+        tileChanges.push([id - 1, "schoolZone"]);
+      }
+    }
+
+    return tileChanges;
   }
-  handleLightAction() {
+  handleLightAction(square: Square) {
     console.log("Adding light");
+    let id = square.id;
+    let tileChanges = [];
+
+    if (this.lights.hasOwnProperty(id)) {
+      delete this.lights[id];
+      tileChanges.push([id - 1, this.determineTileValue(square)]);
+    } else {
+      if (this.coffees.hasOwnProperty(id)) {
+        delete this.coffees[id];
+      }
+      if (!this.isKeySquare(id)) {
+        this.lights[id] = randomNumBtwn(4, 12) * 1000;
+        tileChanges.push([id - 1, this.determineTileValue(square)])
+      }
+    }
+    return tileChanges;
   }
-  handleCoffeeAction() {
+  handleCoffeeAction(square: Square) {
     console.log("Adding coffee");
+    let id = square.id;
+    let tileChanges = [];
+
+    if (this.coffees.hasOwnProperty(id)) {
+      delete this.coffees[id];
+      tileChanges.push([id - 1, this.determineTileValue(square)]);
+    } else {
+      if (this.lights.hasOwnProperty(id)) {
+        delete this.lights[id];
+      }
+      if (!this.isKeySquare(id)) {
+        this.coffees[id] = true;
+        tileChanges.push([id - 1, this.determineTileValue(square)])
+      }
+    }
+
+    return tileChanges;
   }
 }
 

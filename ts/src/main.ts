@@ -1,5 +1,5 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
-import { average } from "./modules/gameMath";
+import { average, findCenteredElementSpread } from "./modules/gameMath";
 //@ts-ignore
 import axios from "axios";
 import spriteMap from "./spriteMap";
@@ -41,9 +41,9 @@ export class Game {
   public spritesheet: HTMLImageElement;
   public spriteMap: { [entity: string]: { X: number; Y: number } };
   public spriteSheetIsLoaded: boolean;
-  private gameCanvas: HTMLCanvasElement;
+  // private gameCanvas: HTMLCanvasElement;
   private UICanvas: HTMLCanvasElement;
-  private gamectx: CanvasRenderingContext2D;
+  // private gamectx: CanvasRenderingContext2D;
   private uictx: CanvasRenderingContext2D;
   public ecs: ECS;
   public globalEntity: Entity;
@@ -66,13 +66,13 @@ export class Game {
     this.width = 1000;
     this.height = 625;
     this.inputs = new InputEvents();
-    this.gameCanvas = <HTMLCanvasElement>document.getElementById("game");
-    this.gamectx = <CanvasRenderingContext2D>this.gameCanvas.getContext("2d");
+    // this.gameCanvas = <HTMLCanvasElement>document.getElementById("game");
+    // this.gamectx = <CanvasRenderingContext2D>this.gameCanvas.getContext("2d");
     this.UICanvas = <HTMLCanvasElement>document.getElementById("ui");
     this.uictx = <CanvasRenderingContext2D>this.UICanvas.getContext("2d");
     this.subscribers = {};
     this.map = new MapGrid(40, 25);
-    this.designModule = new DesignModule();
+    this.designModule = new DesignModule(this);
     this.menuButtons = new MenuButtons(this).buttons;
     this.spritesheet = new Image();
     this.spriteSheetIsLoaded = false;
@@ -103,7 +103,11 @@ export class Game {
       TileMap: {
         tiles: this.map.generateTileMap(),
       },
+      Coordinates: {},
     });
+
+    this.mapEntity.Coordinates.X = findCenteredElementSpread(window.innerWidth, this.map.pixelWidth, 1, "spaceEvenly").start;
+    this.mapEntity.Coordinates.Y = findCenteredElementSpread(window.innerHeight, this.map.pixelHeight, 1, "spaceEvenly").start;
 
     this.playerEntity = this.ecs.createEntity({
       id: "player",
@@ -166,8 +170,8 @@ export class Game {
     this.ecs.addSystem("move", new MovementSystem(this.ecs));
     this.ecs.addSystem("collision", new CollisionSystem(this.ecs));
     this.ecs.addSystem("render", new RenderMenu(this.ecs, this.uictx));
-    this.ecs.addSystem("render", new RenderTileMap(this.ecs, this.gamectx));
-    this.ecs.addSystem("render", new RenderEntities(this.ecs, this.gamectx));
+    this.ecs.addSystem("render", new RenderTileMap(this.ecs, this.uictx));
+    this.ecs.addSystem("render", new RenderEntities(this.ecs, this.uictx));
     this.ecs.addSystem("map", new MapSystem(this.ecs));
 
     this.loadMap = this.loadMap.bind(this);
@@ -200,15 +204,15 @@ export class Game {
       if (event.name === "ready") {
         this.subscribe(
           event.name,
-          this.modeMachine.actions[`on${event.name}`].bind(
+          this.modeMachine.defaultActions[`on${event.name}`].bind(
             this,
             event.from,
             event.to
           )
         );
       } else {
-        let onbefore = this.modeMachine.actions[`onbefore${event.name}`];
-        let on = this.modeMachine.actions[`on${event.name}`];
+        let onbefore = this.modeMachine.defaultActions[`onbefore${event.name}`];
+        let on = this.modeMachine.defaultActions[`on${event.name}`];
         if (onbefore) {
           this.subscribe(event.name, onbefore.bind(this, event.from, event.to));
         }
@@ -216,10 +220,20 @@ export class Game {
           this.subscribe(event.name, on.bind(this, event.from, event.to));
         }
       }
-      let onNewState = this.modeMachine.actions[`on${event.to}`];
+      let onNewState = this.modeMachine.defaultActions[`on${event.to}`];
       if (onNewState) {
         this.subscribe(event.name, onNewState.bind(this));
       }
+    }
+
+    for (let action in this.modeMachine.customActions) {
+      this.modeMachine.customActions[action] = this.modeMachine.customActions[
+        action
+      ].bind(this);
+    }
+
+    for (let event of this.modeMachine.customEvents) {
+      this.subscribe(event.name, event.action);
     }
   }
 
@@ -277,12 +291,12 @@ export class Game {
     // this.gameCanvas.width = this.gameCanvas.width * dpi;
     // this.UICanvas.height = this.UICanvas.height * dpi;
     // this.UICanvas.width = this.UICanvas.width * dpi;
-    this.gamectx.fillStyle =
-      this.globalEntity.Global.mode === "designing"
-        ? "lightgray"
-        : "#81c76d" /*"#e6d093"*/;
+    // this.gamectx.fillStyle =
+    //   this.globalEntity.Global.mode === "designing"
+    //     ? "lightgray"
+    //     : /*"#81c76d"*/ "#e6d093";
     this.uictx.fillStyle = "#50cdff";
-    this.gamectx.fillRect(0, 0, this.width, this.height);
+    // this.gamectx.fillRect(0, 0, this.width, this.height);
     this.uictx.fillRect(0, 0, window.innerWidth, window.innerHeight);
     if (this.spriteSheetIsLoaded) {
       this.ecs.runSystemGroup("render");
@@ -307,7 +321,7 @@ export class Game {
 }
 
 class InputEvents {
-  public gameCanvas: undefined | HTMLCanvasElement;
+  // public gameCanvas: undefined | HTMLCanvasElement;
   public UICanvas: undefined | HTMLCanvasElement;
   public mouseX: number;
   public mouseY: number;
@@ -315,7 +329,7 @@ class InputEvents {
   public keyPressMap: { [keyCode: number]: boolean };
 
   constructor() {
-    this.gameCanvas;
+    // this.gameCanvas;
     this.UICanvas;
     this.mouseX = 0;
     this.mouseY = 0;
@@ -326,7 +340,7 @@ class InputEvents {
       this.keyPressMap[keyCodes[keyName]] = false;
     }
 
-    this.gameCanvas = <HTMLCanvasElement>document.getElementById("game");
+    // this.gameCanvas = <HTMLCanvasElement>document.getElementById("game");
     this.UICanvas = <HTMLCanvasElement>document.getElementById("ui");
 
     window.addEventListener("resize", (e) => this.handleWindowResize(e));
@@ -342,15 +356,15 @@ class InputEvents {
     this.UICanvas.addEventListener("mousemove", (e) =>
       this.handleUIMouseEvent(e)
     );
-    this.gameCanvas.addEventListener("mousedown", (e) =>
-      this.handleDesignMouseEvent(e)
-    );
-    this.gameCanvas.addEventListener("mouseup", (e) =>
-      this.handleDesignMouseEvent(e)
-    );
-    this.gameCanvas.addEventListener("mousemove", (e) =>
-      this.handleDesignMouseEvent(e)
-    );
+    // this.gameCanvas.addEventListener("mousedown", (e) =>
+    //   this.handleDesignMouseEvent(e)
+    // );
+    // this.gameCanvas.addEventListener("mouseup", (e) =>
+    //   this.handleDesignMouseEvent(e)
+    // );
+    // this.gameCanvas.addEventListener("mousemove", (e) =>
+    //   this.handleDesignMouseEvent(e)
+    // );
   }
 
   handleWindowResize = (e: UIEvent) => {
@@ -395,26 +409,26 @@ class InputEvents {
     }
   };
 
-  handleDesignMouseEvent = (e: MouseEvent) => {
-    this.mouseX = e.clientX;
-    this.mouseY = e.clientY;
-    //@ts-ignore
-    let id = e.currentTarget.id;
+  // handleDesignMouseEvent = (e: MouseEvent) => {
+  //   this.mouseX = e.clientX;
+  //   this.mouseY = e.clientY;
+  //   //@ts-ignore
+  //   let id = e.currentTarget.id;
 
-    switch (e.type) {
-      case "mousedown":
-        console.log(`MOUSE DOWN AT ${this.mouseX}x${this.mouseY} on ${id}`);
-        this.mouseDown = true;
-        break;
-      case "mouseup":
-        console.log(`MOUSE UP AT ${this.mouseX}x${this.mouseY} on ${id}`);
-        this.mouseDown = false;
-        break;
+  //   switch (e.type) {
+  //     case "mousedown":
+  //       console.log(`MOUSE DOWN AT ${this.mouseX}x${this.mouseY} on ${id}`);
+  //       this.mouseDown = "game";
+  //       break;
+  //     case "mouseup":
+  //       console.log(`MOUSE UP AT ${this.mouseX}x${this.mouseY} on ${id}`);
+  //       this.mouseDown = "";
+  //       break;
 
-      default:
-        return;
-    }
-  };
+  //     default:
+  //       return;
+  //   }
+  // };
 }
 
 const game = new Game();

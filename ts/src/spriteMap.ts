@@ -1,7 +1,7 @@
 const spriteMap = {
   street: { X: 325, Y: 0 },
   house: { X: 225, Y: 25 },
-  tree: { X: 100, Y: 25 },
+  tree: { X: 250, Y: 25 },
   schoolZone: { X: 350, Y: 0 },
   playerHome: { X: 375, Y: 0 },
   bossHome: { X: 425, Y: 0 },
@@ -16,6 +16,7 @@ const spriteMap = {
   redLight: { X: 175, Y: 0 },
   greenLight: { X: 200, Y: 0 },
   yellowLight: { X: 225, Y: 0 },
+  coffee: { X: 250, Y: 0 },
   playButton: { X: 0, Y: 50 },
   designButton: { X: 0, Y: 125 },
   playerHomeButton: { X: 200, Y: 125 },

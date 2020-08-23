@@ -2,6 +2,7 @@ import { Entity } from "@fritzy/ecs";
 import { Game } from "../main";
 import { findCenteredElementSpread } from "../modules/gameMath";
 import { MapGrid, DesignMapGrid } from "./map";
+import { Tool } from "../modules/designModule";
 type Mode =
   | "init"
   | "menu"
@@ -26,8 +27,10 @@ interface EventInterface {
 
 class GameModeMachine {
   private states: { [state: string]: StateInterface };
-  public actions: { [name: string]: Function };
+  public defaultActions: { [name: string]: Function };
+  public customActions: { [name: string]: Function };
   public events: EventInterface[];
+  public customEvents: { name: string; action: Function }[];
   public current: Mode;
 
   constructor(initial: Mode) {
@@ -72,13 +75,13 @@ class GameModeMachine {
       },
     };
     //all actions are this-bound to the game instance in main.ts
-    this.actions = {
+    this.defaultActions = {
       onready: function () {
-        let game = <Game><unknown>this;
+        let game = <Game>(<unknown>this);
         game.globalEntity.Global.mode = "menu";
       },
       onmenu: function () {
-        let game = <Game><unknown>this;
+        let game = <Game>(<unknown>this);
         //load menu
         let y = 125;
         let buttons = [];
@@ -117,7 +120,7 @@ class GameModeMachine {
         console.log("menu loaded");
       },
       onleaveMenu: function () {
-        let game = <Game><unknown>this;
+        let game = <Game>(<unknown>this);
         let menuButtons = game.ecs.queryEntities({ has: ["menu", "main"] });
         for (let button of menuButtons) {
           button.destroy();
@@ -125,21 +128,21 @@ class GameModeMachine {
       },
       onstart: function () {
         //load game canvas
-        let gameCanvas = <HTMLCanvasElement>document.getElementById("game");
-        if (gameCanvas) {
-          gameCanvas.height = 625;
-          gameCanvas.width = 1000;
-        } else {
-          console.log(`Error: no such canvas with id "game"`);
-        }
+        // let gameCanvas = <HTMLCanvasElement>document.getElementById("game");
+        // if (gameCanvas) {
+        //   gameCanvas.height = 0;
+        //   gameCanvas.width = 0;
+        // } else {
+        //   console.log(`Error: no such canvas with id "game"`);
+        // }
         //play starting animations
       },
       onplay: function () {
-        let game = <Game><unknown>this;
+        let game = <Game>(<unknown>this);
         game.globalEntity.Global.mode = "playing";
       },
       onwin: function () {
-        let game = <Game><unknown>this;
+        let game = <Game>(<unknown>this);
         let [from, to] = [...arguments].slice(0, 2);
         let currentMode = game.globalEntity.Global.mode;
 
@@ -157,7 +160,7 @@ class GameModeMachine {
         //render win animation and gameover options
       },
       onlose: function () {
-        let game = <Game><unknown>this;
+        let game = <Game>(<unknown>this);
         let [from, to] = [...arguments].slice(0, 2);
         let currentMode = game.globalEntity.Global.mode;
 
@@ -176,7 +179,7 @@ class GameModeMachine {
       },
       onpause: function () {
         //show paused menu
-        let game = <Game><unknown>this;
+        let game = <Game>(<unknown>this);
         game.globalEntity.Global.mode = "paused";
       },
       onresume: function () {
@@ -184,16 +187,17 @@ class GameModeMachine {
       },
       ondesign: function () {
         //load design canvas
-        let game = <Game><unknown>this;
-        let gameCanvas = <HTMLCanvasElement>document.getElementById("game");
+        let game = <Game>(<unknown>this);
+        // let gameCanvas = <HTMLCanvasElement>document.getElementById("game");
         let UICanvas = <HTMLCanvasElement>document.getElementById("ui");
-        if (gameCanvas) {
-          gameCanvas.height = 625;
-          gameCanvas.width = 1000;
-          console.log("canvas loaded");
-        } else {
-          console.log(`Error: no such canvas with id "game"`);
-        }
+        // if (gameCanvas) {
+        //   gameCanvas.height = 625;
+        //   gameCanvas.width = 1000;
+        //   gameCanvas.style.cursor = "cell";
+        //   console.log("canvas loaded");
+        // } else {
+        //   console.log(`Error: no such canvas with id "game"`);
+        // }
 
         //create design entities
         let mapEntity = game.ecs.getEntity("map");
@@ -201,6 +205,11 @@ class GameModeMachine {
 
         mapEntity.Map.map = designMap;
         mapEntity.TileMap.tiles = designMap.generateTileMap();
+        mapEntity.addComponent("Clickable", {
+          onClick: function () {
+            game.designModule.editDesign();
+          },
+        });
 
         //load toolbar buttons
         let buttons = [];
@@ -234,7 +243,7 @@ class GameModeMachine {
           1000
         );
         let centeredY = findCenteredElementSpread(
-          (UICanvas.height - gameCanvas.height) / 2,
+          (UICanvas.height - designMap.pixelHeight) / 2,
           buttons[0].Renderable.renderHeight,
           1,
           "spaceEvenly"
@@ -276,6 +285,13 @@ class GameModeMachine {
         //hide game canvas
       },
     };
+    this.customActions = {
+      onSetDesignTool: function (tool: Tool) {
+        console.log("TOOL: ", tool);
+        let game = <Game>(<unknown>this);
+        game.designModule.selectedTool = tool;
+      },
+    };
     this.events = [
       { name: "ready", from: "init", to: "menu" },
       { name: "start", from: ["menu", "won", "lost"], to: "starting" },
@@ -290,13 +306,27 @@ class GameModeMachine {
       { name: "leaveDesign", from: "designing", to: "menu" },
       { name: "leaveMenu", from: "menu", to: ["starting", "designing"] },
     ];
+    this.customEvents = [
+      { name: "crash", action: function () {} },
+      { name: "caffeinate", action: function () {} },
+      {
+        name: "setDesignTool",
+        action: function (tool: Tool) {
+          let gmm = <GameModeMachine>(<unknown>this);
+          gmm.customActions.onSetDesignTool(tool);
+        },
+      },
+    ];
+    for (let event of this.customEvents) {
+      event.action = event.action.bind(this);
+    }
   }
-
 }
 
 export enum EVENT {
   CRASH,
   CAFFEINATE,
+  SETDESIGNTOOL,
 }
 
 class PubSub {
