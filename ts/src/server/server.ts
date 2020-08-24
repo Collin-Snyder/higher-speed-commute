@@ -8,12 +8,13 @@ const db = require("./db");
 const MapHelpers = require("./mapHelpers");
 
 const app = express();
+app.use(express.json({ limit: "50mb" }));
 
 //@ts-ignore
 app.set("port", process.env.PORT || 3000);
 
 //@ts-ignore
-app.get("/:id", (req, res) => {
+app.get("/map/:id", (req, res) => {
   db.query("SELECT * FROM levels WHERE id = $1", [req.params.id])
     .then((data: any) => {
       let mapInfo = data.rows[0];
@@ -25,6 +26,82 @@ app.get("/:id", (req, res) => {
         `You asked for id ${req.params.id} but there was an error: ${err}`
       );
     });
+});
+
+//@ts-ignore
+app.post("/map", async (req, res) => {
+  // console.log("Req body: ", req.body);
+  let {
+    user_id,
+    level_name,
+    board_height,
+    board_width,
+    player_home,
+    boss_home,
+    office,
+    squares,
+    lights,
+    coffees,
+  } = req.body;
+  try {
+    let returned = await db.query(
+      "INSERT INTO levels (user_id, level_name, board_height, board_width, player_home, boss_home, office, squares, lights, coffees) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id",
+      [
+        user_id,
+        level_name,
+        board_height,
+        board_width,
+        player_home,
+        boss_home,
+        office,
+        squares,
+        lights,
+        coffees,
+      ]
+    );
+    res.send(returned.rows[0]);
+  } catch (err) {
+    res.send(`${err.name}: ${err.message}`);
+  }
+});
+
+//@ts-ignore
+app.put("/map/:id", async (req, res) => {
+  let {id} = req.params;
+  let {
+    player_home,
+    boss_home,
+    office,
+    squares,
+    lights,
+    coffees,
+  } = req.body;
+  try {
+    await db.query(
+      "UPDATE levels SET player_home = $1, boss_home = $2, office = $3, squares = $4, lights = $5, coffees = $6 WHERE id = $7",
+      [
+        player_home,
+        boss_home,
+        office,
+        squares,
+        lights,
+        coffees,
+        id
+      ]
+    );
+    res.send(`Successfully updated level ${id}`);
+  } catch (err) {
+    res.send(`${err.name}: ${err.message}`);
+  }
+})
+
+//@ts-ignore
+app.get("/map/:id", async (req, res) => {
+  try {
+
+  } catch (err) {
+    res.send(`${err.name}: ${err.message}`);
+  }
 });
 
 //@ts-ignore

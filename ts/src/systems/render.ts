@@ -15,7 +15,9 @@ export class RenderMenu extends EntityComponentSystem.System {
     const global = this.ecs.getEntity("global").Global;
     let mode = global.mode;
     if (mode === "menu" || mode === "designing") {
+
       for (let entity of entities) {
+        // if (entity.id === "loadSavedButton") console.log(entity);
         this.ctx.drawImage(
           global.spriteSheet,
           entity.Renderable.spriteX,

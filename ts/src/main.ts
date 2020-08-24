@@ -239,10 +239,11 @@ export class Game {
 
   loadMap(id: number): void {
     axios
-      .get(`/${id}`)
+      .get(`/map/${id}`)
       //@ts-ignore
       .then((data) => {
         let mapInfo = data.data;
+        this.mapEntity.Map.mapId = id;
         this.mapEntity.Map.map = MapGrid.fromMapObject(mapInfo);
         this.ecs.runSystemGroup("map");
         this.publish("play");

@@ -1,5 +1,6 @@
 export const Map = {
   properties: {
+    mapId: null,
     width: 40,
     height: 25,
     map: null

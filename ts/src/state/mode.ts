@@ -211,14 +211,14 @@ class GameModeMachine {
           },
         });
 
+        let toolbarButtons = [];
         //load toolbar buttons
-        let buttons = [];
 
         for (let button of game.menuButtons.design.toolbar) {
           let coords = game.ecs.getEntity("global").Global.spriteMap[
             `${button.name}Button`
           ];
-          buttons.push(
+          toolbarButtons.push(
             game.ecs.createEntity({
               id: `${button.name}Button`,
               Button: { name: button.name },
@@ -237,19 +237,19 @@ class GameModeMachine {
         }
         let centeredX = findCenteredElementSpread(
           UICanvas.width,
-          buttons[0].Renderable.renderWidth,
-          buttons.length,
+          toolbarButtons[0].Renderable.renderWidth,
+          toolbarButtons.length,
           "spaceEvenly",
           1000
         );
         let centeredY = findCenteredElementSpread(
           (UICanvas.height - designMap.pixelHeight) / 2,
-          buttons[0].Renderable.renderHeight,
+          toolbarButtons[0].Renderable.renderHeight,
           1,
           "spaceEvenly"
         );
         let x = centeredX.start;
-        for (let btn of buttons) {
+        for (let btn of toolbarButtons) {
           btn.Coordinates.Y = centeredY.start;
           btn.Coordinates.X = x;
           x += centeredX.step;
@@ -260,6 +260,50 @@ class GameModeMachine {
         console.log("toolbar loaded");
 
         //load admin menu buttons
+        let adminButtons = [];
+        for (let button of game.menuButtons.design.admin) {
+          let coords = game.ecs.getEntity("global").Global.spriteMap[
+            `${button.name}Button`
+          ];
+          adminButtons.push(
+            game.ecs.createEntity({
+              id: `${button.name}Button`,
+              Button: { name: button.name },
+              Clickable: { onClick: button.onClick },
+              Coordinates: {},
+              Renderable: {
+                spriteX: coords.X,
+                spriteY: coords.Y,
+                spriteWidth: button.width,
+                spriteHeight: button.height,
+                renderWidth: button.width,
+                renderHeight: button.height,
+              },
+            })
+          );
+        }
+        let centeredAdminX = findCenteredElementSpread(
+          (UICanvas.width - designMap.pixelWidth) / 2,
+          adminButtons[0].Renderable.renderWidth,
+          1,
+          "spaceEvenly"
+        );
+        let centeredAdminY = findCenteredElementSpread(
+          UICanvas.height,
+          adminButtons[0].Renderable.renderHeight,
+          adminButtons.length,
+          "spaceEvenly",
+          625
+        );
+        let y = centeredAdminY.start;
+        for (let btn of adminButtons) {
+          btn.Coordinates.Y = y;
+          btn.Coordinates.X = centeredAdminX.start;
+          y += centeredAdminY.step;
+          // btn.addTag("menu");
+          // btn.addTag("design");
+          // btn.addTag("admin");
+        }
         console.log("admin menu loaded");
         //load config menu buttons
         console.log("config menu loaded");
@@ -287,9 +331,20 @@ class GameModeMachine {
     };
     this.customActions = {
       onSetDesignTool: function (tool: Tool) {
-        console.log("TOOL: ", tool);
         let game = <Game>(<unknown>this);
         game.designModule.selectedTool = tool;
+      },
+      onSave: function () {
+        let game = <Game>(<unknown>this);
+        game.designModule.save();
+      },
+      onSaveAs: function () {
+        let game = <Game>(<unknown>this);
+        game.designModule.saveAs();
+      },
+      onLoadSaved: function () {
+        let game = <Game>(<unknown>this);
+        game.designModule.loadSaved();
       },
     };
     this.events = [
@@ -314,6 +369,27 @@ class GameModeMachine {
         action: function (tool: Tool) {
           let gmm = <GameModeMachine>(<unknown>this);
           gmm.customActions.onSetDesignTool(tool);
+        },
+      },
+      {
+        name: "save",
+        action: function () {
+          let gmm = <GameModeMachine>(<unknown>this);
+          gmm.customActions.onSave();
+        },
+      },
+      {
+        name: "saveAs",
+        action: function () {
+          let gmm = <GameModeMachine>(<unknown>this);
+          gmm.customActions.onSaveAs();
+        },
+      },
+      {
+        name: "loadSaved",
+        action: function () {
+          let gmm = <GameModeMachine>(<unknown>this);
+          gmm.customActions.onLoadSaved();
         },
       },
     ];

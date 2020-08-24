@@ -2,6 +2,7 @@ import { Entity } from "@fritzy/ecs";
 //@ts-ignore
 import axios from "axios";
 import { capitalize } from "../modules/gameHelpers";
+import { DesignMapGrid } from "../state/map";
 
 export type Tool =
   | ""
@@ -84,11 +85,51 @@ class DesignModule {
     });
   }
 
-  save() {}
+  save() {
+    let global = this.game.ecs.getEntity("global").Global;
+    let map = global.map.Map;
+    let saved = map.map.exportForSave();
+    axios
+      .put(`/map/${map.mapId}`, saved)
+      .then((data: any) => {
+        console.log(data.data);
+      })
+      .catch((err: any) => {
+        console.error(err);
+      });
+  }
 
-  saveAs() {}
+  saveAs() {
+    let global = this.game.ecs.getEntity("global").Global;
+    let map = global.map.Map;
+    let saved = map.map.exportForSave();
+    let name = window.prompt("Please enter a name for your map");
+    saved.level_name = name;
+    saved.user_id = 1;
+    //axios post to server
+    axios
+      .post("/map", saved)
+      .then((data: any) => {
+        let { id } = data.data;
+        map.mapId = id;
+        console.log(`Saved new map #${id}!`);
+      })
+      .catch((err: any) => console.error(err));
+  }
 
-  loadSaved() {}
+  loadSaved() {
+    let id = window.prompt("Please enter a level ID to edit");
+    let global = this.game.ecs.getEntity("global").Global;
+    axios
+      .get(`/map/${id}`)
+      .then((data: any) => {
+        console.log(data.data);
+        global.map.Map.mapId = id;
+        global.map.Map.map = DesignMapGrid.fromMapObject(data.data);
+        global.map.TileMap.tiles = global.map.Map.map.generateTileMap();
+      })
+      .catch((err: any) => console.error(err));
+  }
 }
 
 export default DesignModule;

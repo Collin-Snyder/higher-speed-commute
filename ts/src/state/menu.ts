@@ -153,75 +153,78 @@ export class MenuButtons {
           },
         ],
         admin: [
-          {
-            name: "home",
-            onClick: function () {
-              //publish a leaveDesign event
-              //handle any saving that needs to happen
-              //publish a quit event
-            },
-            height: 0,
-            width: 0,
-          },
+          // {
+          //   name: "home",
+          //   onClick: function () {
+          //     //publish a leaveDesign event
+          //     //handle any saving that needs to happen
+          //     //publish a quit event
+          //   },
+          //   height: 0,
+          //   width: 0,
+          // },
           {
             name: "save",
             onClick: function () {
+              this.publish("save");
               //send ping to the server updating the level with new info by id
               //on success, change saved to true
               //on failure, display failure message
             },
-            height: 0,
-            width: 0,
+            height: 75,
+            width: 200,
           },
           {
             name: "saveAs",
             onClick: function () {
+              this.publish("saveAs");
               //prompt user for level name
               //send ping to the server to create new level with current info + name
               //on success, change saved to true
               //on failure, display failure message
             },
-            height: 0,
-            width: 0,
+            height: 75,
+            width: 200,
           },
           {
             name: "loadSaved",
             onClick: function () {
               //send request to server asking for level id based on selected level name
+              this.publish("loadSaved");
             },
-            width: 0,
-            height: 0,
+            width: 200,
+            height: 75,
           },
-          {
-            name: "erase",
-            onClick: function () {
-              //set selectedTool to "eraser"
-              //set draggable to true
-            },
-            height: 0,
-            width: 0,
-          },
-          {
-            name: "undo",
-            onClick: function () {
-              //DESIGN MODE NEEDS A HISTORY STACK
-              //set desired length of undo history (number of recent history items stored)
-              //every action, calculate diff and store in stack
-              //if stack is too big, chop the earliest entry off the bottom of stack
-              //on undo, pop the most recent action off history stack and apply reversed diffs to state
-            },
-            height: 0,
-            width: 0,
-          },
-          {
-            name: "reset",
-            onClick: function () {
-              //confirm "Are you sure?"
-              //restore default design state
-            },
-            height: 0,
-            width: 0,
-          },
+          // {
+          //   name: "erase",
+          //   onClick: function () {
+          //     //set selectedTool to "eraser"
+          //     //set draggable to true
+          //   },
+          //   height: 0,
+          //   width: 0,
+          // },
+          // {
+          //   name: "undo",
+          //   onClick: function () {
+          //     //DESIGN MODE NEEDS A HISTORY STACK
+          //     //set desired length of undo history (number of recent history items stored)
+          //     //every action, calculate diff and store in stack
+          //     //if stack is too big, chop the earliest entry off the bottom of stack
+          //     //on undo, pop the most recent action off history stack and apply reversed diffs to state
+          //   },
+          //   height: 0,
+          //   width: 0,
+          // },
+          // {
+          //   name: "reset",
+          //   onClick: function () {
+          //     //confirm "Are you sure?"
+          //     //restore default design state
+          //   },
+          //   height: 0,
+          //   width: 0,
+          // },
         ],
         config: [
           { name: "issues", onClick: function () {}, height: 0, width: 0 },

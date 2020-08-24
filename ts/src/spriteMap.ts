@@ -26,7 +26,10 @@ const spriteMap = {
   lightButton: { X: 350, Y: 50 },
   schoolZoneButton: { X: 275, Y: 50 },
   coffeeButton: { X: 425, Y: 50 },
-  eraserButton: {X: 425, Y: 125}
+  eraserButton: { X: 425, Y: 125 },
+  saveButton: { X: 0, Y: 200 },
+  loadSavedButton: { X: 0, Y: 275 },
+  saveAsButton: { X: 0, Y: 350 },
 };
 
 export default spriteMap;

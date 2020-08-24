@@ -1,10 +1,13 @@
-import { calculateSurroundingSquareCount, randomNumBtwn } from "../modules/gameMath";
-enum Direction {
-  UP = "up",
-  DOWN = "down",
-  LEFT = "left",
-  RIGHT = "right",
-}
+import {
+  calculateSurroundingSquareCount,
+  randomNumBtwn,
+} from "../modules/gameMath";
+// enum Direction {
+//   UP = "up",
+//   DOWN = "down",
+//   LEFT = "left",
+//   RIGHT = "right",
+// }
 
 export interface MapGridInterface {
   squares: SquareInterface[];
@@ -46,12 +49,14 @@ export interface SquareInterface {
 }
 
 type BordersInterface = {
-  [direction in Direction]: SquareInterface | null;
+  [key in Direction]: SquareInterface | null;
 };
 
 type BordersCompressedInterface = {
-  [direction in Direction]: number | null;
+  [key in Direction]: number | null;
 };
+
+type Direction = "up" | "down" | "left" | "right";
 
 type Tile =
   | "street"
@@ -195,7 +200,7 @@ export class MapGrid implements MapGridInterface {
     return this.squares[s - 1];
   }
 
-  generateTileMap(): (Tile | Tile[])[]{
+  generateTileMap(): (Tile | Tile[])[] {
     return this.squares.map((s: SquareInterface) => {
       if (s.drivable) {
         if (s.schoolZone) return "schoolZone";
@@ -297,8 +302,12 @@ export class MapGrid implements MapGridInterface {
     endX: number,
     endY: number
   ): Array<number>[] | null {
-    let startSquare: SquareInterface = <SquareInterface>this.getSquareByCoords(startX, startY);
-    let endSquare: SquareInterface = <SquareInterface>this.getSquareByCoords(endX, endY);
+    let startSquare: SquareInterface = <SquareInterface>(
+      this.getSquareByCoords(startX, startY)
+    );
+    let endSquare: SquareInterface = <SquareInterface>(
+      this.getSquareByCoords(endX, endY)
+    );
 
     let frontier = new PathQueue();
     let cameFrom: { [key: string]: any } = {};
@@ -314,7 +323,9 @@ export class MapGrid implements MapGridInterface {
     while (frontier.empty() === false) {
       let currentId = frontier.get();
 
-      let currentSquare: SquareInterface = <SquareInterface>this.squares[currentId - 1];
+      let currentSquare: SquareInterface = <SquareInterface>(
+        this.squares[currentId - 1]
+      );
 
       if (currentId == endSquare.id) {
         foundTarget = true;
@@ -399,9 +410,7 @@ export class DesignMapGrid extends MapGrid {
     return this.playerHome == id || this.bossHome == id || this.office == id;
   }
 
-  determineTileValue = (
-    square: SquareInterface
-  ): Tile | Tile[] => {
+  determineTileValue = (square: SquareInterface): Tile | Tile[] => {
     if (square.drivable) {
       if (this.playerHome === square.id) return "playerHome";
       if (this.bossHome === square.id) return "bossHome";
@@ -507,7 +516,7 @@ export class DesignMapGrid extends MapGrid {
       }
       if (!this.isKeySquare(id)) {
         this.lights[id] = randomNumBtwn(4, 12) * 1000;
-        tileChanges.push([id - 1, this.determineTileValue(square)])
+        tileChanges.push([id - 1, this.determineTileValue(square)]);
       }
     }
     return tileChanges;
@@ -526,7 +535,7 @@ export class DesignMapGrid extends MapGrid {
       }
       if (!this.isKeySquare(id)) {
         this.coffees[id] = true;
-        tileChanges.push([id - 1, this.determineTileValue(square)])
+        tileChanges.push([id - 1, this.determineTileValue(square)]);
       }
     }
 
@@ -549,6 +558,40 @@ export class DesignMapGrid extends MapGrid {
     tileChanges.push([id - 1, ""]);
 
     return tileChanges;
+  }
+
+  compressSquares() {
+      let compressed = this.squares.map(square => {
+        square = {...square};
+        square.borders = {...square.borders};
+        for (let direction in square.borders) {
+          let dir = <Direction>direction;
+          if (square.borders[dir] !== null) {
+            //@ts-ignore
+            let borderId = square.borders[dir].id;
+            //@ts-ignore
+            square.borders[dir] = borderId;
+          }
+        }
+        return square;
+      });
+    
+      return JSON.stringify(compressed);
+    
+  }
+
+  exportForSave() {
+    const save = {
+      board_height: this.height,
+      board_width: this.width,
+      player_home: this.playerHome,
+      boss_home: this.bossHome,
+      office: this.office,
+      squares: this.compressSquares(),
+      lights: JSON.stringify(this.lights),
+      coffees: JSON.stringify(this.coffees)
+    };
+    return save;
   }
 }
 
