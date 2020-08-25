@@ -455,111 +455,122 @@ export class DesignMapGrid extends MapGrid {
     return tileChanges;
   }
 
-  handleStreetAction(square: SquareInterface) {
+  handleStreetAction(commander: Commander, square: SquareInterface) {
     console.log("Adding street");
     let id = square.id;
     let tileChanges = [];
 
+    commander.beginGroup();
+
     if (!this.isKeySquare(id)) {
       if (this.lights.hasOwnProperty(id)) {
-        delete this.lights[id];
+        commander.execute("removeLight", id);
       }
       if (this.coffees.hasOwnProperty(id)) {
-        delete this.coffees[id];
+        commander.execute("removeCoffee", id);
       }
       if (square.drivable && square.schoolZone) {
-        square.schoolZone = false;
+        commander.execute("makeNotSchoolZone", id);
       } else if (square.drivable) {
-        square.drivable = false;
-        tileChanges.push([id - 1, ""]);
+        commander.execute("makeNotDrivable", id);
       } else {
-        square.drivable = true;
-      }
-      if (!tileChanges.length) {
-        tileChanges.push([id - 1, "street"]);
+        commander.execute("makeDrivable", id);
       }
     }
 
+    commander.endGroup();
+    tileChanges.push(id);
     return tileChanges;
   }
-  handleSchoolZoneAction(square: SquareInterface) {
+
+  handleSchoolZoneAction(commander: Commander, square: SquareInterface) {
     console.log("Adding school zone");
     let id = square.id;
     let tileChanges = [];
 
+    commander.beginGroup();
+
     if (!this.isKeySquare(id)) {
       if (square.drivable && square.schoolZone) {
-        square.schoolZone = false;
-        square.drivable = false;
-        tileChanges.push([id - 1, ""]);
+        commander.execute("makeNotSchoolZone", id);
+        commander.execute("makeNotDrivable", id);
       } else if (square.drivable) {
-        square.schoolZone = true;
+        commander.execute("makeSchoolZone", id);
       } else {
-        square.drivable = true;
-        square.schoolZone = true;
-      }
-      if (!tileChanges.length) {
-        tileChanges.push([id - 1, "schoolZone"]);
+        commander.execute("makeDrivable", id);
+        commander.execute("makeSchoolZone", id);
       }
     }
 
+    commander.endGroup();
+    tileChanges.push(id);
     return tileChanges;
   }
-  handleLightAction(square: SquareInterface) {
+
+  handleLightAction(commander: Commander, square: SquareInterface) {
     console.log("Adding light");
     let id = square.id;
     let tileChanges = [];
 
+    commander.beginGroup();
+
     if (this.lights.hasOwnProperty(id)) {
-      delete this.lights[id];
-      tileChanges.push([id - 1, this.determineTileValue(square.id)]);
+      commander.execute("removeLight", id);
     } else {
       if (this.coffees.hasOwnProperty(id)) {
-        delete this.coffees[id];
+        commander.execute("removeCoffee", id);
       }
       if (!this.isKeySquare(id)) {
-        this.lights[id] = randomNumBtwn(4, 12) * 1000;
-        tileChanges.push([id - 1, this.determineTileValue(square.id)]);
+        commander.execute("addLight", id, randomNumBtwn(4, 12) * 1000);
       }
     }
+
+    commander.endGroup();
+    tileChanges.push(id);
     return tileChanges;
   }
-  handleCoffeeAction(square: SquareInterface) {
+
+  handleCoffeeAction(commander: Commander, square: SquareInterface) {
     console.log("Adding coffee");
     let id = square.id;
     let tileChanges = [];
 
+    commander.beginGroup();
+
     if (this.coffees.hasOwnProperty(id)) {
-      delete this.coffees[id];
-      tileChanges.push([id - 1, this.determineTileValue(square.id)]);
+      commander.execute("removeCoffee", id);
     } else {
       if (this.lights.hasOwnProperty(id)) {
-        delete this.lights[id];
+        commander.execute("removeLight", id);
       }
       if (!this.isKeySquare(id)) {
-        this.coffees[id] = true;
-        tileChanges.push([id - 1, this.determineTileValue(square.id)]);
+        commander.execute("addCoffee", id);
       }
     }
 
+    commander.endGroup();
+    tileChanges.push(id);;
     return tileChanges;
   }
-  handleEraserAction(square: SquareInterface) {
+
+  handleEraserAction(commander: Commander, square: SquareInterface) {
     let id = square.id;
     let tileChanges = [];
 
-    if (this.playerHome === id) this.playerHome = 0;
-    else if (this.bossHome === id) this.bossHome = 0;
-    else if (this.office === id) this.office = 0;
+    commander.beginGroup();
 
-    this.set(id, "drivable", false);
-    this.set(id, "schoolZone", false);
+    if (this.playerHome === id) commander.execute("removeKeySquare", id, "playerHome");
+    else if (this.bossHome === id) commander.execute("removeKeySquare", id, "bossHome");
+    else if (this.office === id) commander.execute("removeKeySquare", id, "office");
 
-    if (this.lights.hasOwnProperty(id)) delete this.lights[id];
-    if (this.coffees.hasOwnProperty(id)) delete this.coffees[id];
+    if (square.schoolZone) commander.execute("makeNotSchoolZone", id);
+    if (square.drivable) commander.execute("makeNotDrivable", id);
 
-    tileChanges.push([id - 1, ""]);
+    if (this.lights.hasOwnProperty(id)) commander.execute("removeLight", id);
+    if (this.coffees.hasOwnProperty(id)) commander.execute("removeCoffee", id);
 
+    commander.endGroup();
+    tileChanges.push(id);
     return tileChanges;
   }
 

@@ -152,7 +152,6 @@ class DesignModule {
   }
 
   undo() {
-      console.log("registering undo action in designModule")
     this._commander.undo();
     let global = this._game.ecs.getEntity("global").Global;
     global.map.TileMap.tiles = global.map.Map.map.generateTileMap();

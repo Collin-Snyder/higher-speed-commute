@@ -92,7 +92,7 @@ class Commander {
     let group = this._currentActionGroup();
     for (let i = group.length - 1; i >= 0; i--) {
       let { name, args } = group[i];
-      console.log(`Executing command '${name}'`);
+      console.log(`Undoing '${name}'`);
       this._commands[name].undo(...args);
     }
 
@@ -104,6 +104,7 @@ class Commander {
 
     for (let action of this._currentActionGroup()) {
       let { name, args } = action;
+      console.log(`Redoing '${name}'`);
       this._commands[name].execute(...args);
     }
 
