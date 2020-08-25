@@ -3,6 +3,7 @@ import { Entity } from "@fritzy/ecs";
 import axios from "axios";
 import { capitalize } from "../modules/gameHelpers";
 import { DesignMapGrid } from "../state/map";
+import Commander from "commander";
 
 export type Tool =
   | ""
@@ -16,7 +17,8 @@ export type Tool =
   | "eraser";
 
 class DesignModule {
-  private game: any;
+  private _game: any;
+  private _commander: Commander;
   public saved: boolean;
   //   public mapEntity: Entity;
   public gridLoaded: boolean;
@@ -24,7 +26,8 @@ class DesignModule {
   public selectedTool: Tool;
 
   constructor(game: any) {
-    this.game = game;
+    this._game = game;
+    this._commander = new Commander(game);
     this.saved = true;
     this.selectedTool = "";
     this.gridLoaded = false;
@@ -39,7 +42,7 @@ class DesignModule {
   editDesign() {
     console.log("edit design running with tool: ", this.selectedTool);
     if (!this.selectedTool) return;
-    let global = this.game.ecs.getEntity("global").Global;
+    let global = this._game.ecs.getEntity("global").Global;
     let mx = global.inputs.mouseX;
     let my = global.inputs.mouseY;
     let mapEntity = global.map;
@@ -86,7 +89,7 @@ class DesignModule {
   }
 
   save() {
-    let global = this.game.ecs.getEntity("global").Global;
+    let global = this._game.ecs.getEntity("global").Global;
     let map = global.map.Map;
     let saved = map.map.exportForSave();
     axios
@@ -100,7 +103,7 @@ class DesignModule {
   }
 
   saveAs() {
-    let global = this.game.ecs.getEntity("global").Global;
+    let global = this._game.ecs.getEntity("global").Global;
     let map = global.map.Map;
     let saved = map.map.exportForSave();
     let name = window.prompt("Please enter a name for your map");
@@ -119,7 +122,7 @@ class DesignModule {
 
   loadSaved() {
     let id = window.prompt("Please enter a level ID to edit");
-    let global = this.game.ecs.getEntity("global").Global;
+    let global = this._game.ecs.getEntity("global").Global;
     axios
       .get(`/map/${id}`)
       .then((data: any) => {
@@ -129,6 +132,14 @@ class DesignModule {
         global.map.TileMap.tiles = global.map.Map.map.generateTileMap();
       })
       .catch((err: any) => console.error(err));
+  }
+
+  undo() {
+      this._commander.undo();
+  }
+
+  redo() {
+      this._commander.redo();
   }
 }
 

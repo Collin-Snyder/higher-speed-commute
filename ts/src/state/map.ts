@@ -2,12 +2,7 @@ import {
   calculateSurroundingSquareCount,
   randomNumBtwn,
 } from "../modules/gameMath";
-// enum Direction {
-//   UP = "up",
-//   DOWN = "down",
-//   LEFT = "left",
-//   RIGHT = "right",
-// }
+import Commander from "../modules/commander";
 
 export interface MapGridInterface {
   squares: SquareInterface[];
