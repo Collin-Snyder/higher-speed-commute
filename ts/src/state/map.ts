@@ -398,14 +398,20 @@ export class DesignMapGrid extends MapGrid {
   }
 
   generateTileMap(): (Tile | Tile[])[] {
-    return this.squares.map((s: SquareInterface) => this.determineTileValue(s));
+    return this.squares.map((s: SquareInterface) => this.determineTileValue(s.id));
+  }
+
+  tileIndex(id: number): number {
+    return id - 1;
   }
 
   isKeySquare(id: number): boolean {
     return this.playerHome == id || this.bossHome == id || this.office == id;
   }
 
-  determineTileValue = (square: SquareInterface): Tile | Tile[] => {
+  determineTileValue = (id: number): Tile | Tile[] => {
+
+    let square = <Square>this.get(id);
     if (square.drivable) {
       if (this.playerHome === square.id) return "playerHome";
       if (this.bossHome === square.id) return "bossHome";
@@ -424,26 +430,28 @@ export class DesignMapGrid extends MapGrid {
     return "";
   };
 
-  handleKeySquareAction(
+  handleKeySquareAction(commander: Commander,
     square: SquareInterface,
     tool: "playerHome" | "bossHome" | "office"
   ) {
     console.log(`Adding ${tool}!`);
+    commander.beginGroup();
+    let id = square.id;
     let tileChanges = [];
-    let newTile = "";
     if (this[tool] === square.id) {
-      square.drivable = false;
-      this[tool] = 0;
+      commander.execute("makeNotDrivable", id);
+      commander.execute("removeKeySquare", id, tool);
     } else {
       if (this[tool] > 0) {
-        this.set(this[tool], "drivable", false);
-        tileChanges.push([this[tool] - 1, ""]);
+        tileChanges.push(this[tool]);
+        commander.execute("makeNotDrivable", this[tool]);
+        commander.execute("removeKeySquare", this[tool], tool);
       }
-      square.drivable = true;
-      this[tool] = square.id;
-      newTile = tool;
+      commander.execute("makeDrivable", id);
+      commander.execute("makeKeySquare", id, tool);
     }
-    tileChanges.push([square.id - 1, newTile]);
+    commander.endGroup();
+    tileChanges.push(id);
     return tileChanges;
   }
 
@@ -504,14 +512,14 @@ export class DesignMapGrid extends MapGrid {
 
     if (this.lights.hasOwnProperty(id)) {
       delete this.lights[id];
-      tileChanges.push([id - 1, this.determineTileValue(square)]);
+      tileChanges.push([id - 1, this.determineTileValue(square.id)]);
     } else {
       if (this.coffees.hasOwnProperty(id)) {
         delete this.coffees[id];
       }
       if (!this.isKeySquare(id)) {
         this.lights[id] = randomNumBtwn(4, 12) * 1000;
-        tileChanges.push([id - 1, this.determineTileValue(square)]);
+        tileChanges.push([id - 1, this.determineTileValue(square.id)]);
       }
     }
     return tileChanges;
@@ -523,14 +531,14 @@ export class DesignMapGrid extends MapGrid {
 
     if (this.coffees.hasOwnProperty(id)) {
       delete this.coffees[id];
-      tileChanges.push([id - 1, this.determineTileValue(square)]);
+      tileChanges.push([id - 1, this.determineTileValue(square.id)]);
     } else {
       if (this.lights.hasOwnProperty(id)) {
         delete this.lights[id];
       }
       if (!this.isKeySquare(id)) {
         this.coffees[id] = true;
-        tileChanges.push([id - 1, this.determineTileValue(square)]);
+        tileChanges.push([id - 1, this.determineTileValue(square.id)]);
       }
     }
 

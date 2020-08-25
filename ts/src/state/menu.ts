@@ -142,15 +142,15 @@ export class MenuButtons {
             height: 75,
             width: 75,
           },
-          {
-            name: "eraser",
-            onClick: function () {
-              console.log("You clicked eraser");
-              this.publish("setDesignTool", "eraser");
-            },
-            height: 75,
-            width: 75,
-          },
+          // {
+          //   name: "eraser",
+          //   onClick: function () {
+          //     console.log("You clicked eraser");
+          //     this.publish("setDesignTool", "eraser");
+          //   },
+          //   height: 75,
+          //   width: 75,
+          // },
         ],
         admin: [
           // {
@@ -195,27 +195,31 @@ export class MenuButtons {
             width: 200,
             height: 75,
           },
-          // {
-          //   name: "erase",
-          //   onClick: function () {
-          //     //set selectedTool to "eraser"
-          //     //set draggable to true
-          //   },
-          //   height: 0,
-          //   width: 0,
-          // },
-          // {
-          //   name: "undo",
-          //   onClick: function () {
-          //     //DESIGN MODE NEEDS A HISTORY STACK
-          //     //set desired length of undo history (number of recent history items stored)
-          //     //every action, calculate diff and store in stack
-          //     //if stack is too big, chop the earliest entry off the bottom of stack
-          //     //on undo, pop the most recent action off history stack and apply reversed diffs to state
-          //   },
-          //   height: 0,
-          //   width: 0,
-          // },
+          {
+            name: "eraser",
+            onClick: function () {
+              console.log("You clicked eraser");
+              this.publish("setDesignTool", "eraser");
+            },
+            height: 75,
+            width: 75,
+          },
+          {
+            name: "undo",
+            onClick: function () {
+              this.publish("undo");
+            },
+            height: 75,
+            width: 75,
+          },
+          {
+            name: "redo",
+            onClick: function () {
+              this.publish("redo");
+            },
+            height: 75,
+            width: 75,
+          },
           // {
           //   name: "reset",
           //   onClick: function () {

@@ -346,6 +346,14 @@ class GameModeMachine {
         let game = <Game>(<unknown>this);
         game.designModule.loadSaved();
       },
+      onUndo: function() {
+        let game = <Game>(<unknown>this);
+        game.designModule.undo();
+      },
+      onRedo: function() {
+        let game = <Game>(<unknown>this);
+        game.designModule.redo();
+      }
     };
     this.events = [
       { name: "ready", from: "init", to: "menu" },
@@ -390,6 +398,20 @@ class GameModeMachine {
         action: function () {
           let gmm = <GameModeMachine>(<unknown>this);
           gmm.customActions.onLoadSaved();
+        },
+      },
+      {
+        name: "undo",
+        action: function () {
+          let gmm = <GameModeMachine>(<unknown>this);
+          gmm.customActions.onUndo();
+        },
+      },
+      {
+        name: "redo",
+        action: function () {
+          let gmm = <GameModeMachine>(<unknown>this);
+          gmm.customActions.onRedo();
         },
       },
     ];

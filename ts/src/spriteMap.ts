@@ -30,6 +30,8 @@ const spriteMap = {
   saveButton: { X: 0, Y: 200 },
   loadSavedButton: { X: 0, Y: 275 },
   saveAsButton: { X: 0, Y: 350 },
+  undoButton: { X: 200, Y: 200 },
+  redoButton: { X: 275, Y: 200 },
 };
 
 export default spriteMap;

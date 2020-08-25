@@ -3,7 +3,7 @@ import { Entity } from "@fritzy/ecs";
 import axios from "axios";
 import { capitalize } from "../modules/gameHelpers";
 import { DesignMapGrid } from "../state/map";
-import Commander from "commander";
+import Commander, { commands } from "./commander";
 
 export type Tool =
   | ""
@@ -37,6 +37,10 @@ class DesignModule {
     this.gridOverlay.onload = () => {
       this.gridLoaded = true;
     };
+
+    for (let command in commands) {
+        this._commander.addCommand(command, commands[command]);
+    }
   }
 
   editDesign() {
@@ -72,20 +76,33 @@ class DesignModule {
         actionType = capitalize(this.selectedTool);
     }
     const tileChanges = designMap[`handle${actionType}Action`](
+      this._commander,
       square,
       this.selectedTool
     );
 
-    //update tile map on map entity
-    tileChanges.forEach((change: Array<string | number>) => {
-      let [index, tile] = change;
-      let oldTileValue = mapEntity.TileMap.tiles[index];
-      if (JSON.stringify(oldTileValue) !== JSON.stringify(tile)) {
-        mapEntity.TileMap.tiles[index] = tile;
-        //update save state
+    //handle resulting changes to tile map
+    let tiles = mapEntity.TileMap.tiles;
+    tileChanges.forEach((id: number) => {
+      let index = id - 1;
+      let oldTile = tiles[index];
+      let newTile = designMap.determineTileValue(id);
+      if (oldTile !== newTile) {
+        tiles[index] = newTile;
         this.saved = false;
       }
     });
+
+    //update tile map on map entity
+    // tileChanges.forEach((change: Array<string | number>) => {
+    //   let [index, tile] = change;
+    //   let oldTileValue = mapEntity.TileMap.tiles[index];
+    //   if (JSON.stringify(oldTileValue) !== JSON.stringify(tile)) {
+    //     mapEntity.TileMap.tiles[index] = tile;
+    //     //update save state
+    //     this.saved = false;
+    //   }
+    // });
   }
 
   save() {
@@ -135,11 +152,17 @@ class DesignModule {
   }
 
   undo() {
-      this._commander.undo();
+      console.log("registering undo action in designModule")
+    this._commander.undo();
+    let global = this._game.ecs.getEntity("global").Global;
+    global.map.TileMap.tiles = global.map.Map.map.generateTileMap();
   }
 
   redo() {
-      this._commander.redo();
+    console.log("registering redo action in designModule")
+    this._commander.redo();
+    let global = this._game.ecs.getEntity("global").Global;
+    global.map.TileMap.tiles = global.map.Map.map.generateTileMap();
   }
 }
 

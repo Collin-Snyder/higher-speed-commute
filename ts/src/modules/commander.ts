@@ -35,6 +35,7 @@ class Commander {
   }
 
   beginGroup() {
+    console.log("BEGINNING GROUP");
     if (this._group) {
       console.log(
         "Cannot begin an action group because there is already an active group. End group with 'endGroup()' and try again."
@@ -45,17 +46,25 @@ class Commander {
     return true;
   }
 
-  execute(name: string) {
+  execute(name: string, ...args: any[]) {
+    console.log(`Executing command '${name}'`);
+    // console.log(`Command: `, this._commands[name]);
     const cmd = this._commands[name];
-    const args = [].slice.call(arguments, 1);
-    this._history = this._history.slice(0, this._current);
+    // if (!this._group) this._history = this._history.slice(0, this._current);
     cmd.execute(...args);
-    if (!this._history[this._current]) this._history.push([]);
+    // console.log("History before push: ", this._history);
+    // console.log("Current: ", this._current);
+    if (this._history[this._current] === undefined) {
+      //   console.log("clearing history undefined");
+      this._history[this._current] = [];
+    }
     this._history[this._current].push({ name, args });
-    if (!this._group) this._current++;
+    // console.log("History after push: ", this._history);
+    // if (!this._group) this._current++;
   }
 
   endGroup() {
+    console.log("ENDING GROUP");
     if (!this._group) {
       console.log(
         "Cannot end action group because there is no current active group. Did you forget to start an action group with 'beginGroup()'?"
@@ -64,6 +73,7 @@ class Commander {
     }
     this._group = false;
     this._current++;
+    this._history = this._history.slice(0, this._current);
     return true;
   }
 
@@ -79,8 +89,10 @@ class Commander {
     if (!this.canUndo()) return false;
     this._current--;
 
-    for (let action of this._currentActionGroup()) {
-      let { name, args } = action;
+    let group = this._currentActionGroup();
+    for (let i = group.length - 1; i >= 0; i--) {
+      let { name, args } = group[i];
+      console.log(`Executing command '${name}'`);
       this._commands[name].undo(...args);
     }
 
@@ -151,18 +163,20 @@ const actions = {
     delete map.coffees[squareId];
   },
   makeKeySquare: function (squareId: number, keySquare: string) {
+    console.log(`Adding key square ${keySquare} to square ${squareId}`);
     let game = <Game>(<unknown>this);
     let map = game.ecs.getEntity("global").Global.map.Map.map;
     map[keySquare] = squareId;
   },
   removeKeySquare: function (squareId: number, keySquare: string) {
+    console.log(`Removing key square ${keySquare} from square ${squareId}`);
     let game = <Game>(<unknown>this);
     let map = game.ecs.getEntity("global").Global.map.Map.map;
     map[keySquare] = 0;
   },
 };
 
-const commands = {
+export const commands: { [name: string]: CommandInterface } = {
   makeDrivable: {
     execute: actions.makeDrivable,
     undo: actions.makeNotDrivable,
@@ -179,7 +193,7 @@ const commands = {
     execute: actions.addCoffee,
     undo: actions.removeCoffee,
   },
-  makeNotStreet: {
+  makeNotDrivable: {
     execute: actions.makeNotDrivable,
     undo: actions.makeDrivable,
   },
@@ -198,6 +212,10 @@ const commands = {
   makeKeySquare: {
     execute: actions.makeKeySquare,
     undo: actions.removeKeySquare,
+  },
+  removeKeySquare: {
+    execute: actions.removeKeySquare,
+    undo: actions.makeKeySquare,
   },
 };
 
