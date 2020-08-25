@@ -327,6 +327,7 @@ class InputEvents {
   public mouseX: number;
   public mouseY: number;
   public mouseDown: boolean;
+  public dragging: boolean;
   public keyPressMap: { [keyCode: number]: boolean };
 
   constructor() {
@@ -336,6 +337,7 @@ class InputEvents {
     this.mouseY = 0;
     this.mouseDown = false;
     this.keyPressMap = {};
+    this.dragging = false;
 
     for (let keyName in keyCodes) {
       this.keyPressMap[keyCodes[keyName]] = false;
@@ -368,14 +370,14 @@ class InputEvents {
     // );
   }
 
-  handleWindowResize = (e: UIEvent) => {
+  private handleWindowResize = (e: UIEvent) => {
     if (this.UICanvas) {
       this.UICanvas.width = window.innerWidth;
       this.UICanvas.height = window.innerHeight;
     }
   };
 
-  handleKeypress = (e: KeyboardEvent) => {
+  private handleKeypress = (e: KeyboardEvent) => {
     switch (e.type) {
       case "keydown":
         this.keyPressMap[e.keyCode] = true;
@@ -388,7 +390,7 @@ class InputEvents {
     }
   };
 
-  handleUIMouseEvent = (e: MouseEvent) => {
+  private handleUIMouseEvent = (e: MouseEvent) => {
     this.mouseX = e.clientX;
     this.mouseY = e.clientY;
     //@ts-ignore
@@ -407,6 +409,16 @@ class InputEvents {
 
       default:
         return;
+    }
+  }
+    public startDrag = () => {
+      console.log("DRAG START")
+      this.dragging = true;
+    }
+
+    public endDrag = () => {
+      console.log("DRAG END")
+      this.dragging = false;
     }
   };
 

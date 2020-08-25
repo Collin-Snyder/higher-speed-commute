@@ -7,9 +7,10 @@ export class InputSystem extends ECS.System {
   public keyPressMap: { [key: string]: boolean };
   public global: BaseComponent;
   public spaceBarDebounce: number;
-  // public clickDebounce: number;
   public lastMousedown: boolean;
   public lastSpaceDown: boolean;
+  public startMouseX: number;
+  public startMouseY: number;
   static query: { has?: string[]; hasnt?: string[] } = {
     has: ["Car", "Velocity"],
   };
@@ -21,6 +22,8 @@ export class InputSystem extends ECS.System {
     this.spaceBarDebounce = 20;
     this.lastMousedown = false;
     this.lastSpaceDown = false;
+    this.startMouseX = 0;
+    this.startMouseY = 0;
   }
 
   update(tick: number, entities: Set<Entity>) {
@@ -28,14 +31,7 @@ export class InputSystem extends ECS.System {
     let my = this.global.inputs.mouseY;
     let mousedown = this.global.inputs.mouseDown;
     let mode = this.global.mode;
-
-    // let newSBTime = this.spaceBarDebounce - tick;
-    // if (newSBTime <= 0) {
-    //   if (this.keyPressMap[keyCodes.SPACE]) {
-    //     this.global.mode = this.global.mode === "paused" ? "playing" : "paused";
-    //     this.spaceBarDebounce = tick + 20;
-    //   }
-    // }
+    let dragging = this.global.inputs.dragging;
 
     //handle spacebar input
     if (mode === "playing" || mode === "paused") {
@@ -54,6 +50,19 @@ export class InputSystem extends ECS.System {
     });
     let cursor = "default";
     let clicked;
+
+    //check if dragging
+    //if mousedown and lastMousedown and either mx is more than 5 away from startMouseX or vice versa for my, set drag = true
+    //RIGHT NOW DRAG EVENTS ARE ONLY REGISTERED ON "CLICKABLE" OBJECTS - I think this is the best way?
+    if (
+      !dragging &&
+      mousedown &&
+      this.lastMousedown &&
+      (Math.abs(mx - this.startMouseX) > 5 ||
+        Math.abs(my - this.startMouseY) > 5)
+    ) {
+      this.global.inputs.startDrag();
+    }
 
     for (let e of clickable) {
       let isMap = !!e.Map;
@@ -76,11 +85,24 @@ export class InputSystem extends ECS.System {
           console.log("click registered");
           clicked = e;
           this.lastMousedown = mousedown;
-        } else if (!mousedown && this.lastMousedown) {
-          this.lastMousedown = mousedown;
+          this.startMouseX = mx;
+          this.startMouseY = my;
         }
+        // else if (!mousedown && this.lastMousedown) {
+        //   this.lastMousedown = mousedown;
+        //   this.startMouseX = 0;
+        //   this.startMouseY = 0;
+        //   this.global.inputs.endDrag();
+        // }
         break;
       }
+    }
+
+    if (!mousedown && this.lastMousedown) {
+      this.lastMousedown = mousedown;
+      this.startMouseX = 0;
+      this.startMouseY = 0;
+      if (dragging) this.global.inputs.endDrag();
     }
     this.global.game.UICanvas.style.cursor = cursor;
 
@@ -106,11 +128,4 @@ export class InputSystem extends ECS.System {
     if (!potentials.length) potentials.push({ X: 0, Y: 0 });
     return potentials;
   }
-
-  handleMapMouseInput() {
-    //run map entity's onclick
-    //set global mousedown to "" - this will need to be changed to accommodate dragging
-  }
-
-  handleUIMouseInput() {}
 }

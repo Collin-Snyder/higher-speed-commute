@@ -48,19 +48,12 @@ class Commander {
 
   execute(name: string, ...args: any[]) {
     console.log(`Executing command '${name}'`);
-    // console.log(`Command: `, this._commands[name]);
     const cmd = this._commands[name];
-    // if (!this._group) this._history = this._history.slice(0, this._current);
     cmd.execute(...args);
-    // console.log("History before push: ", this._history);
-    // console.log("Current: ", this._current);
     if (this._history[this._current] === undefined) {
-      //   console.log("clearing history undefined");
       this._history[this._current] = [];
     }
     this._history[this._current].push({ name, args });
-    // console.log("History after push: ", this._history);
-    // if (!this._group) this._current++;
   }
 
   endGroup() {
