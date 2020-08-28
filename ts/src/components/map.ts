@@ -21,3 +21,11 @@ export const Canvas = {
     ctx: null,
   }
 };
+
+export const Drawable = {
+  properties: {
+    onDrawStart: function () {},
+    onDraw: function () {},
+    onDrawEnd: function () {}
+  }
+}

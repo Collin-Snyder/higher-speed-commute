@@ -53,6 +53,7 @@ export class MenuButtons {
           height: 0,
           width: 0,
         },
+        { name: "restart", onClick: function () {}, height: 0, width: 0 },
         {
           name: "quit",
           onClick: function () {
@@ -68,10 +69,7 @@ export class MenuButtons {
           {
             name: "playerHome",
             onClick: function () {
-              console.log("Selected design tool: playerHome");
-              //set selectedTool to "playerHome"
               this.publish("setDesignTool", "playerHome");
-              //set draggable to false
             },
             height: 75,
             width: 75,
@@ -79,10 +77,7 @@ export class MenuButtons {
           {
             name: "bossHome",
             onClick: function () {
-              console.log("Selected design tool: bossHome");
-              //set selectedTool to "bossHome"
               this.publish("setDesignTool", "bossHome");
-              //set draggable to false
             },
             height: 75,
             width: 75,
@@ -90,10 +85,7 @@ export class MenuButtons {
           {
             name: "office",
             onClick: function () {
-              console.log("Selected design tool: office");
-              //set selectedTool to "office"
               this.publish("setDesignTool", "office");
-              //set draggable to false
             },
             height: 75,
             width: 75,
@@ -101,10 +93,7 @@ export class MenuButtons {
           {
             name: "street",
             onClick: function () {
-              console.log("You clicked street");
-              //set selectedTool to "street"
               this.publish("setDesignTool", "street");
-              //set draggable to true
             },
             height: 75,
             width: 75,
@@ -112,10 +101,7 @@ export class MenuButtons {
           {
             name: "light",
             onClick: function () {
-              console.log("You clicked stoplight");
-              //set selectedTool to "light"
               this.publish("setDesignTool", "light");
-              //set draggable to false
             },
             height: 75,
             width: 75,
@@ -123,10 +109,7 @@ export class MenuButtons {
           {
             name: "schoolZone",
             onClick: function () {
-              console.log("You clicked school zone");
-              //set selectedTool to "schoolZone"
               this.publish("setDesignTool", "schoolZone");
-              //set draggable to true
             },
             height: 75,
             width: 75,
@@ -134,23 +117,11 @@ export class MenuButtons {
           {
             name: "coffee",
             onClick: function () {
-              console.log("You clicked coffee");
-              //set selectedTool to "coffee"
               this.publish("setDesignTool", "coffee");
-              //set draggable to false
             },
             height: 75,
             width: 75,
           },
-          // {
-          //   name: "eraser",
-          //   onClick: function () {
-          //     console.log("You clicked eraser");
-          //     this.publish("setDesignTool", "eraser");
-          //   },
-          //   height: 75,
-          //   width: 75,
-          // },
         ],
         admin: [
           // {
@@ -167,9 +138,6 @@ export class MenuButtons {
             name: "save",
             onClick: function () {
               this.publish("save");
-              //send ping to the server updating the level with new info by id
-              //on success, change saved to true
-              //on failure, display failure message
             },
             height: 75,
             width: 200,
@@ -189,7 +157,6 @@ export class MenuButtons {
           {
             name: "loadSaved",
             onClick: function () {
-              //send request to server asking for level id based on selected level name
               this.publish("loadSaved");
             },
             width: 200,

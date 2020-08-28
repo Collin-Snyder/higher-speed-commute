@@ -52,7 +52,6 @@ export class InputSystem extends ECS.System {
     let clicked;
 
     //check if dragging
-    //if mousedown and lastMousedown and either mx is more than 5 away from startMouseX or vice versa for my, set drag = true
     //RIGHT NOW DRAG EVENTS ARE ONLY REGISTERED ON "CLICKABLE" OBJECTS - I think this is the best way?
     if (
       !dragging &&
@@ -62,6 +61,8 @@ export class InputSystem extends ECS.System {
         Math.abs(my - this.startMouseY) > 5)
     ) {
       this.global.inputs.startDrag();
+      this.global.game.designModule.startDrawing();
+      dragging = this.global.inputs.dragging;
     }
 
     for (let e of clickable) {
@@ -78,35 +79,34 @@ export class InputSystem extends ECS.System {
         height
       );
 
-      if (mouseCollision) {
-        cursor = isMap ? "cell" : "pointer";
+      if (mouseCollision && !e.has("Disabled")) {
+        cursor = isMap ? this.global.game.designModule.mapCursor : "pointer";
 
-        if (mousedown && !this.lastMousedown) {
+        if (dragging && isMap) clicked = e;
+
+        else if (!dragging && mousedown && !this.lastMousedown) {
           console.log("click registered");
           clicked = e;
           this.lastMousedown = mousedown;
           this.startMouseX = mx;
           this.startMouseY = my;
         }
-        // else if (!mousedown && this.lastMousedown) {
-        //   this.lastMousedown = mousedown;
-        //   this.startMouseX = 0;
-        //   this.startMouseY = 0;
-        //   this.global.inputs.endDrag();
-        // }
         break;
       }
     }
+    if (clicked) clicked.Clickable.onClick();
 
     if (!mousedown && this.lastMousedown) {
       this.lastMousedown = mousedown;
       this.startMouseX = 0;
       this.startMouseY = 0;
-      if (dragging) this.global.inputs.endDrag();
+      if (dragging) {
+        this.global.inputs.endDrag();
+        this.global.game.designModule.stopDrawing();
+      }
     }
     this.global.game.UICanvas.style.cursor = cursor;
 
-    if (clicked) clicked.Clickable.onClick();
 
     //handle keypress inputs
     if (this.global.mode === "playing") {

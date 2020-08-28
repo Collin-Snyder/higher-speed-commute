@@ -2,7 +2,7 @@ import {
   calculateSurroundingSquareCount,
   randomNumBtwn,
 } from "../modules/gameMath";
-import Commander from "../modules/commander";
+import Editor from "../modules/editor";
 
 export interface MapGridInterface {
   squares: SquareInterface[];
@@ -398,7 +398,9 @@ export class DesignMapGrid extends MapGrid {
   }
 
   generateTileMap(): (Tile | Tile[])[] {
-    return this.squares.map((s: SquareInterface) => this.determineTileValue(s.id));
+    return this.squares.map((s: SquareInterface) =>
+      this.determineTileValue(s.id)
+    );
   }
 
   tileIndex(id: number): number {
@@ -410,7 +412,6 @@ export class DesignMapGrid extends MapGrid {
   }
 
   determineTileValue = (id: number): Tile | Tile[] => {
-
     let square = <Square>this.get(id);
     if (square.drivable) {
       if (this.playerHome === square.id) return "playerHome";
@@ -430,168 +431,165 @@ export class DesignMapGrid extends MapGrid {
     return "";
   };
 
-  handleKeySquareAction(commander: Commander,
+  handleKeySquareAction(
+    editor: Editor,
     square: SquareInterface,
+    drawing: boolean,
     tool: "playerHome" | "bossHome" | "office"
   ) {
     console.log(`Adding ${tool}!`);
-    commander.beginGroup();
     let id = square.id;
     let tileChanges = [];
     if (this[tool] === square.id) {
-      commander.execute("makeNotDrivable", id);
-      commander.execute("removeKeySquare", id, tool);
+      editor.execute("makeNotDrivable", id);
+      editor.execute("removeKeySquare", id, tool);
     } else {
       if (this[tool] > 0) {
         tileChanges.push(this[tool]);
-        commander.execute("makeNotDrivable", this[tool]);
-        commander.execute("removeKeySquare", this[tool], tool);
+        editor.execute("makeNotDrivable", this[tool]);
+        editor.execute("removeKeySquare", this[tool], tool);
       }
-      commander.execute("makeDrivable", id);
-      commander.execute("makeKeySquare", id, tool);
+      if (!square.drivable) editor.execute("makeDrivable", id);
+      editor.execute("makeKeySquare", id, tool);
     }
-    commander.endGroup();
     tileChanges.push(id);
     return tileChanges;
   }
 
-  handleStreetAction(commander: Commander, square: SquareInterface) {
-    console.log("Adding street");
+  handleStreetAction(
+    editor: Editor,
+    square: SquareInterface,
+    drawing: boolean
+  ) {
     let id = square.id;
     let tileChanges = [];
 
-    commander.beginGroup();
-
-    if (!this.isKeySquare(id)) {
-      if (this.lights.hasOwnProperty(id)) {
-        commander.execute("removeLight", id);
-      }
-      if (this.coffees.hasOwnProperty(id)) {
-        commander.execute("removeCoffee", id);
-      }
-      if (square.drivable && square.schoolZone) {
-        commander.execute("makeNotSchoolZone", id);
-      } else if (square.drivable) {
-        commander.execute("makeNotDrivable", id);
-      } else {
-        commander.execute("makeDrivable", id);
-      }
+    if (this.playerHome === id) {
+      editor.execute("removeKeySquare", id, "playerHome");
+    }
+    if (this.bossHome === id) {
+      editor.execute("removeKeySquare", id, "bossHome");
+    }
+    if (this.office === id) {
+      editor.execute("removeKeySquare", id, "office");
+    }
+    if (this.lights.hasOwnProperty(id)) {
+      editor.execute("removeLight", id);
+    }
+    if (this.coffees.hasOwnProperty(id)) {
+      editor.execute("removeCoffee", id);
+    }
+    if (square.drivable && square.schoolZone) {
+      editor.execute("makeNotSchoolZone", id);
+    } else if (square.drivable && !drawing) {
+      editor.execute("makeNotDrivable", id);
+    } else if (!square.drivable) {
+      editor.execute("makeDrivable", id);
     }
 
-    commander.endGroup();
     tileChanges.push(id);
     return tileChanges;
   }
 
-  handleSchoolZoneAction(commander: Commander, square: SquareInterface) {
-    console.log("Adding school zone");
+  handleSchoolZoneAction(
+    editor: Editor,
+    square: SquareInterface,
+    drawing: boolean
+  ) {
     let id = square.id;
     let tileChanges = [];
-
-    commander.beginGroup();
-
-    if (!this.isKeySquare(id)) {
-      if (square.drivable && square.schoolZone) {
-        commander.execute("makeNotSchoolZone", id);
-        commander.execute("makeNotDrivable", id);
-      } else if (square.drivable) {
-        commander.execute("makeSchoolZone", id);
-      } else {
-        commander.execute("makeDrivable", id);
-        commander.execute("makeSchoolZone", id);
+      if (square.drivable && square.schoolZone && !drawing) {
+        editor.execute("makeNotSchoolZone", id);
+        editor.execute("makeNotDrivable", id);
+      } else if (square.drivable && !square.schoolZone) {
+        editor.execute("makeSchoolZone", id);
+      } else if (!square.drivable && !square.schoolZone) {
+        editor.execute("makeDrivable", id);
+        editor.execute("makeSchoolZone", id);
       }
-    }
-
-    commander.endGroup();
     tileChanges.push(id);
     return tileChanges;
   }
 
-  handleLightAction(commander: Commander, square: SquareInterface) {
+  handleLightAction(editor: Editor, square: SquareInterface) {
     console.log("Adding light");
     let id = square.id;
     let tileChanges = [];
 
-    commander.beginGroup();
-
     if (this.lights.hasOwnProperty(id)) {
-      commander.execute("removeLight", id);
+      editor.execute("removeLight", id);
     } else {
       if (this.coffees.hasOwnProperty(id)) {
-        commander.execute("removeCoffee", id);
+        editor.execute("removeCoffee", id);
       }
       if (!this.isKeySquare(id)) {
-        commander.execute("addLight", id, randomNumBtwn(4, 12) * 1000);
+        editor.execute("addLight", id, randomNumBtwn(4, 12) * 1000);
       }
     }
 
-    commander.endGroup();
     tileChanges.push(id);
     return tileChanges;
   }
 
-  handleCoffeeAction(commander: Commander, square: SquareInterface) {
+  handleCoffeeAction(editor: Editor, square: SquareInterface) {
     console.log("Adding coffee");
     let id = square.id;
     let tileChanges = [];
 
-    commander.beginGroup();
-
     if (this.coffees.hasOwnProperty(id)) {
-      commander.execute("removeCoffee", id);
+      editor.execute("removeCoffee", id);
     } else {
       if (this.lights.hasOwnProperty(id)) {
-        commander.execute("removeLight", id);
+        editor.execute("removeLight", id);
       }
       if (!this.isKeySquare(id)) {
-        commander.execute("addCoffee", id);
+        editor.execute("addCoffee", id);
       }
     }
 
-    commander.endGroup();
-    tileChanges.push(id);;
+    // editor.endGroup();
+    tileChanges.push(id);
     return tileChanges;
   }
 
-  handleEraserAction(commander: Commander, square: SquareInterface) {
+  handleEraserAction(editor: Editor, square: SquareInterface) {
     let id = square.id;
     let tileChanges = [];
 
-    commander.beginGroup();
+    if (this.playerHome === id)
+      editor.execute("removeKeySquare", id, "playerHome");
+    else if (this.bossHome === id)
+      editor.execute("removeKeySquare", id, "bossHome");
+    else if (this.office === id)
+      editor.execute("removeKeySquare", id, "office");
 
-    if (this.playerHome === id) commander.execute("removeKeySquare", id, "playerHome");
-    else if (this.bossHome === id) commander.execute("removeKeySquare", id, "bossHome");
-    else if (this.office === id) commander.execute("removeKeySquare", id, "office");
+    if (square.schoolZone) editor.execute("makeNotSchoolZone", id);
+    if (square.drivable) editor.execute("makeNotDrivable", id);
 
-    if (square.schoolZone) commander.execute("makeNotSchoolZone", id);
-    if (square.drivable) commander.execute("makeNotDrivable", id);
+    if (this.lights.hasOwnProperty(id)) editor.execute("removeLight", id);
+    if (this.coffees.hasOwnProperty(id)) editor.execute("removeCoffee", id);
 
-    if (this.lights.hasOwnProperty(id)) commander.execute("removeLight", id);
-    if (this.coffees.hasOwnProperty(id)) commander.execute("removeCoffee", id);
-
-    commander.endGroup();
     tileChanges.push(id);
     return tileChanges;
   }
 
   compressSquares() {
-      let compressed = this.squares.map(square => {
-        square = {...square};
-        square.borders = {...square.borders};
-        for (let direction in square.borders) {
-          let dir = <Direction>direction;
-          if (square.borders[dir] !== null) {
-            //@ts-ignore
-            let borderId = square.borders[dir].id;
-            //@ts-ignore
-            square.borders[dir] = borderId;
-          }
+    let compressed = this.squares.map((square) => {
+      square = { ...square };
+      square.borders = { ...square.borders };
+      for (let direction in square.borders) {
+        let dir = <Direction>direction;
+        if (square.borders[dir] !== null) {
+          //@ts-ignore
+          let borderId = square.borders[dir].id;
+          //@ts-ignore
+          square.borders[dir] = borderId;
         }
-        return square;
-      });
-    
-      return JSON.stringify(compressed);
-    
+      }
+      return square;
+    });
+
+    return JSON.stringify(compressed);
   }
 
   exportForSave() {
@@ -603,7 +601,7 @@ export class DesignMapGrid extends MapGrid {
       office: this.office,
       squares: this.compressSquares(),
       lights: JSON.stringify(this.lights),
-      coffees: JSON.stringify(this.coffees)
+      coffees: JSON.stringify(this.coffees),
     };
     return save;
   }

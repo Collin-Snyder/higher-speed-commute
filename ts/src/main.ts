@@ -6,8 +6,8 @@ import spriteMap from "./spriteMap";
 import keyCodes from "./keyCodes";
 import DesignModule from "./modules/designModule";
 import { MapGrid, MapGridInterface } from "./state/map";
-import GameModeMachine from "./state/mode";
-import { MenuButtons } from "./state/menu";
+import GameModeMachine from "./state/pubsub";
+import { MenuButtons } from "./state/menuButtons";
 import Components from "./components/index";
 import Tags from "./tags/tags";
 import { MapSystem } from "./systems/map";
@@ -16,7 +16,7 @@ import { InputSystem } from "./systems/input";
 import { MovementSystem } from "./systems/move";
 import { CollisionSystem } from "./systems/collision";
 import { CaffeineSystem } from "./systems/caffeine";
-import { RenderTileMap, RenderEntities, RenderMenu } from "./systems/render";
+import { RenderTileMap, RenderEntities, RenderMenu, RenderButtonModifiers } from "./systems/render";
 
 interface InputEventsInterface {
   mouseX: number;
@@ -32,7 +32,7 @@ export class Game {
   public frameElapsedTime: number;
   private step: number = 17; //1/60s
   private tickTimes: number[];
-  public inputs: InputEventsInterface;
+  public inputs: InputEvents;
   public menuButtons: any;
   public width: number;
   public height: number;
@@ -106,8 +106,18 @@ export class Game {
       Coordinates: {},
     });
 
-    this.mapEntity.Coordinates.X = findCenteredElementSpread(window.innerWidth, this.map.pixelWidth, 1, "spaceEvenly").start;
-    this.mapEntity.Coordinates.Y = findCenteredElementSpread(window.innerHeight, this.map.pixelHeight, 1, "spaceEvenly").start;
+    this.mapEntity.Coordinates.X = findCenteredElementSpread(
+      window.innerWidth,
+      this.map.pixelWidth,
+      1,
+      "spaceEvenly"
+    ).start;
+    this.mapEntity.Coordinates.Y = findCenteredElementSpread(
+      window.innerHeight,
+      this.map.pixelHeight,
+      1,
+      "spaceEvenly"
+    ).start;
 
     this.playerEntity = this.ecs.createEntity({
       id: "player",
@@ -172,6 +182,7 @@ export class Game {
     this.ecs.addSystem("render", new RenderMenu(this.ecs, this.uictx));
     this.ecs.addSystem("render", new RenderTileMap(this.ecs, this.uictx));
     this.ecs.addSystem("render", new RenderEntities(this.ecs, this.uictx));
+    this.ecs.addSystem("render", new RenderButtonModifiers(this.ecs, this.uictx));
     this.ecs.addSystem("map", new MapSystem(this.ecs));
 
     this.loadMap = this.loadMap.bind(this);
@@ -268,9 +279,10 @@ export class Game {
     this.lastTick = now;
 
     this.render();
+
     // let newNow = window.performance.now();
     // this.tickTimes.push(newNow - now);
-    // console.log(`The new tick average time is ${average(this.tickTimes)}ms`);
+    // if (this.tickTimes.length % 60 === 0) console.log(`The new tick average time is ${average(this.tickTimes)}ms`);
     requestAnimationFrame(this.tick.bind(this));
   }
 
@@ -410,38 +422,16 @@ class InputEvents {
       default:
         return;
     }
-  }
-    public startDrag = () => {
-      console.log("DRAG START")
-      this.dragging = true;
-    }
-
-    public endDrag = () => {
-      console.log("DRAG END")
-      this.dragging = false;
-    }
   };
+  startDrag() {
+    console.log("DRAG START");
+    this.dragging = true;
+  }
 
-  // handleDesignMouseEvent = (e: MouseEvent) => {
-  //   this.mouseX = e.clientX;
-  //   this.mouseY = e.clientY;
-  //   //@ts-ignore
-  //   let id = e.currentTarget.id;
-
-  //   switch (e.type) {
-  //     case "mousedown":
-  //       console.log(`MOUSE DOWN AT ${this.mouseX}x${this.mouseY} on ${id}`);
-  //       this.mouseDown = "game";
-  //       break;
-  //     case "mouseup":
-  //       console.log(`MOUSE UP AT ${this.mouseX}x${this.mouseY} on ${id}`);
-  //       this.mouseDown = "";
-  //       break;
-
-  //     default:
-  //       return;
-  //   }
-  // };
+  endDrag() {
+    console.log("DRAG END");
+    this.dragging = false;
+  }
 }
 
 const game = new Game();

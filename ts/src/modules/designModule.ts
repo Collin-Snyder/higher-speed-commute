@@ -3,7 +3,9 @@ import { Entity } from "@fritzy/ecs";
 import axios from "axios";
 import { capitalize } from "../modules/gameHelpers";
 import { DesignMapGrid } from "../state/map";
-import Commander, { commands } from "./commander";
+import Editor, { commands } from "./editor";
+import { DisabledButtons } from "../buttonModifiers";
+import Game from "../main";
 
 export type Tool =
   | ""
@@ -18,18 +20,21 @@ export type Tool =
 
 class DesignModule {
   private _game: any;
-  private _commander: Commander;
+  private _editor: Editor;
   public saved: boolean;
-  //   public mapEntity: Entity;
   public gridLoaded: boolean;
   public gridOverlay: HTMLImageElement;
   public selectedTool: Tool;
+  public lastEditedSquare: number;
+  public mapCursor: "default" | "pointer" | "cell";
 
   constructor(game: any) {
     this._game = game;
-    this._commander = new Commander(game);
+    this._editor = new Editor(game);
     this.saved = true;
     this.selectedTool = "";
+    this.lastEditedSquare = 0;
+    this.mapCursor = "default";
     this.gridLoaded = false;
     this.gridOverlay = new Image();
     this.gridOverlay.src = "../design-grid.png";
@@ -39,16 +44,21 @@ class DesignModule {
     };
 
     for (let command in commands) {
-        this._commander.addCommand(command, commands[command]);
+      this._editor.addCommand(command, commands[command]);
     }
   }
 
+  setDesignTool(tool: Tool) {
+    this.selectedTool = tool;
+    this.mapCursor = tool ? "cell" : "default";
+  }
+
   editDesign() {
-    console.log("edit design running with tool: ", this.selectedTool);
     if (!this.selectedTool) return;
     let global = this._game.ecs.getEntity("global").Global;
     let mx = global.inputs.mouseX;
     let my = global.inputs.mouseY;
+    let dragging = global.inputs.dragging;
     let mapEntity = global.map;
     let designMap = mapEntity.Map.map;
 
@@ -65,6 +75,14 @@ class DesignModule {
       );
       return;
     }
+
+    if (dragging && square.id == this.lastEditedSquare) return;
+    if (
+      dragging &&
+      (this.selectedTool === "light" || this.selectedTool === "coffee")
+    )
+      return;
+
     let actionType;
     switch (this.selectedTool) {
       case "playerHome":
@@ -75,11 +93,15 @@ class DesignModule {
       default:
         actionType = capitalize(this.selectedTool);
     }
+
+    if (!dragging) this._editor.beginGroup();
     const tileChanges = designMap[`handle${actionType}Action`](
-      this._commander,
+      this._editor,
       square,
+      dragging,
       this.selectedTool
     );
+    if (!dragging) this._editor.endGroup();
 
     //handle resulting changes to tile map
     let tiles = mapEntity.TileMap.tiles;
@@ -90,29 +112,28 @@ class DesignModule {
       if (oldTile !== newTile) {
         tiles[index] = newTile;
         this.saved = false;
+        let saveBtn = this._game.ecs.getEntity("saveButton");
+        let saveAsBtn = this._game.ecs.getEntity("saveAsButton");
+        if (mapEntity.Map.mapId && saveBtn.has("Disabled"))
+          saveBtn.removeComponentByType("Disabled");
+        if (saveAsBtn.has("Disabled"))
+          saveBtn.removeComponentByType("Disabled");
       }
     });
-
-    //update tile map on map entity
-    // tileChanges.forEach((change: Array<string | number>) => {
-    //   let [index, tile] = change;
-    //   let oldTileValue = mapEntity.TileMap.tiles[index];
-    //   if (JSON.stringify(oldTileValue) !== JSON.stringify(tile)) {
-    //     mapEntity.TileMap.tiles[index] = tile;
-    //     //update save state
-    //     this.saved = false;
-    //   }
-    // });
+    this.lastEditedSquare = square.id;
   }
 
   save() {
     let global = this._game.ecs.getEntity("global").Global;
     let map = global.map.Map;
     let saved = map.map.exportForSave();
+
     axios
       .put(`/map/${map.mapId}`, saved)
       .then((data: any) => {
         console.log(data.data);
+        let saveBtn = global.game.ecs.getEntity("saveButton");
+        saveBtn.addComponent("Disabled", DisabledButtons.save);
       })
       .catch((err: any) => {
         console.error(err);
@@ -124,9 +145,10 @@ class DesignModule {
     let map = global.map.Map;
     let saved = map.map.exportForSave();
     let name = window.prompt("Please enter a name for your map");
+    if (!name) return;
     saved.level_name = name;
     saved.user_id = 1;
-    //axios post to server
+
     axios
       .post("/map", saved)
       .then((data: any) => {
@@ -135,6 +157,8 @@ class DesignModule {
         console.log(`Saved new map #${id}!`);
       })
       .catch((err: any) => console.error(err));
+
+    this.setDesignTool("");
   }
 
   loadSaved() {
@@ -147,21 +171,32 @@ class DesignModule {
         global.map.Map.mapId = id;
         global.map.Map.map = DesignMapGrid.fromMapObject(data.data);
         global.map.TileMap.tiles = global.map.Map.map.generateTileMap();
+        this._editor.restart();
       })
       .catch((err: any) => console.error(err));
+
+    this.setDesignTool("");
   }
 
   undo() {
-    this._commander.undo();
+    this._editor.undo();
     let global = this._game.ecs.getEntity("global").Global;
     global.map.TileMap.tiles = global.map.Map.map.generateTileMap();
   }
 
   redo() {
-    console.log("registering redo action in designModule")
-    this._commander.redo();
+    this._editor.redo();
     let global = this._game.ecs.getEntity("global").Global;
     global.map.TileMap.tiles = global.map.Map.map.generateTileMap();
+  }
+
+  startDrawing() {
+    this._editor.usePrevGroup();
+    this._editor.beginGroup();
+  }
+
+  stopDrawing() {
+    this._editor.endGroup();
   }
 }
 

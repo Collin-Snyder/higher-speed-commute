@@ -1,8 +1,9 @@
 import { Entity } from "@fritzy/ecs";
 import { Game } from "../main";
-import { findCenteredElementSpread } from "../modules/gameMath";
+import { findCenteredElementSpread, randomNumBtwn } from "../modules/gameMath";
 import { MapGrid, DesignMapGrid } from "./map";
 import { Tool } from "../modules/designModule";
+import { DisabledButtons } from "../buttonModifiers";
 type Mode =
   | "init"
   | "menu"
@@ -127,14 +128,6 @@ class GameModeMachine {
         }
       },
       onstart: function () {
-        //load game canvas
-        // let gameCanvas = <HTMLCanvasElement>document.getElementById("game");
-        // if (gameCanvas) {
-        //   gameCanvas.height = 0;
-        //   gameCanvas.width = 0;
-        // } else {
-        //   console.log(`Error: no such canvas with id "game"`);
-        // }
         //play starting animations
       },
       onplay: function () {
@@ -186,18 +179,8 @@ class GameModeMachine {
         //hide paused menu
       },
       ondesign: function () {
-        //load design canvas
         let game = <Game>(<unknown>this);
-        // let gameCanvas = <HTMLCanvasElement>document.getElementById("game");
         let UICanvas = <HTMLCanvasElement>document.getElementById("ui");
-        // if (gameCanvas) {
-        //   gameCanvas.height = 625;
-        //   gameCanvas.width = 1000;
-        //   gameCanvas.style.cursor = "cell";
-        //   console.log("canvas loaded");
-        // } else {
-        //   console.log(`Error: no such canvas with id "game"`);
-        // }
 
         //create design entities
         let mapEntity = game.ecs.getEntity("map");
@@ -300,6 +283,10 @@ class GameModeMachine {
           btn.Coordinates.Y = y;
           btn.Coordinates.X = centeredAdminX.start;
           y += centeredAdminY.step;
+          if (btn.id === "saveButton") {
+            console.log("Adding Disabled to save button");
+            btn.addComponent("Disabled", DisabledButtons.save);
+          }
           // btn.addTag("menu");
           // btn.addTag("design");
           // btn.addTag("admin");
@@ -332,7 +319,7 @@ class GameModeMachine {
     this.customActions = {
       onSetDesignTool: function (tool: Tool) {
         let game = <Game>(<unknown>this);
-        game.designModule.selectedTool = tool;
+        game.designModule.setDesignTool(tool);
       },
       onSave: function () {
         let game = <Game>(<unknown>this);
@@ -341,19 +328,20 @@ class GameModeMachine {
       onSaveAs: function () {
         let game = <Game>(<unknown>this);
         game.designModule.saveAs();
+        game.publish("forceMouseUp");
       },
       onLoadSaved: function () {
         let game = <Game>(<unknown>this);
         game.designModule.loadSaved();
       },
-      onUndo: function() {
+      onUndo: function () {
         let game = <Game>(<unknown>this);
         game.designModule.undo();
       },
-      onRedo: function() {
+      onRedo: function () {
         let game = <Game>(<unknown>this);
         game.designModule.redo();
-      }
+      },
     };
     this.events = [
       { name: "ready", from: "init", to: "menu" },
@@ -412,6 +400,13 @@ class GameModeMachine {
         action: function () {
           let gmm = <GameModeMachine>(<unknown>this);
           gmm.customActions.onRedo();
+        },
+      },
+      {
+        name: "forceMouseUp",
+        action: function () {
+          const body = document.body;
+          body.click();
         },
       },
     ];
