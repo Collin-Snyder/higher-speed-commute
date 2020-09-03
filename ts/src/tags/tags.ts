@@ -1,5 +1,5 @@
 const tagGroups: { [group: string]: string[] } = {
-  menu: ["menu", "main", "design", "toolbar"],
+  menu: ["menu", "main", "design", "toolbar", "admin", "config"]
 };
 
 let AllTags: Array<string> = [];

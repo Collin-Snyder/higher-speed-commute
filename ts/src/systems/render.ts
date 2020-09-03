@@ -91,7 +91,6 @@ export class RenderButtonModifiers extends EntityComponentSystem.System {
         }
         this.ctx.putImageData(image, entity.Coordinates.X, entity.Coordinates.Y);
       } else if (entity.Button.name === global.game.designModule.selectedTool) {
-        console.log("Rending selected tool")
         this.ctx.beginPath();
         this.ctx.lineWidth = 3;
         this.ctx.strokeStyle = "yellow";

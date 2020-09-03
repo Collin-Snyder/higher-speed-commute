@@ -442,15 +442,15 @@ export class DesignMapGrid extends MapGrid {
     let tileChanges = [];
     if (this[tool] === square.id) {
       editor.execute("makeNotDrivable", id);
-      editor.execute("removeKeySquare", id, tool);
+      editor.execute("removeKeySquare", tool, id);
     } else {
       if (this[tool] > 0) {
         tileChanges.push(this[tool]);
         editor.execute("makeNotDrivable", this[tool]);
-        editor.execute("removeKeySquare", this[tool], tool);
+        editor.execute("removeKeySquare", tool, this[tool]);
       }
       if (!square.drivable) editor.execute("makeDrivable", id);
-      editor.execute("makeKeySquare", id, tool);
+      editor.execute("makeKeySquare", tool, id);
     }
     tileChanges.push(id);
     return tileChanges;
@@ -465,13 +465,16 @@ export class DesignMapGrid extends MapGrid {
     let tileChanges = [];
 
     if (this.playerHome === id) {
-      editor.execute("removeKeySquare", id, "playerHome");
+      editor.execute("removeKeySquare", "playerHome", id);
+      editor.execute("makeNotDrivable", id);
     }
     if (this.bossHome === id) {
-      editor.execute("removeKeySquare", id, "bossHome");
+      editor.execute("removeKeySquare", "bossHome", id);
+      editor.execute("makeNotDrivable", id);
     }
     if (this.office === id) {
-      editor.execute("removeKeySquare", id, "office");
+      editor.execute("removeKeySquare", "office", id);
+      editor.execute("makeNotDrivable", id);
     }
     if (this.lights.hasOwnProperty(id)) {
       editor.execute("removeLight", id);
@@ -557,11 +560,11 @@ export class DesignMapGrid extends MapGrid {
     let tileChanges = [];
 
     if (this.playerHome === id)
-      editor.execute("removeKeySquare", id, "playerHome");
+      editor.execute("removeKeySquare", "playerHome", id);
     else if (this.bossHome === id)
-      editor.execute("removeKeySquare", id, "bossHome");
+      editor.execute("removeKeySquare", "bossHome", id);
     else if (this.office === id)
-      editor.execute("removeKeySquare", id, "office");
+      editor.execute("removeKeySquare", "office", id);
 
     if (square.schoolZone) editor.execute("makeNotSchoolZone", id);
     if (square.drivable) editor.execute("makeNotDrivable", id);
@@ -604,6 +607,19 @@ export class DesignMapGrid extends MapGrid {
       coffees: JSON.stringify(this.coffees),
     };
     return save;
+  }
+
+  clear(editor: Editor) {
+    editor.execute("removeKeySquare", "playerHome");
+    editor.execute("removeKeySquare", "bossHome");
+    editor.execute("removeKeySquare", "office");
+    for (let square of this.squares) {
+      let id = square.id;
+      editor.execute("makeNotSchoolZone", id);
+      editor.execute("makeNotDrivable", id);
+      editor.execute("removeLight", id);
+      editor.execute("removeCoffee", id);
+    }
   }
 }
 

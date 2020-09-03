@@ -83,6 +83,7 @@ class GameModeMachine {
       },
       onmenu: function () {
         let game = <Game>(<unknown>this);
+        if (game.globalEntity.Global.mode !== "menu") return;
         //load menu
         let y = 125;
         let buttons = [];
@@ -132,6 +133,19 @@ class GameModeMachine {
       },
       onplay: function () {
         let game = <Game>(<unknown>this);
+        let mapEntity = game.globalEntity.Global.map;
+        mapEntity.Coordinates.X = findCenteredElementSpread(
+          window.innerWidth,
+          mapEntity.Map.map.pixelWidth,
+          1,
+          "spaceEvenly"
+        ).start;
+        mapEntity.Coordinates.Y = findCenteredElementSpread(
+          window.innerHeight,
+          mapEntity.Map.map.pixelHeight,
+          1,
+          "spaceEvenly"
+        ).start;
         game.globalEntity.Global.mode = "playing";
       },
       onwin: function () {
@@ -193,6 +207,18 @@ class GameModeMachine {
             game.designModule.editDesign();
           },
         });
+        mapEntity.Coordinates.X = findCenteredElementSpread(
+          window.innerWidth,
+          mapEntity.Map.map.pixelWidth,
+          1,
+          "spaceEvenly"
+        ).start;
+        mapEntity.Coordinates.Y = findCenteredElementSpread(
+          window.innerHeight,
+          mapEntity.Map.map.pixelHeight,
+          1,
+          "spaceEvenly"
+        ).start;
 
         let toolbarButtons = [];
         //load toolbar buttons
@@ -287,9 +313,9 @@ class GameModeMachine {
             console.log("Adding Disabled to save button");
             btn.addComponent("Disabled", DisabledButtons.save);
           }
-          // btn.addTag("menu");
-          // btn.addTag("design");
-          // btn.addTag("admin");
+          btn.addTag("menu");
+          btn.addTag("design");
+          btn.addTag("admin");
         }
         console.log("admin menu loaded");
         //load config menu buttons
@@ -300,6 +326,33 @@ class GameModeMachine {
       },
       onbeforeleaveDesign: function () {
         //if design state is unsaved, prompt to save
+        let game = <Game>(<unknown>this);
+        if (!game.designModule.saved) {
+          game.designModule.confirmUnsaved();
+        }
+      },
+      onleaveDesign: function () {
+        let game = <Game>(<unknown>this);
+        let mapEntity = game.globalEntity.Global.map;
+        if (game.designModule.saved) {
+          //delete all design button entities
+          let designButtons = game.ecs.queryEntities({
+            has: ["menu", "design"],
+          });
+          for (let button of designButtons) {
+            button.destroy();
+          }
+
+          //reset map entity
+          mapEntity.Map.map = null;
+          mapEntity.TileMap.tiles = [];
+          mapEntity.Coordinates.X = 0;
+          mapEntity.Coordinates.Y = 0;
+          mapEntity.removeComponentByType("Clickable");
+
+          //change mode
+          game.globalEntity.Global.mode = "menu";
+        }
       },
       onbeforetest: function () {
         //check for map issues - i.e. no valid path for boss or player
@@ -328,7 +381,6 @@ class GameModeMachine {
       onSaveAs: function () {
         let game = <Game>(<unknown>this);
         game.designModule.saveAs();
-        game.publish("forceMouseUp");
       },
       onLoadSaved: function () {
         let game = <Game>(<unknown>this);
@@ -342,6 +394,14 @@ class GameModeMachine {
         let game = <Game>(<unknown>this);
         game.designModule.redo();
       },
+      onForceMouseUp: function () {
+        let game = <Game>(<unknown>this);
+        game.ecs.getEntity("global").Global.inputs.setMouseUp();
+      },
+      onResetMap: function() {
+        let game = <Game>(<unknown>this);
+        game.designModule.resetMap();
+      }
     };
     this.events = [
       { name: "ready", from: "init", to: "menu" },
@@ -405,8 +465,15 @@ class GameModeMachine {
       {
         name: "forceMouseUp",
         action: function () {
-          const body = document.body;
-          body.click();
+          let gmm = <GameModeMachine>(<unknown>this);
+          gmm.customActions.onForceMouseUp();
+        },
+      },
+      {
+        name: "resetMap",
+        action: function () {
+          let gmm = <GameModeMachine>(<unknown>this);
+          gmm.customActions.onResetMap();
         },
       },
     ];

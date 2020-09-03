@@ -25,6 +25,8 @@ export class MenuButtons {
               //@ts-ignore
               this.publish("start");
               //@ts-ignore
+              this.publish("forceMouseUp");
+              //@ts-ignore
               this.loadMap(id);
             }
           },
@@ -38,6 +40,8 @@ export class MenuButtons {
             this.publish("leaveMenu");
             //@ts-ignore
             this.publish("design");
+            //@ts-ignore
+            this.publish("forceMouseUp");
           },
           height: 75,
           width: 200,
@@ -124,16 +128,18 @@ export class MenuButtons {
           },
         ],
         admin: [
-          // {
-          //   name: "home",
-          //   onClick: function () {
-          //     //publish a leaveDesign event
-          //     //handle any saving that needs to happen
-          //     //publish a quit event
-          //   },
-          //   height: 0,
-          //   width: 0,
-          // },
+          {
+            name: "home",
+            onClick: function () {
+              //publish a leaveDesign event
+              this.publish("leaveDesign");
+              this.publish("forceMouseUp");
+              //handle any saving that needs to happen
+              //publish a quit event
+            },
+            height: 75,
+            width: 200,
+          },
           {
             name: "save",
             onClick: function () {
@@ -146,9 +152,7 @@ export class MenuButtons {
             name: "saveAs",
             onClick: function () {
               this.publish("saveAs");
-              //prompt user for level name
-              //send ping to the server to create new level with current info + name
-              //on success, change saved to true
+              this.publish("forceMouseUp");
               //on failure, display failure message
             },
             height: 75,
@@ -158,6 +162,7 @@ export class MenuButtons {
             name: "loadSaved",
             onClick: function () {
               this.publish("loadSaved");
+              this.publish("forceMouseUp");
             },
             width: 200,
             height: 75,
@@ -187,15 +192,17 @@ export class MenuButtons {
             height: 75,
             width: 75,
           },
-          // {
-          //   name: "reset",
-          //   onClick: function () {
-          //     //confirm "Are you sure?"
-          //     //restore default design state
-          //   },
-          //   height: 0,
-          //   width: 0,
-          // },
+          {
+            name: "reset",
+            onClick: function () {
+              //confirm "Are you sure?"
+              this.publish("resetMap");
+              //restore default design state
+              this.publish("forceMouseUp");
+            },
+            height: 75,
+            width: 75,
+          },
         ],
         config: [
           { name: "issues", onClick: function () {}, height: 0, width: 0 },

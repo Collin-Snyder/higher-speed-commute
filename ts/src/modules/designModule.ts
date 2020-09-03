@@ -111,13 +111,20 @@ class DesignModule {
       let newTile = designMap.determineTileValue(id);
       if (oldTile !== newTile) {
         tiles[index] = newTile;
+        console.log("no longer saved");
         this.saved = false;
         let saveBtn = this._game.ecs.getEntity("saveButton");
-        let saveAsBtn = this._game.ecs.getEntity("saveAsButton");
-        if (mapEntity.Map.mapId && saveBtn.has("Disabled"))
+        // let saveAsBtn = this._game.ecs.getEntity("saveAsButton");
+        console.log("map id: ", mapEntity.Map.mapId);
+        console.log("save button: ", saveBtn);
+        if (mapEntity.Map.mapId && saveBtn.has("Disabled")) {
+          console.log("Re-enabling save button");
           saveBtn.removeComponentByType("Disabled");
-        if (saveAsBtn.has("Disabled"))
-          saveBtn.removeComponentByType("Disabled");
+        }
+        // if (saveAsBtn.has("Disabled")) {
+
+        //   saveBtn.removeComponentByType("Disabled");
+        // }
       }
     });
     this.lastEditedSquare = square.id;
@@ -132,12 +139,14 @@ class DesignModule {
       .put(`/map/${map.mapId}`, saved)
       .then((data: any) => {
         console.log(data.data);
+        this.saved = true;
         let saveBtn = global.game.ecs.getEntity("saveButton");
-        saveBtn.addComponent("Disabled", DisabledButtons.save);
+        if (!saveBtn.has("Disabled")) saveBtn.addComponent("Disabled", DisabledButtons.save);
       })
       .catch((err: any) => {
         console.error(err);
       });
+    // this.setDesignTool("");
   }
 
   saveAs() {
@@ -145,37 +154,40 @@ class DesignModule {
     let map = global.map.Map;
     let saved = map.map.exportForSave();
     let name = window.prompt("Please enter a name for your map");
-    if (!name) return;
-    saved.level_name = name;
-    saved.user_id = 1;
+    if (name) {
+      saved.level_name = name;
+      saved.user_id = 1;
 
-    axios
-      .post("/map", saved)
-      .then((data: any) => {
-        let { id } = data.data;
-        map.mapId = id;
-        console.log(`Saved new map #${id}!`);
-      })
-      .catch((err: any) => console.error(err));
+      axios
+        .post("/map", saved)
+        .then((data: any) => {
+          let { id } = data.data;
+          map.mapId = id;
+          this.saved = true;
+          console.log(`Saved new map #${id}!`);
+        })
+        .catch((err: any) => console.error(err));
+    }
 
-    this.setDesignTool("");
+    // this.setDesignTool("");
   }
 
   loadSaved() {
     let id = window.prompt("Please enter a level ID to edit");
-    let global = this._game.ecs.getEntity("global").Global;
-    axios
-      .get(`/map/${id}`)
-      .then((data: any) => {
-        console.log(data.data);
-        global.map.Map.mapId = id;
-        global.map.Map.map = DesignMapGrid.fromMapObject(data.data);
-        global.map.TileMap.tiles = global.map.Map.map.generateTileMap();
-        this._editor.restart();
-      })
-      .catch((err: any) => console.error(err));
-
-    this.setDesignTool("");
+    if (id) {
+      let global = this._game.ecs.getEntity("global").Global;
+      axios
+        .get(`/map/${id}`)
+        .then((data: any) => {
+          console.log(data.data);
+          global.map.Map.mapId = id;
+          global.map.Map.map = DesignMapGrid.fromMapObject(data.data);
+          global.map.TileMap.tiles = global.map.Map.map.generateTileMap();
+          this._editor.restart();
+        })
+        .catch((err: any) => console.error(err));
+    }
+    // this.setDesignTool("");
   }
 
   undo() {
@@ -197,6 +209,32 @@ class DesignModule {
 
   stopDrawing() {
     this._editor.endGroup();
+  }
+
+  confirmUnsaved() {
+    let conf = window.confirm(
+      "You currently have unsaved changes. Are you sure you want to exit?\n\nPress OK to discard changes and go home. Press Cancel to return to design."
+    );
+    this.saved = conf;
+  }
+
+  resetMap() {
+    let confirmReset = window.confirm("Are you sure you want to reset the map? This action cannot be undone.");
+
+    if (!confirmReset) return;
+
+    let confirmOverwrite = window.confirm("Press OK to reset your existing map. This will overwrite your existing map and cannot be undone.\n\nPress Cancel to create a new map. This will preserve the last saved version of the current map and generate a new, blank one.")
+
+    let mapEntity = this._game.ecs.getEntity("map");
+
+    mapEntity.Map.map.clear(this._editor);
+    mapEntity.TileMap.tiles = mapEntity.Map.map.generateTileMap();
+
+    if (confirmOverwrite) this.save();
+    else mapEntity.Map.mapId = null;
+
+    this._editor.restart();
+    this.saved = true;
   }
 }
 

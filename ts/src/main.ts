@@ -98,26 +98,26 @@ export class Game {
     this.mapEntity = this.ecs.createEntity({
       id: "map",
       Map: {
-        map: this.map,
+        // map: this.map,
       },
       TileMap: {
-        tiles: this.map.generateTileMap(),
+        // tiles: this.map.generateTileMap(),
       },
       Coordinates: {},
     });
 
-    this.mapEntity.Coordinates.X = findCenteredElementSpread(
-      window.innerWidth,
-      this.map.pixelWidth,
-      1,
-      "spaceEvenly"
-    ).start;
-    this.mapEntity.Coordinates.Y = findCenteredElementSpread(
-      window.innerHeight,
-      this.map.pixelHeight,
-      1,
-      "spaceEvenly"
-    ).start;
+    // this.mapEntity.Coordinates.X = findCenteredElementSpread(
+    //   window.innerWidth,
+    //   this.map.pixelWidth,
+    //   1,
+    //   "spaceEvenly"
+    // ).start;
+    // this.mapEntity.Coordinates.Y = findCenteredElementSpread(
+    //   window.innerHeight,
+    //   this.map.pixelHeight,
+    //   1,
+    //   "spaceEvenly"
+    // ).start;
 
     this.playerEntity = this.ecs.createEntity({
       id: "player",
@@ -355,7 +355,6 @@ class InputEvents {
       this.keyPressMap[keyCodes[keyName]] = false;
     }
 
-    // this.gameCanvas = <HTMLCanvasElement>document.getElementById("game");
     this.UICanvas = <HTMLCanvasElement>document.getElementById("ui");
 
     window.addEventListener("resize", (e) => this.handleWindowResize(e));
@@ -371,15 +370,6 @@ class InputEvents {
     this.UICanvas.addEventListener("mousemove", (e) =>
       this.handleUIMouseEvent(e)
     );
-    // this.gameCanvas.addEventListener("mousedown", (e) =>
-    //   this.handleDesignMouseEvent(e)
-    // );
-    // this.gameCanvas.addEventListener("mouseup", (e) =>
-    //   this.handleDesignMouseEvent(e)
-    // );
-    // this.gameCanvas.addEventListener("mousemove", (e) =>
-    //   this.handleDesignMouseEvent(e)
-    // );
   }
 
   private handleWindowResize = (e: UIEvent) => {
@@ -431,6 +421,16 @@ class InputEvents {
   endDrag() {
     console.log("DRAG END");
     this.dragging = false;
+  }
+
+  setMouseUp() {
+    console.log("MOUSE UP");
+    this.mouseDown = false;
+  }
+
+  setMouseDown() {
+    console.log("MOUSE DOWN");
+    this.mouseDown = true;
   }
 }
 

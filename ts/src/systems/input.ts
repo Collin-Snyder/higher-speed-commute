@@ -85,7 +85,6 @@ export class InputSystem extends ECS.System {
         if (dragging && isMap) clicked = e;
 
         else if (!dragging && mousedown && !this.lastMousedown) {
-          console.log("click registered");
           clicked = e;
           this.lastMousedown = mousedown;
           this.startMouseX = mx;
@@ -95,6 +94,7 @@ export class InputSystem extends ECS.System {
       }
     }
     if (clicked) clicked.Clickable.onClick();
+    
 
     if (!mousedown && this.lastMousedown) {
       this.lastMousedown = mousedown;

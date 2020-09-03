@@ -160,13 +160,13 @@ const actions = {
     let map = game.ecs.getEntity("global").Global.map.Map.map;
     delete map.coffees[squareId];
   },
-  makeKeySquare: function (squareId: number, keySquare: string) {
+  makeKeySquare: function (keySquare: string, squareId: number) {
     //console.log(`Adding key square ${keySquare} to square ${squareId}`);
     let game = <Game>(<unknown>this);
     let map = game.ecs.getEntity("global").Global.map.Map.map;
     map[keySquare] = squareId;
   },
-  removeKeySquare: function (squareId: number, keySquare: string) {
+  removeKeySquare: function (keySquare: string, squareId: number, ) {
     //console.log(`Removing key square ${keySquare} from square ${squareId}`);
     let game = <Game>(<unknown>this);
     let map = game.ecs.getEntity("global").Global.map.Map.map;
