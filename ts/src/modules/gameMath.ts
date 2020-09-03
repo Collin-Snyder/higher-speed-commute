@@ -105,6 +105,36 @@ export function findCenteredElementSpread(
   return output;
 }
 
-export const randomNumBtwn = (min: number, max: number) => {
+export function randomNumBtwn(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1) + min);
-};
+}
+
+export function centerWithin(
+  cx: number,
+  cy: number,
+  cw: number,
+  ch: number,
+  ew: number,
+  eh: number,
+  n: number,
+  dir: "vertical" | "horizontal",
+  style: "spaceEvenly" | "spaceBetween"
+) {
+  const x = findCenteredElementSpread(
+    cw,
+    ew,
+    dir === "horizontal" ? n : 1,
+    dir === "horizontal" ? style : "spaceEvenly"
+  );
+  const y = findCenteredElementSpread(
+    ch,
+    eh,
+    dir === "vertical" ? n : 1,
+    dir === "vertical" ? style : "spaceEvenly"
+  );
+
+  x.start += cx;
+  y.start += cy;
+
+  return {x, y};
+}
