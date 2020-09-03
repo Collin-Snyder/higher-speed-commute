@@ -120,21 +120,24 @@ export function centerWithin(
   dir: "vertical" | "horizontal",
   style: "spaceEvenly" | "spaceBetween"
 ) {
-  const x = findCenteredElementSpread(
+  let horiz = findCenteredElementSpread(
     cw,
     ew,
     dir === "horizontal" ? n : 1,
     dir === "horizontal" ? style : "spaceEvenly"
   );
-  const y = findCenteredElementSpread(
+  let vert = findCenteredElementSpread(
     ch,
     eh,
     dir === "vertical" ? n : 1,
     dir === "vertical" ? style : "spaceEvenly"
   );
 
-  x.start += cx;
-  y.start += cy;
+  horiz.start += cx;
+  vert.start += cy;
+
+  let x = dir === "horizontal" ? horiz : horiz.start;
+  let y = dir === "vertical" ? vert : vert.start;
 
   return {x, y};
 }
