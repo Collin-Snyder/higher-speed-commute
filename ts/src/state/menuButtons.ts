@@ -1,4 +1,4 @@
-interface ButtonInterface {
+export interface ButtonInterface {
   name: string;
   height: number;
   width: number;
@@ -6,11 +6,13 @@ interface ButtonInterface {
   [key: string]: any;
 }
 
+export type DesignMenuName = "toolbar" | "admin" | "config";
+
 export class MenuButtons {
   buttons: {
     [menu: string]:
-      | ButtonInterface[]
-      | { [submenu: string]: ButtonInterface[] };
+      | Array<ButtonInterface>
+      | { [submenu: string]: Array<ButtonInterface> };
   };
   constructor(game: any) {
     this.buttons = {
@@ -131,11 +133,8 @@ export class MenuButtons {
           {
             name: "home",
             onClick: function () {
-              //publish a leaveDesign event
               this.publish("leaveDesign");
               this.publish("forceMouseUp");
-              //handle any saving that needs to happen
-              //publish a quit event
             },
             height: 75,
             width: 200,
@@ -167,15 +166,7 @@ export class MenuButtons {
             width: 200,
             height: 75,
           },
-          {
-            name: "eraser",
-            onClick: function () {
-              console.log("You clicked eraser");
-              this.publish("setDesignTool", "eraser");
-            },
-            height: 75,
-            width: 75,
-          },
+
           {
             name: "undo",
             onClick: function () {
@@ -193,11 +184,17 @@ export class MenuButtons {
             width: 75,
           },
           {
+            name: "eraser",
+            onClick: function () {
+              this.publish("setDesignTool", "eraser");
+            },
+            height: 75,
+            width: 75,
+          },
+          {
             name: "reset",
             onClick: function () {
-              //confirm "Are you sure?"
               this.publish("resetMap");
-              //restore default design state
               this.publish("forceMouseUp");
             },
             height: 75,
@@ -218,7 +215,7 @@ export class MenuButtons {
   bindButtons(buttons: any, game: any) {
     for (let group in buttons) {
       if (Array.isArray(buttons[group])) {
-        for (let button of buttons[group]) {
+        for (let button of buttons[group].flat()) {
           button.onClick = button.onClick.bind(game);
         }
         continue;
