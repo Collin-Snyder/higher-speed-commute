@@ -35,19 +35,19 @@ export class MenuButtons {
           height: 75,
           width: 200,
         },
-        {
-          name: "design",
-          onClick: function () {
-            //@ts-ignore
-            this.publish("leaveMenu");
-            //@ts-ignore
-            this.publish("design");
-            //@ts-ignore
-            this.publish("forceMouseUp");
-          },
-          height: 75,
-          width: 200,
-        },
+        // {
+        //   name: "design",
+        //   onClick: function () {
+        //     //@ts-ignore
+        //     this.publish("leaveMenu");
+        //     //@ts-ignore
+        //     this.publish("design");
+        //     //@ts-ignore
+        //     this.publish("forceMouseUp");
+        //   },
+        //   height: 75,
+        //   width: 200,
+        // },
       ],
       paused: [
         {
