@@ -97,27 +97,10 @@ export class Game {
 
     this.mapEntity = this.ecs.createEntity({
       id: "map",
-      Map: {
-        // map: this.map,
-      },
-      TileMap: {
-        // tiles: this.map.generateTileMap(),
-      },
+      Map: {},
+      TileMap: {},
       Coordinates: {},
     });
-
-    // this.mapEntity.Coordinates.X = findCenteredElementSpread(
-    //   window.innerWidth,
-    //   this.map.pixelWidth,
-    //   1,
-    //   "spaceEvenly"
-    // ).start;
-    // this.mapEntity.Coordinates.Y = findCenteredElementSpread(
-    //   window.innerHeight,
-    //   this.map.pixelHeight,
-    //   1,
-    //   "spaceEvenly"
-    // ).start;
 
     this.playerEntity = this.ecs.createEntity({
       id: "player",
@@ -299,15 +282,6 @@ export class Game {
   }
 
   render() {
-    // let dpi = window.devicePixelRatio;
-    // this.gameCanvas.height = this.gameCanvas.height * dpi;
-    // this.gameCanvas.width = this.gameCanvas.width * dpi;
-    // this.UICanvas.height = this.UICanvas.height * dpi;
-    // this.UICanvas.width = this.UICanvas.width * dpi;
-    // this.gamectx.fillStyle =
-    //   this.globalEntity.Global.mode === "designing"
-    //     ? "lightgray"
-    //     : /*"#81c76d"*/ "#e6d093";
     this.uictx.fillStyle = "#50cdff";
     // this.gamectx.fillRect(0, 0, this.width, this.height);
     this.uictx.fillRect(0, 0, window.innerWidth, window.innerHeight);
@@ -334,7 +308,6 @@ export class Game {
 }
 
 class InputEvents {
-  // public gameCanvas: undefined | HTMLCanvasElement;
   public UICanvas: undefined | HTMLCanvasElement;
   public mouseX: number;
   public mouseY: number;
@@ -343,7 +316,6 @@ class InputEvents {
   public keyPressMap: { [keyCode: number]: boolean };
 
   constructor() {
-    // this.gameCanvas;
     this.UICanvas;
     this.mouseX = 0;
     this.mouseY = 0;
