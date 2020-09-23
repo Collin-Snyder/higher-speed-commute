@@ -163,13 +163,13 @@ export class Game {
 
       this.createButtonEntities(new MenuButtons(this).buttons);
 
-      this.ecs.addSystem("render", new RenderMenu(this.ecs, this.uictx));
       this.ecs.addSystem("render", new RenderTileMap(this.ecs, this.uictx));
-      this.ecs.addSystem("render", new RenderEntities(this.ecs, this.uictx));
+      this.ecs.addSystem("render", new RenderMenu(this.ecs, this.uictx));
       this.ecs.addSystem(
         "render",
         new RenderButtonModifiers(this.ecs, this.uictx)
       );
+      this.ecs.addSystem("render", new RenderEntities(this.ecs, this.uictx));
 
       this.publish("ready");
     };
@@ -250,8 +250,9 @@ export class Game {
       //@ts-ignore
       .then((data) => {
         let mapInfo = data.data;
-        this.mapEntity.Map.mapId = id;
-        this.mapEntity.Map.map = MapGrid.fromMapObject(mapInfo);
+        let mapEntity = this.ecs.getEntity("map");
+        mapEntity.Map.mapId = id;
+        mapEntity.Map.map = MapGrid.fromMapObject(mapInfo);
         this.ecs.runSystemGroup("map");
         this.publish("play");
         this.publish("pause");
@@ -345,20 +346,32 @@ export class Game {
       entity.addTag(tag);
     }
 
+    entity.addTag("noninteractive");
+
     return entity;
   }
 
   createButtonEntities(buttons: any) {
-    for (let group in buttons) {
-      if (Array.isArray(buttons[group])) {
-        for (let button of buttons[group].flat()) {
-          this.makeButtonEntity(button);
-        }
-        continue;
-      }
-      if (!Array.isArray(buttons[group]) && typeof buttons[group] === "object")
-        this.createButtonEntities(buttons[group]);
+    for (let button in buttons) {
+      this.makeButtonEntity(buttons[button]);
     }
+    // for (let group in buttons) {
+    //   if (Array.isArray(buttons[group])) {
+    //     for (let button of buttons[group].flat()) {
+    //       this.makeButtonEntity(button);
+    //     }
+    //     continue;
+    //   }
+    //   if (!Array.isArray(buttons[group]) && typeof buttons[group] === "object")
+    //     this.createButtonEntities(buttons[group]);
+    // }
+  }
+
+  restartLevel() {
+    let map = this.ecs.getEntity("map").Map.map;
+    //reset player and boss
+    //reset all lights to green, reset timers
+    //reset all coffees
   }
 }
 

@@ -84,6 +84,10 @@ class GameModeMachine {
       onmenu: function () {
         let game = <Game>(<unknown>this);
         if (game.mode !== "menu") return;
+        let entities = game.ecs.queryEntities({has: ["menu", "main"]});
+        for (let entity of entities) {
+          entity.removeTag("noninteractive");
+        }
         //load menu
         // let y = 125;
         // let buttons = [];
@@ -123,6 +127,10 @@ class GameModeMachine {
       },
       onleaveMenu: function () {
         let game = <Game>(<unknown>this);
+        let entities = game.ecs.queryEntities({has: ["menu", "main"]});
+        for (let entity of entities) {
+          entity.addTag("noninteractive");
+        }
         // let menuButtons = game.ecs.queryEntities({ has: ["menu", "main"] });
         // for (let button of menuButtons) {
         //   button.destroy();
@@ -178,20 +186,39 @@ class GameModeMachine {
           return;
         }
         console.log("YOU LOSE");
-
-        // game.modeMachine.current = to;
         game.mode = to;
         //stop game music/animations
         //render lose animation and game over options
+        let entities = game.ecs.queryEntities({has: ["menu", "gameplay", "lost"]});
+        for (let entity of entities) {
+          entity.removeTag("noninteractive");
+        }
       },
       onpause: function () {
         //show paused menu
         let game = <Game>(<unknown>this);
+        let entities = game.ecs.queryEntities({has: ["menu", "gameplay", "paused"]});
+        for (let entity of entities) {
+          entity.removeTag("noninteractive");
+        }
         game.mode = "paused";
       },
       onresume: function () {
         //hide paused menu
         let game = <Game>(<unknown>this);
+        let entities = game.ecs.queryEntities({has: ["menu", "gameplay", "paused"]});
+        for (let entity of entities) {
+          entity.addTag("noninteractive");
+        }
+        game.mode = "playing";
+      },
+      onrestart: function () {
+        let game = <Game>(<unknown>this);
+        let entities = game.ecs.queryEntities({has: ["menu", "gameplay", "paused"]});
+        for (let entity of entities) {
+          entity.addTag("noninteractive");
+        }
+        game.ecs.runSystemGroup("map");
         game.mode = "playing";
       },
       ondesign: function () {
@@ -270,6 +297,15 @@ class GameModeMachine {
       },
       onquit: function () {
         //hide game canvas
+        let game = <Game>(<unknown>this);
+        let entities = game.ecs.queryEntities({has: ["menu", "gameplay"]});
+        for (let entity of entities) {
+          if (!entity.has("noninteractive")) entity.addTag("noninteractive");
+        }
+        let mapEntity = game.ecs.getEntity("map");
+        mapEntity.mapId = null;
+        mapEntity.map = null;
+        game.mode = "menu";
       },
     };
     this.customActions = {
@@ -313,9 +349,10 @@ class GameModeMachine {
       { name: "play", from: "starting", to: "playing" },
       { name: "pause", from: ["playing", "starting"], to: "paused" },
       { name: "resume", from: "paused", to: "playing" },
+      { name: "restart", from: ["paused", "won", "lost"], to: "playing"},
       { name: "win", from: "playing", to: "won" },
       { name: "lose", from: "playing", to: "lost" },
-      { name: "quit", from: ["playing", "paused", "won", "lost"], to: "menu" },
+      { name: "quit", from: ["paused", "won", "lost"], to: "menu" },
       { name: "design", from: "menu", to: "designing" },
       { name: "test", from: "designing", to: "starting" },
       { name: "leaveDesign", from: "designing", to: "menu" },

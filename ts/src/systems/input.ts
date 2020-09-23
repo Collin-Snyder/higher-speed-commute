@@ -34,19 +34,11 @@ export class InputSystem extends ECS.System {
     let dragging = this.global.inputs.dragging;
 
     //handle spacebar input
-    if (mode === "playing" || mode === "paused") {
-      let spaceDown = this.keyPressMap[keyCodes.SPACE];
-      if (spaceDown && !this.lastSpaceDown) {
-        this.global.game.mode = this.global.game.mode === "paused" ? "playing" : "paused";
-        this.lastSpaceDown = spaceDown;
-      } else if (!spaceDown && this.lastSpaceDown) {
-        this.lastSpaceDown = spaceDown;
-      }
-    }
+    if (mode === "playing" || mode === "paused") this.handleSpacebar(mode);
 
     //handle mouse inputs
     let clickable = this.ecs.queryEntities({
-      has: ["Clickable", "Coordinates"],
+      has: ["Clickable", "Coordinates"], hasnt: ["noninteractive"]
     });
     let cursor = "default";
     let clicked;
@@ -83,7 +75,6 @@ export class InputSystem extends ECS.System {
         cursor = isMap ? this.global.game.designModule.mapCursor : "pointer";
 
         if (dragging && isMap) clicked = e;
-
         else if (!dragging && mousedown && !this.lastMousedown) {
           clicked = e;
           this.lastMousedown = mousedown;
@@ -94,7 +85,6 @@ export class InputSystem extends ECS.System {
       }
     }
     if (clicked) clicked.Clickable.onClick();
-    
 
     if (!mousedown && this.lastMousedown) {
       this.lastMousedown = mousedown;
@@ -106,7 +96,6 @@ export class InputSystem extends ECS.System {
       }
     }
     this.global.game.UICanvas.style.cursor = cursor;
-
 
     //handle keypress inputs
     if (this.global.game.mode === "playing") {
@@ -127,5 +116,17 @@ export class InputSystem extends ECS.System {
       potentials.push({ X: 0, Y: 1 });
     if (!potentials.length) potentials.push({ X: 0, Y: 0 });
     return potentials;
+  }
+
+  handleSpacebar(mode: string) {
+    let spaceDown = this.keyPressMap[keyCodes.SPACE];
+    if (spaceDown && !this.lastSpaceDown) {
+      mode === "paused"
+        ? this.global.game.publish("resume")
+        : this.global.game.publish("pause");
+      this.lastSpaceDown = spaceDown;
+    } else if (!spaceDown && this.lastSpaceDown) {
+      this.lastSpaceDown = spaceDown;
+    }
   }
 }

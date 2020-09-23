@@ -34,6 +34,10 @@ const spriteMap = {
   redoButton: { X: 275, Y: 200 },
   homeButton: { X: 0, Y: 425 },
   resetButton: { X: 350, Y: 200 },
+  resumeButton: { X: 0, Y: 500 },
+  restartButton: { X: 0, Y: 575 },
+  quitButton: { X: 0, Y: 650 },
+  nextLevelButton: { X: 0, Y: 725 },
 };
 
 export default spriteMap;

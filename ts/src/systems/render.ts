@@ -8,6 +8,8 @@ export class RenderMenu extends EntityComponentSystem.System {
   private ctx: CanvasRenderingContext2D;
   private spriteSheet: HTMLImageElement;
   private menuTags: { [key: string]: Array<string> };
+  private modeNames: string[];
+  private buttonEntities: Entity[];
 
   constructor(ecs: any, ctx: CanvasRenderingContext2D) {
     super(ecs);
@@ -20,18 +22,27 @@ export class RenderMenu extends EntityComponentSystem.System {
       won: ["gameplay", "won"],
       lost: ["gampeplay", "lost"],
     };
+    this.modeNames = Object.keys(this.menuTags);
+    this.buttonEntities = [];
   }
 
   update(tick: number, entities: Set<Entity>) {
-    let mode = this.ecs.getEntity("global").Global.game.mode;
+    let global = this.ecs.getEntity("global").Global;
+    let mode = global.game.mode;
 
     //calculate coordinates for buttons using button spacing logic and current state/size of game
-    if (Object.keys(this.menuTags).includes(mode)) {
+    if (this.modeNames.includes(mode)) {
+      this.buttonEntities = this.selectButtons(entities, mode);
+
       switch (mode) {
         case "menu":
-          this.renderMainMenu(entities);
+          this.renderMainMenu();
           break;
         case "paused":
+          let { pixelWidth, pixelHeight } = global.map.Map.map;
+          let {X, Y} = global.map.Coordinates;
+          this.renderPausedMenu(X, Y, pixelWidth, pixelHeight);
+          break;
         case "won":
         case "lost":
         case "designing":
@@ -104,6 +115,7 @@ export class RenderMenu extends EntityComponentSystem.System {
 
   drawButtons(buttonEntities: Entity[]) {
     for (let entity of buttonEntities) {
+      // console.log(`Drawing ${entity.id} at {${entity.Coordinates.X}, ${entity.Coordinates.Y}} with height ${entity.Renderable.renderHeight} and width ${entity.Renderable.renderWidth}`)
       this.ctx.drawImage(
         this.spriteSheet,
         entity.Renderable.spriteX,
@@ -118,8 +130,7 @@ export class RenderMenu extends EntityComponentSystem.System {
     }
   }
 
-  renderMainMenu(allButtons: Set<Entity>) {
-    const buttonEntities = this.selectButtons(allButtons, "menu");
+  renderMainMenu() {
     this.positionButtons(
       window.innerWidth / 2 - window.innerWidth / 4,
       window.innerHeight / 2 - window.innerHeight / 4,
@@ -128,13 +139,31 @@ export class RenderMenu extends EntityComponentSystem.System {
       200,
       75,
       "vertical",
-      buttonEntities,
+      this.buttonEntities,
       "spaceEvenly"
     );
-    this.drawButtons(buttonEntities);
+    this.drawButtons(this.buttonEntities);
   }
 
-  renderPausedMenu() {}
+  renderPausedMenu(
+    mapX: number,
+    mapY: number,
+    mapWidth: number,
+    mapHeight: number
+  ) {
+    this.positionButtons(
+      mapX,
+      mapY,
+      mapWidth,
+      mapHeight,
+      200,
+      75,
+      "vertical",
+      this.buttonEntities,
+      "spaceEvenly"
+    );
+    this.drawButtons(this.buttonEntities);
+  }
 
   renderWonMenu() {}
 
@@ -226,24 +255,11 @@ export class RenderTileMap extends EntityComponentSystem.System {
       let y = 0;
       this.ctx.fillStyle = mode === "designing" ? "lightgray" : "#e6d093";
       this.ctx.fillRect(coords.X, coords.Y, map.pixelWidth, map.pixelHeight);
-      for (let tile of tileMap.tiles) {
-        if (tile) {
-          if (typeof tile === "string") {
-            let tileCoords = global.spriteMap[tile];
-            this.ctx.drawImage(
-              global.spriteSheet,
-              tileCoords.X,
-              tileCoords.Y,
-              tileMap.tileWidth,
-              tileMap.tileHeight,
-              x * tileMap.tileWidth + coords.X,
-              y * tileMap.tileHeight + coords.Y,
-              tileMap.tileWidth,
-              tileMap.tileHeight
-            );
-          } else if (Array.isArray(tile)) {
-            for (let t of tile) {
-              let tileCoords = global.spriteMap[t];
+      if (mode !== "paused") {
+        for (let tile of tileMap.tiles) {
+          if (tile) {
+            if (typeof tile === "string") {
+              let tileCoords = global.spriteMap[tile];
               this.ctx.drawImage(
                 global.spriteSheet,
                 tileCoords.X,
@@ -255,12 +271,27 @@ export class RenderTileMap extends EntityComponentSystem.System {
                 tileMap.tileWidth,
                 tileMap.tileHeight
               );
+            } else if (Array.isArray(tile)) {
+              for (let t of tile) {
+                let tileCoords = global.spriteMap[t];
+                this.ctx.drawImage(
+                  global.spriteSheet,
+                  tileCoords.X,
+                  tileCoords.Y,
+                  tileMap.tileWidth,
+                  tileMap.tileHeight,
+                  x * tileMap.tileWidth + coords.X,
+                  y * tileMap.tileHeight + coords.Y,
+                  tileMap.tileWidth,
+                  tileMap.tileHeight
+                );
+              }
             }
           }
-        }
-        if (++x >= map.width) {
-          x = 0;
-          y++;
+          if (++x >= map.width) {
+            x = 0;
+            y++;
+          }
         }
       }
 
@@ -292,7 +323,7 @@ export class RenderEntities extends EntityComponentSystem.System {
     let mode = global.game.mode;
     const mapCoords = global.map.Coordinates;
 
-    if (mode === "playing" || mode === "paused") {
+    if (mode === "playing") {
       for (let entity of entities) {
         this.ctx.drawImage(
           global.spriteSheet,

@@ -102,6 +102,9 @@ export function findCenteredElementSpread(
     output.start += cStart;
   }
 
+  output.start = Math.floor(output.start);
+  output.step = Math.floor(output.step);
+
   return output;
 }
 

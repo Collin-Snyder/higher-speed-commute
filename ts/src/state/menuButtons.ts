@@ -10,122 +10,107 @@ export interface ButtonInterface {
 export type DesignMenuName = "toolbar" | "admin" | "config";
 
 export class MenuButtons {
-  buttons: {
+  menus: {
     [menu: string]:
       | Array<ButtonInterface>
       | { [submenu: string]: Array<ButtonInterface> };
   };
+  buttons: {
+    [name: string]: ButtonInterface
+  }
   constructor(game: any) {
     this.buttons = {
-      main: [
-        {
-          name: "play",
-          onClick: function() {
-            let id = window.prompt("Please enter a level ID to play");
-            if (id) {
-              //@ts-ignore
-              this.publish("leaveMenu");
-              //@ts-ignore
-              this.publish("start");
-              //@ts-ignore
-              this.publish("forceMouseUp");
-              //@ts-ignore
-              this.loadMap(id);
-            }
-          },
-          height: 75,
-          width: 200,
-          tags: ["menu", "main"],
+      play: {
+        name: "play",
+        onClick: function() {
+          // let id = window.prompt("Please enter a level ID to play");
+          // if (id) {
+            //@ts-ignore
+            this.publish("leaveMenu");
+            //@ts-ignore
+            this.publish("start");
+            //@ts-ignore
+            this.publish("forceMouseUp");
+            //@ts-ignore
+            this.loadMap(13);
+          // }
         },
-        // {
-        //   name: "design",
-        //   onClick: function () {
-        //     //@ts-ignore
-        //     this.publish("leaveMenu");
-        //     //@ts-ignore
-        //     this.publish("design");
-        //     //@ts-ignore
-        //     this.publish("forceMouseUp");
-        //   },
-        //   height: 75,
-        //   width: 200,
-        //   tags: ["menu", "main"],
-        // },
+        height: 75,
+        width: 200,
+        tags: ["menu", "main"],
+      },
+      resume: {
+        name: "resume",
+        onClick: function() {
+          this.publish("resume");
+        },
+        height: 75,
+        width: 200,
+        tags: ["menu", "gameplay", "paused"],
+      },
+      restart: {
+        name: "restart",
+        onClick: function() {
+          this.publish("restart");
+        },
+        height: 75,
+        width: 200,
+        tags: ["menu", "gameplay", "paused", "won", "lost"],
+      },
+      quit: {
+        name: "quit",
+        onClick: function() {
+          console.log("Clicking quit button")
+          this.publish("quit");
+        },
+        height: 75,
+        width: 200,
+        tags: ["menu", "gameplay", "paused", "won", "lost"],
+      },
+      nextLevel: {
+        name: "nextLevel",
+        onClick: function() {
+          console.log("Clicked Next Level")
+        },
+        height: 75,
+        width: 200,
+        tags: ["menu", "gameplay", "won"],
+      },
+      // design: {
+      //   name: "design",
+      //   onClick: function () {
+      //     //@ts-ignore
+      //     this.publish("leaveMenu");
+      //     //@ts-ignore
+      //     this.publish("design");
+      //     //@ts-ignore
+      //     this.publish("forceMouseUp");
+      //   },
+      //   height: 75,
+      //   width: 200,
+      //   tags: ["menu", "main"],
+      // }
+    };
+
+    this.menus = {
+      main: [
+        this.buttons.play,
+        // this.buttons.design,
       ],
       gameplay: {
         paused: [
-          {
-            name: "resume",
-            onClick: function() {
-              //@ts-ignore
-              this.publish("resume");
-            },
-            height: 0,
-            width: 0,
-            tags: ["menu", "gameplay", "paused"],
-          },
-          {
-            name: "restart",
-            onClick: function() {},
-            height: 0,
-            width: 0,
-            tags: ["menu", "gameplay", "paused"],
-          },
-          {
-            name: "quit",
-            onClick: function() {
-              //@ts-ignore
-              this.publish("quit");
-            },
-            height: 0,
-            width: 0,
-            tags: ["menu", "gameplay", "paused"],
-          },
+          this.buttons.resume,
+          this.buttons.restart,
+          this.buttons.quit,
         ],
         won: [
-          {
-            name: "nextLevel",
-            onClick: function() {},
-            height: 0,
-            width: 0,
-            tags: ["menu", "gameplay", "won"],
-          },
-          {
-            name: "restart",
-            onClick: function() {},
-            height: 0,
-            width: 0,
-            tags: ["menu", "gameplay", "won"],
-          },
-          {
-            name: "quit",
-            onClick: function() {
-              //@ts-ignore
-              this.publish("quit");
-            },
-            height: 0,
-            width: 0,
-            tags: ["menu", "gameplay", "won"],
-          },
+          this.buttons.nextLevel,
+          this.buttons.restart,
+          this.buttons.quit,
         ],
         lost: [
-          {
-            name: "restart",
-            onClick: function() {},
-            height: 0,
-            width: 0,
-            tags: ["menu", "gameplay", "lost"],
-          },
-          {
-            name: "quit",
-            onClick: function() {
-              //@ts-ignore
-              this.publish("quit");
-            },
-            height: 0,
-            width: 0,
-            tags: ["menu", "gameplay", "lost"],
-          },
+          this.buttons.restart,
+          this.buttons.quit,
         ],
       },
       design: {
@@ -310,15 +295,19 @@ export class MenuButtons {
   }
 
   bindButtons(buttons: any, game: any) {
-    for (let group in buttons) {
-      if (Array.isArray(buttons[group])) {
-        for (let button of buttons[group].flat()) {
-          button.onClick = button.onClick.bind(game);
-        }
-        continue;
-      }
-      if (!Array.isArray(buttons[group]) && typeof buttons[group] === "object")
-        this.bindButtons(buttons[group], game);
+    for (let button in buttons) {
+      let b = buttons[button];
+      b.onClick = b.onClick.bind(game);
     }
+    // for (let group in buttons) {
+    //   if (Array.isArray(buttons[group])) {
+    //     for (let button of buttons[group].flat()) {
+    //       button.onClick = button.onClick.bind(game);
+    //     }
+    //     continue;
+    //   }
+    //   if (!Array.isArray(buttons[group]) && typeof buttons[group] === "object")
+    //     this.bindButtons(buttons[group], game);
+    // }
   }
 }
