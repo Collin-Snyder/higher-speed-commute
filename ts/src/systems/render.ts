@@ -349,10 +349,10 @@ export class RenderTileMap extends EntityComponentSystem.System {
             }
           }
         }
-            if (++x >= map.width) {
-              x = 0;
-              y++;
-            }
+        if (++x >= map.width) {
+          x = 0;
+          y++;
+        }
       }
 
       if (mode === "designing" && global.game.designModule.gridLoaded) {
@@ -384,8 +384,12 @@ export class RenderEntities extends EntityComponentSystem.System {
     const mapCoords = global.map.Coordinates;
 
     if (mode === "playing") {
-      entities.add(this.ecs.getEntity("boss"));
-      entities.add(this.ecs.getEntity("player"));
+      let bossEntity = this.ecs.getEntity("boss");
+      let playerEntity = this.ecs.getEntity("player");
+
+      entities.add(this.updateCarSprite(bossEntity, global.spriteMap));
+      entities.add(this.updateCarSprite(playerEntity, global.spriteMap));
+
       for (let entity of entities) {
         this.ctx.drawImage(
           global.spriteSheet,
@@ -400,5 +404,20 @@ export class RenderEntities extends EntityComponentSystem.System {
         );
       }
     }
+  }
+
+  updateCarSprite(entity: Entity, spriteMap: any) {
+    let spriteName;
+
+    if (entity.Velocity.vector.X > 0) spriteName = `${entity.Car.color}CarR`;
+    else if (entity.Velocity.vector.X < 0) spriteName = `${entity.Car.color}CarL`;
+
+    if (spriteName) {
+      let { X, Y } = spriteMap[spriteName];
+      entity.Renderable.spriteX = X;
+      entity.Renderable.spriteY = Y;
+    }
+
+    return entity;
   }
 }
