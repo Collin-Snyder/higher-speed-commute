@@ -369,7 +369,7 @@ export class RenderTileMap extends EntityComponentSystem.System {
 export class RenderEntities extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
     has: ["Coordinates", "Renderable"],
-    hasnt: ["Button"],
+    hasnt: ["Button", "Car"],
   };
   private ctx: CanvasRenderingContext2D;
 
@@ -384,6 +384,8 @@ export class RenderEntities extends EntityComponentSystem.System {
     const mapCoords = global.map.Coordinates;
 
     if (mode === "playing") {
+      entities.add(this.ecs.getEntity("boss"));
+      entities.add(this.ecs.getEntity("player"));
       for (let entity of entities) {
         this.ctx.drawImage(
           global.spriteSheet,
