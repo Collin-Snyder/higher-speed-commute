@@ -6,8 +6,8 @@ import spriteMap from "./spriteMap";
 import keyCodes from "./keyCodes";
 import DesignModule from "./modules/designModule";
 import { MapGrid, MapGridInterface } from "./state/map";
-import GameModeMachine from "./state/pubsub";
-import { MenuButtons } from "./state/menuButtons";
+import GameModeMachine, { Mode } from "./state/pubsub";
+import { MenuButtons, ButtonInterface } from "./state/menuButtons";
 import Components from "./components/index";
 import Tags from "./tags/tags";
 import { MapSystem } from "./systems/map";
@@ -16,7 +16,12 @@ import { InputSystem } from "./systems/input";
 import { MovementSystem } from "./systems/move";
 import { CollisionSystem } from "./systems/collision";
 import { CaffeineSystem } from "./systems/caffeine";
-import { RenderTileMap, RenderEntities, RenderMenu, RenderButtonModifiers } from "./systems/render";
+import {
+  RenderTileMap,
+  RenderEntities,
+  RenderMenu,
+  RenderButtonModifiers,
+} from "./systems/render";
 
 interface InputEventsInterface {
   mouseX: number;
@@ -33,9 +38,10 @@ export class Game {
   private step: number = 17; //1/60s
   private tickTimes: number[];
   public inputs: InputEvents;
-  public menuButtons: any;
+  // public menuButtons: any;
   public width: number;
   public height: number;
+  public mode: Mode;
   public modeMachine: GameModeMachine;
   public subscribers: { [key: string]: Function[] };
   public spritesheet: HTMLImageElement;
@@ -61,6 +67,7 @@ export class Game {
     this.totalElapsedTime = 0;
     this.frameElapsedTime = 0;
     this.tickTimes = [];
+    this.mode = "init";
     this.modeMachine = new GameModeMachine("init");
     this.ecs = new EntityComponentSystem.ECS();
     this.width = 1000;
@@ -73,7 +80,7 @@ export class Game {
     this.subscribers = {};
     this.map = new MapGrid(40, 25);
     this.designModule = new DesignModule(this);
-    this.menuButtons = new MenuButtons(this).buttons;
+    // this.menuButtons = new MenuButtons(this).buttons;
     this.spritesheet = new Image();
     this.spriteSheetIsLoaded = false;
     this.spriteMap = spriteMap;
@@ -154,6 +161,16 @@ export class Game {
       this.bossEntity.Renderable.spriteX = bossSpriteCoords.X;
       this.bossEntity.Renderable.spriteY = bossSpriteCoords.Y;
 
+      this.createButtonEntities(new MenuButtons(this).buttons);
+
+      this.ecs.addSystem("render", new RenderMenu(this.ecs, this.uictx));
+      this.ecs.addSystem("render", new RenderTileMap(this.ecs, this.uictx));
+      this.ecs.addSystem("render", new RenderEntities(this.ecs, this.uictx));
+      this.ecs.addSystem(
+        "render",
+        new RenderButtonModifiers(this.ecs, this.uictx)
+      );
+
       this.publish("ready");
     };
 
@@ -162,10 +179,6 @@ export class Game {
     this.ecs.addSystem("input", new InputSystem(this.ecs));
     this.ecs.addSystem("move", new MovementSystem(this.ecs));
     this.ecs.addSystem("collision", new CollisionSystem(this.ecs));
-    this.ecs.addSystem("render", new RenderMenu(this.ecs, this.uictx));
-    this.ecs.addSystem("render", new RenderTileMap(this.ecs, this.uictx));
-    this.ecs.addSystem("render", new RenderEntities(this.ecs, this.uictx));
-    this.ecs.addSystem("render", new RenderButtonModifiers(this.ecs, this.uictx));
     this.ecs.addSystem("map", new MapSystem(this.ecs));
 
     this.loadMap = this.loadMap.bind(this);
@@ -271,7 +284,7 @@ export class Game {
 
   update(step: number) {
     this.ecs.runSystemGroup("input");
-    if (this.globalEntity.Global.mode === "playing") {
+    if (this.mode === "playing") {
       this.ecs.runSystemGroup("lights");
       this.ecs.runSystemGroup("caffeine");
       this.ecs.runSystemGroup("move");
@@ -303,6 +316,48 @@ export class Game {
       for (let n = 0; n < subs.length; n++) {
         subs[n].apply(this, args);
       }
+    }
+  }
+
+  makeButtonEntity(button: ButtonInterface) {
+    let coords = this.ecs.getEntity("global").Global.spriteMap[
+      `${button.name}Button`
+    ];
+
+    if (!coords) return;
+
+    let entity = this.ecs.createEntity({
+      id: `${button.name}Button`,
+      Button: { name: button.name },
+      Clickable: { onClick: button.onClick },
+      Coordinates: {},
+      Renderable: {
+        spriteX: coords.X,
+        spriteY: coords.Y,
+        spriteWidth: button.width,
+        spriteHeight: button.height,
+        renderWidth: button.width,
+        renderHeight: button.height,
+      },
+    });
+
+    for (let tag of button.tags) {
+      entity.addTag(tag);
+    }
+
+    return entity;
+  }
+
+  createButtonEntities(buttons: any) {
+    for (let group in buttons) {
+      if (Array.isArray(buttons[group])) {
+        for (let button of buttons[group].flat()) {
+          this.makeButtonEntity(button);
+        }
+        continue;
+      }
+      if (!Array.isArray(buttons[group]) && typeof buttons[group] === "object")
+        this.createButtonEntities(buttons[group]);
     }
   }
 }

@@ -4,7 +4,7 @@ import { findCenteredElementSpread, randomNumBtwn } from "../modules/gameMath";
 import { MapGrid, DesignMapGrid } from "./map";
 import { Tool } from "../modules/designModule";
 import { DisabledButtons } from "../buttonModifiers";
-type Mode =
+export type Mode =
   | "init"
   | "menu"
   | "starting"
@@ -79,54 +79,54 @@ class GameModeMachine {
     this.defaultActions = {
       onready: function () {
         let game = <Game>(<unknown>this);
-        game.globalEntity.Global.mode = "menu";
+        game.mode = "menu";
       },
       onmenu: function () {
         let game = <Game>(<unknown>this);
-        if (game.globalEntity.Global.mode !== "menu") return;
+        if (game.mode !== "menu") return;
         //load menu
-        let y = 125;
-        let buttons = [];
-        //@ts-ignore
-        for (let button of game.menuButtons.main) {
-          //@ts-ignore
-          let coords = game.ecs.getEntity("global").Global.spriteMap[
-            `${button.name}Button`
-          ];
-          buttons.push(
-            //@ts-ignore
-            game.ecs.createEntity({
-              id: `${button.name}Button`,
-              Button: { name: button.name },
-              Clickable: { onClick: button.onClick },
-              Coordinates: {
-                X: 500,
-                Y: y,
-              },
-              Renderable: {
-                spriteX: coords.X,
-                spriteY: coords.Y,
-                spriteWidth: button.width,
-                spriteHeight: button.height,
-                renderWidth: button.width,
-                renderHeight: button.height,
-              },
-            })
-          );
-          y += 125;
-        }
-        for (let btn of buttons) {
-          btn.addTag("menu");
-          btn.addTag("main");
-        }
+        // let y = 125;
+        // let buttons = [];
+        // //@ts-ignore
+        // for (let button of game.menuButtons.main) {
+        //   //@ts-ignore
+        //   let coords = game.ecs.getEntity("global").Global.spriteMap[
+        //     `${button.name}Button`
+        //   ];
+        //   buttons.push(
+        //     //@ts-ignore
+        //     game.ecs.createEntity({
+        //       id: `${button.name}Button`,
+        //       Button: { name: button.name },
+        //       Clickable: { onClick: button.onClick },
+        //       Coordinates: {
+        //         X: 500,
+        //         Y: y,
+        //       },
+        //       Renderable: {
+        //         spriteX: coords.X,
+        //         spriteY: coords.Y,
+        //         spriteWidth: button.width,
+        //         spriteHeight: button.height,
+        //         renderWidth: button.width,
+        //         renderHeight: button.height,
+        //       },
+        //     })
+        //   );
+        //   y += 125;
+        // }
+        // for (let btn of buttons) {
+        //   btn.addTag("menu");
+        //   btn.addTag("main");
+        // }
         console.log("menu loaded");
       },
       onleaveMenu: function () {
         let game = <Game>(<unknown>this);
-        let menuButtons = game.ecs.queryEntities({ has: ["menu", "main"] });
-        for (let button of menuButtons) {
-          button.destroy();
-        }
+        // let menuButtons = game.ecs.queryEntities({ has: ["menu", "main"] });
+        // for (let button of menuButtons) {
+        //   button.destroy();
+        // }
       },
       onstart: function () {
         //play starting animations
@@ -146,12 +146,12 @@ class GameModeMachine {
           1,
           "spaceEvenly"
         ).start;
-        game.globalEntity.Global.mode = "playing";
+        game.mode = "playing";
       },
       onwin: function () {
         let game = <Game>(<unknown>this);
         let [from, to] = [...arguments].slice(0, 2);
-        let currentMode = game.globalEntity.Global.mode;
+        let currentMode = game.mode;
 
         if (currentMode !== from) {
           console.log(
@@ -161,15 +161,15 @@ class GameModeMachine {
         }
         console.log("YOU WIN!");
 
-        game.modeMachine.current = to;
-        game.globalEntity.Global.mode = to;
+        game.mode = to;
+        // game.globalEntity.Global.mode = to;
         //stop game music/animations
         //render win animation and gameover options
       },
       onlose: function () {
         let game = <Game>(<unknown>this);
         let [from, to] = [...arguments].slice(0, 2);
-        let currentMode = game.globalEntity.Global.mode;
+        let currentMode = game.mode;
 
         if (currentMode !== from) {
           console.log(
@@ -179,18 +179,20 @@ class GameModeMachine {
         }
         console.log("YOU LOSE");
 
-        game.modeMachine.current = to;
-        game.globalEntity.Global.mode = to;
+        // game.modeMachine.current = to;
+        game.mode = to;
         //stop game music/animations
         //render lose animation and game over options
       },
       onpause: function () {
         //show paused menu
         let game = <Game>(<unknown>this);
-        game.globalEntity.Global.mode = "paused";
+        game.mode = "paused";
       },
       onresume: function () {
         //hide paused menu
+        let game = <Game>(<unknown>this);
+        game.mode = "playing";
       },
       ondesign: function () {
         let game = <Game>(<unknown>this);
@@ -222,7 +224,7 @@ class GameModeMachine {
 
         game.designModule.createDesignMenus();
 
-        game.globalEntity.Global.mode = "designing";
+        game.mode = "designing";
         //(eventually) if first time, play walk-through
       },
       onbeforeleaveDesign: function () {
@@ -252,7 +254,7 @@ class GameModeMachine {
           mapEntity.removeComponentByType("Clickable");
 
           //change mode
-          game.globalEntity.Global.mode = "menu";
+          game.mode = "menu";
         }
       },
       onbeforetest: function () {
@@ -297,7 +299,8 @@ class GameModeMachine {
       },
       onForceMouseUp: function () {
         let game = <Game>(<unknown>this);
-        game.ecs.getEntity("global").Global.inputs.setMouseUp();
+        // game.ecs.getEntity("global").Global.inputs.setMouseUp();
+        game.inputs.setMouseUp();
       },
       onResetMap: function() {
         let game = <Game>(<unknown>this);

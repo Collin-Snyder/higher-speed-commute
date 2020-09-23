@@ -33,7 +33,6 @@ export class MapSystem extends EntityComponentSystem.System {
     bossEntity.Coordinates.X = bossCoords.X;
     bossEntity.Coordinates.Y = bossCoords.Y;
 
-    // if (bossEntity) bossEntity.destroy();
     for (let light of lights) {
       light.destroy();
     }
@@ -43,27 +42,6 @@ export class MapSystem extends EntityComponentSystem.System {
 
     globalEntity.Global.game.lightEntities = {};
     globalEntity.Global.game.coffeeEntities = {};
-
-    // bossEntity = globalEntity.Global.game.bossEntity
-    
-    
-    // = this.ecs.createEntity({
-    //   id: "boss",
-    //   Coordinates: {
-    //     ...(newMap.get(newMap.bossHome)
-    //       ? newMap.get(newMap.bossHome).coordinates()
-    //       : { X: 0, Y: 0 }),
-    //   },
-    //   Car: {
-    //     color: "red",
-    //   },
-    //   Velocity: {},
-    //   Path: {
-    //     driver: "boss",
-    //   },
-    //   Renderable: {},
-    //   Collision: {},
-    // });
 
     bossEntity.Path.path = newMap.findPath(
       newMap.get(newMap.bossHome).coordinates().X,

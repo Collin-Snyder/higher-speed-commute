@@ -30,14 +30,14 @@ export class InputSystem extends ECS.System {
     let mx = this.global.inputs.mouseX;
     let my = this.global.inputs.mouseY;
     let mousedown = this.global.inputs.mouseDown;
-    let mode = this.global.mode;
+    let mode = this.global.game.mode;
     let dragging = this.global.inputs.dragging;
 
     //handle spacebar input
     if (mode === "playing" || mode === "paused") {
       let spaceDown = this.keyPressMap[keyCodes.SPACE];
       if (spaceDown && !this.lastSpaceDown) {
-        this.global.mode = this.global.mode === "paused" ? "playing" : "paused";
+        this.global.game.mode = this.global.game.mode === "paused" ? "playing" : "paused";
         this.lastSpaceDown = spaceDown;
       } else if (!spaceDown && this.lastSpaceDown) {
         this.lastSpaceDown = spaceDown;
@@ -109,7 +109,7 @@ export class InputSystem extends ECS.System {
 
 
     //handle keypress inputs
-    if (this.global.mode === "playing") {
+    if (this.global.game.mode === "playing") {
       const playerEntity = entities.values().next().value;
       playerEntity.Velocity.altVectors = this.getPotentialVectors();
     }
