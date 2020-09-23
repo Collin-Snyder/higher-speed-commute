@@ -179,11 +179,10 @@ export class CollisionSystem extends ECS.System {
       if (c.has("Car")) {
         console.log(`${entity.id} hit ${c.id} - GAME OVER`);
         this.game.publish("lose");
-        // entity.Velocity.speedConstant = 0;
-        // c.Velocity.speedConstant = 0;
       }
       if (c.has("Timer") && c.has("Color") && c.Color.color === "red") {
-        this.stop(entity);
+        //if car is moving AND if car's pre-move location is NOT colliding with the light, then stop car
+        if (this.checkForValidLightCollision(entity, c)) this.stop(entity);
       }
       if (c.has("Caffeine")) {
         c.removeComponentByType("Renderable");
@@ -197,6 +196,20 @@ export class CollisionSystem extends ECS.System {
     return this.collidables.filter(
       (c: Entity) => entity !== c && this.checkEntityCollision(entity, c)
     );
+  }
+
+  checkForValidLightCollision(entity: Entity, lightEntity: Entity) {
+    if (entity.Velocity.vector.X === 0 && entity.Velocity.vector.Y === 0) return false;
+    const speedConstant = calculateSpeedConstant(entity);
+    let prevEnt = {...entity, Coordinates: this.getPreviousCoordinate(
+      entity.Coordinates.X,
+      entity.Coordinates.Y,
+      entity.Velocity.vector.X,
+      entity.Velocity.vector.Y,
+      speedConstant
+    )};
+    let prevCollision = this.checkEntityCollision(prevEnt, lightEntity);
+    return !prevCollision;
   }
 
   move(entity: Entity) {
