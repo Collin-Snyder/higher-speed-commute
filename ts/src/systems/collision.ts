@@ -117,7 +117,7 @@ export class CollisionSystem extends ECS.System {
         } else if (entity.id === "boss") {
           this.game.publish("lose");
         }
-        entity.Velocity.speedConstant = 0;
+        // entity.Velocity.speedConstant = 0;
         break;
       case "schoolZone":
         if (!entity.SchoolZone) {

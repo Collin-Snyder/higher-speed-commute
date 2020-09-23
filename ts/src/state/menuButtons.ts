@@ -70,7 +70,7 @@ export class MenuButtons {
       nextLevel: {
         name: "nextLevel",
         onClick: function() {
-          console.log("Clicked Next Level")
+          console.log("Clicked Next Level");
         },
         height: 75,
         width: 200,

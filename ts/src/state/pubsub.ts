@@ -169,6 +169,11 @@ class GameModeMachine {
         }
         console.log("YOU WIN!");
 
+        let entities = game.ecs.queryEntities({has: ["menu", "gameplay", "won"]});
+        for (let entity of entities) {
+          entity.removeTag("noninteractive");
+        }
+
         game.mode = to;
         // game.globalEntity.Global.mode = to;
         //stop game music/animations
@@ -186,13 +191,13 @@ class GameModeMachine {
           return;
         }
         console.log("YOU LOSE");
-        game.mode = to;
-        //stop game music/animations
-        //render lose animation and game over options
         let entities = game.ecs.queryEntities({has: ["menu", "gameplay", "lost"]});
         for (let entity of entities) {
           entity.removeTag("noninteractive");
         }
+        game.mode = to;
+        //stop game music/animations
+        //render lose animation and game over options
       },
       onpause: function () {
         //show paused menu
@@ -214,9 +219,9 @@ class GameModeMachine {
       },
       onrestart: function () {
         let game = <Game>(<unknown>this);
-        let entities = game.ecs.queryEntities({has: ["menu", "gameplay", "paused"]});
+        let entities = game.ecs.queryEntities({has: ["menu", "gameplay"]});
         for (let entity of entities) {
-          entity.addTag("noninteractive");
+          if (!entity.has("noninteractive")) entity.addTag("noninteractive");
         }
         game.ecs.runSystemGroup("map");
         game.mode = "playing";

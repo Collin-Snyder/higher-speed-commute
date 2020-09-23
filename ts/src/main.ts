@@ -92,7 +92,7 @@ export class Game {
 
     this.registerComponents();
     this.registerTags();
-    this.registerDefaultSubscribers();
+    this.registerSubscribers();
 
     this.globalEntity = this.ecs.createEntity({
       id: "global",
@@ -205,7 +205,7 @@ export class Game {
     this.ecs.registerTags(Tags);
   }
 
-  registerDefaultSubscribers(): void {
+  registerSubscribers(): void {
     console.log("Subscribing events...");
     for (let event of this.modeMachine.events) {
       if (event.name === "ready") {
