@@ -14,6 +14,53 @@ app.use(express.json({ limit: "50mb" }));
 app.set("port", process.env.PORT || 3000);
 
 //@ts-ignore
+app.get("/levels/:levelNum", (req, res) => {
+  db.query(
+    "SELECT l.*, n.next_level_id, n.level_number FROM levels l JOIN next_levels n ON l.id = n.level_id WHERE n.level_number = $1",
+    [req.params.levelNum]
+  )
+    .then((data: any) => {
+      let {
+        id,
+        next_level_id,
+        level_number,
+        level_name,
+        board_height,
+        board_width,
+        player_home,
+        boss_home,
+        office,
+        squares,
+        lights,
+        coffees,
+      } = data.rows[0];
+      let levelInfo = {
+        id,
+        level_number,
+        level_name,
+        next_level_id,
+        map_info: {
+          board_height,
+          board_width,
+          player_home,
+          boss_home,
+          office,
+          squares,
+          lights,
+          coffees
+        },
+      };
+      res.send(levelInfo);
+    })
+    .catch((err: any) => {
+      console.error(err);
+      res.send(
+        `You asked for level number ${req.params.levelNum} but there was an error: ${err}`
+      );
+    });
+});
+
+//@ts-ignore
 app.get("/map/:id", (req, res) => {
   db.query("SELECT * FROM levels WHERE id = $1", [req.params.id])
     .then((data: any) => {
@@ -67,38 +114,14 @@ app.post("/map", async (req, res) => {
 
 //@ts-ignore
 app.put("/map/:id", async (req, res) => {
-  let {id} = req.params;
-  let {
-    player_home,
-    boss_home,
-    office,
-    squares,
-    lights,
-    coffees,
-  } = req.body;
+  let { id } = req.params;
+  let { player_home, boss_home, office, squares, lights, coffees } = req.body;
   try {
     await db.query(
       "UPDATE levels SET player_home = $1, boss_home = $2, office = $3, squares = $4, lights = $5, coffees = $6 WHERE id = $7",
-      [
-        player_home,
-        boss_home,
-        office,
-        squares,
-        lights,
-        coffees,
-        id
-      ]
+      [player_home, boss_home, office, squares, lights, coffees, id]
     );
     res.send(`Successfully updated level ${id}`);
-  } catch (err) {
-    res.send(`${err.name}: ${err.message}`);
-  }
-})
-
-//@ts-ignore
-app.get("/map/:id", async (req, res) => {
-  try {
-
   } catch (err) {
     res.send(`${err.name}: ${err.message}`);
   }

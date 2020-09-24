@@ -16,7 +16,7 @@ DROP TABLE IF EXISTS next_levels;
 
 CREATE TABLE next_levels (
     level_id INT REFERENCES levels,
-    next_level INT,
+    next_level_id INT,
     level_number INT
 );
 

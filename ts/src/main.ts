@@ -52,6 +52,12 @@ export class Game {
   // private gamectx: CanvasRenderingContext2D;
   private uictx: CanvasRenderingContext2D;
   public ecs: ECS;
+  public currentLevel: {
+    id: number | null;
+    number: number | null;
+    name: string | null;
+    nextLevelId: number | null;
+  };
   public globalEntity: Entity;
   private mapEntity: Entity;
   public designModule: DesignModule;
@@ -70,6 +76,12 @@ export class Game {
     this.mode = "init";
     this.modeMachine = new GameModeMachine("init");
     this.ecs = new EntityComponentSystem.ECS();
+    this.currentLevel = {
+      id: null,
+      number: null,
+      name: null,
+      nextLevelId: null,
+    };
     this.width = 1000;
     this.height = 625;
     this.inputs = new InputEvents();
@@ -242,6 +254,33 @@ export class Game {
     for (let event of this.modeMachine.customEvents) {
       this.subscribe(event.name, event.action);
     }
+  }
+
+  loadLevel(num: number): void {
+    axios
+      .get(`/levels/${num}`)
+      //@ts-ignore
+      .then((data) => {
+        let levelInfo = data.data;
+        let { id, level_number, next_level_id, level_name } = levelInfo;
+        this.currentLevel = {
+          id,
+          number: level_number,
+          name: level_name,
+          nextLevelId: next_level_id,
+        };
+        let mapEntity = this.ecs.getEntity("map");
+        let { map_info } = levelInfo;
+        mapEntity.Map.mapId = levelInfo.id;
+        mapEntity.Map.map = MapGrid.fromMapObject(map_info);
+        this.ecs.runSystemGroup("map");
+        this.publish("play");
+        this.publish("pause");
+      })
+      //@ts-ignore
+      .catch((err) => {
+        console.error(err);
+      });
   }
 
   loadMap(id: number): void {

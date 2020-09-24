@@ -32,7 +32,7 @@ export class MenuButtons {
             //@ts-ignore
             this.publish("forceMouseUp");
             //@ts-ignore
-            this.loadMap(13);
+            this.loadLevel(1);
           // }
         },
         height: 75,
