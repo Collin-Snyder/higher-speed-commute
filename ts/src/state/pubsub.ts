@@ -1,5 +1,6 @@
 import { Entity } from "@fritzy/ecs";
 import { Game } from "../main";
+import Race from "../modules/raceData";
 import { findCenteredElementSpread, randomNumBtwn } from "../modules/gameMath";
 import { MapGrid, DesignMapGrid } from "./map";
 import { Tool } from "../modules/designModule";
@@ -107,11 +108,15 @@ class GameModeMachine {
       },
       onstart: function() {
         //play starting animations
+        let game = <Game>(<unknown>this);
+        game.mode = "starting";
       },
       onplay: function() {
         let game = <Game>(<unknown>this);
+        // let mapEntity = game.ecs.getEntity("global").Global.map;
+        let mapEntity = game.ecs.getEntity("map");
+        
 
-        let mapEntity = game.globalEntity.Global.map;
         mapEntity.Coordinates.X = findCenteredElementSpread(
           window.innerWidth,
           mapEntity.Map.map.pixelWidth,
@@ -124,7 +129,8 @@ class GameModeMachine {
           1,
           "spaceEvenly"
         ).start;
-
+        
+        game.startRace();
         game.mode = "playing";
       },
       onwin: function() {
@@ -136,7 +142,7 @@ class GameModeMachine {
         for (let entity of entities) {
           entity.removeTag("noninteractive");
         }
-
+        game.saveRaceData("win");
         game.mode = "won";
         // game.globalEntity.Global.mode = to;
         //stop game music/animations
@@ -152,6 +158,7 @@ class GameModeMachine {
         for (let entity of entities) {
           entity.removeTag("noninteractive");
         }
+        game.saveRaceData("loss")
         game.mode = "lost";
         //stop game music/animations
         //render lose animation and game over options
@@ -182,12 +189,13 @@ class GameModeMachine {
       },
       onrestart: function() {
         let game = <Game>(<unknown>this);
-
+        
         let entities = game.ecs.queryEntities({ has: ["menu", "gameplay"] });
         for (let entity of entities) {
           if (!entity.has("noninteractive")) entity.addTag("noninteractive");
         }
         game.ecs.runSystemGroup("map");
+        game.startRace();
         game.mode = "playing";
       },
       onnextLevel: function() {
@@ -293,8 +301,7 @@ class GameModeMachine {
         }
 
         game.mode = "end";
-
-      }
+      },
     };
     this.customActions = {
       onSetDesignTool: function(tool: Tool) {
@@ -330,6 +337,22 @@ class GameModeMachine {
         let game = <Game>(<unknown>this);
         game.designModule.resetMap();
       },
+      onCaffeinate: function(driver: Entity, coffee: Entity) {
+        let game = <Game>(<unknown>this);
+        coffee.removeComponentByType("Renderable");
+        driver.addComponent("CaffeineBoost", coffee.Caffeine);
+        
+        if (driver.id === "player") {
+          let coffeeId = coffee.id.match(/\d+/g);
+          if (coffeeId && coffeeId[0]) game.currentRace?.logCoffee(Number(coffeeId[0]));
+        }
+      },
+      onRedLight: function(driver: Entity, light: Entity) {
+        let game = <Game>(<unknown>this);
+        if (driver.id === "player") {
+          game.currentRace?.logRedLight(light);
+        }
+      }
     };
     this.events = [
       { name: "ready", from: "init", to: "menu" },
@@ -350,7 +373,17 @@ class GameModeMachine {
     ];
     this.customEvents = [
       { name: "crash", action: function() {} },
-      { name: "caffeinate", action: function() {} },
+      { name: "redLight", action: function(driver: Entity, light: Entity) {
+        let gmm = <GameModeMachine>(<unknown>this);
+          gmm.customActions.onRedLight(driver, light);
+      }},
+      {
+        name: "caffeinate",
+        action: function(driver: Entity, coffee: Entity) {
+          let gmm = <GameModeMachine>(<unknown>this);
+          gmm.customActions.onCaffeinate(driver, coffee);
+        },
+      },
       {
         name: "setDesignTool",
         action: function(tool: Tool) {

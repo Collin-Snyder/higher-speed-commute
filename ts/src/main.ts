@@ -7,6 +7,7 @@ import keyCodes from "./keyCodes";
 import DesignModule from "./modules/designModule";
 import { MapGrid, MapGridInterface } from "./state/map";
 import GameModeMachine, { Mode } from "./state/pubsub";
+import Race from "./modules/raceData";
 import { MenuButtons, ButtonInterface } from "./state/menuButtons";
 import Components from "./components/index";
 import Tags from "./tags/tags";
@@ -16,6 +17,7 @@ import { InputSystem } from "./systems/input";
 import { MovementSystem } from "./systems/move";
 import { CollisionSystem } from "./systems/collision";
 import { CaffeineSystem } from "./systems/caffeine";
+import { RaceTimerSystem } from "./systems/timers";
 import {
   RenderTileMap,
   RenderEntities,
@@ -35,10 +37,9 @@ export class Game {
   public lastTick: number;
   public totalElapsedTime: number;
   public frameElapsedTime: number;
-  private step: number = 17; //1/60s
+  public step: number = 17; //1/60s
   private tickTimes: number[];
   public inputs: InputEvents;
-  // public menuButtons: any;
   public width: number;
   public height: number;
   public mode: Mode;
@@ -47,9 +48,7 @@ export class Game {
   public spritesheet: HTMLImageElement;
   public spriteMap: { [entity: string]: { X: number; Y: number } };
   public spriteSheetIsLoaded: boolean;
-  // private gameCanvas: HTMLCanvasElement;
   private UICanvas: HTMLCanvasElement;
-  // private gamectx: CanvasRenderingContext2D;
   private uictx: CanvasRenderingContext2D;
   public ecs: ECS;
   public currentLevel: {
@@ -58,6 +57,8 @@ export class Game {
     name: string | null;
     nextLevelId: number | null;
   };
+  public currentRace: Race | null;
+  public recordRaceData: boolean;
   public globalEntity: Entity;
   private mapEntity: Entity;
   public designModule: DesignModule;
@@ -66,6 +67,7 @@ export class Game {
   private lightEntities: { [key: string]: Entity };
   private coffeeEntities: { [key: string]: Entity };
   private map: MapGridInterface;
+  public difficulty: "easy" | "medium" | "hard" | null;
 
   constructor() {
     this.start = this.timestamp();
@@ -82,6 +84,9 @@ export class Game {
       name: null,
       nextLevelId: null,
     };
+    this.currentRace = null;
+    this.recordRaceData = false;
+    this.difficulty = null;
     this.width = 1000;
     this.height = 625;
     this.inputs = new InputEvents();
@@ -185,7 +190,7 @@ export class Game {
 
       this.publish("ready");
     };
-
+    this.ecs.addSystem("timers", new RaceTimerSystem(this.ecs, this.step));
     this.ecs.addSystem("lights", new LightTimer(this.ecs, this.step));
     this.ecs.addSystem("caffeine", new CaffeineSystem(this.ecs, this.step));
     this.ecs.addSystem("input", new InputSystem(this.ecs));
@@ -336,6 +341,7 @@ export class Game {
       this.ecs.runSystemGroup("caffeine");
       this.ecs.runSystemGroup("move");
       this.ecs.runSystemGroup("collision");
+      this.ecs.runSystemGroup("timers");
     }
 
     this.ecs.tick();
@@ -361,13 +367,13 @@ export class Game {
       const subs = this.subscribers[event];
       const args = [].slice.call(arguments, 1);
       let start = 0;
-
-      if (subs[start].name === "validate") {
-        start = 1;
-        let valid = subs[start]();
+     
+      if (/validate/.test(subs[start].name)) {
+        let valid = subs[start].call(this);
         if (!valid) return;
+        console.log("transition validated")
+        start = 1;
       }
-
       for (let n = start; n < subs.length; n++) {
         subs[n].apply(this, args);
       }
@@ -409,23 +415,37 @@ export class Game {
     for (let button in buttons) {
       this.makeButtonEntity(buttons[button]);
     }
-    // for (let group in buttons) {
-    //   if (Array.isArray(buttons[group])) {
-    //     for (let button of buttons[group].flat()) {
-    //       this.makeButtonEntity(button);
-    //     }
-    //     continue;
-    //   }
-    //   if (!Array.isArray(buttons[group]) && typeof buttons[group] === "object")
-    //     this.createButtonEntities(buttons[group]);
-    // }
   }
 
-  restartLevel() {
-    let map = this.ecs.getEntity("map").Map.map;
-    //reset player and boss
-    //reset all lights to green, reset timers
-    //reset all coffees
+  startRace() {
+    if (!this.recordRaceData) return;
+    let mapEntity = this.ecs.getEntity("map");
+    let { color } = this.ecs.getEntity("player").Car;
+
+    this.currentRace = new Race(
+      mapEntity.Map.mapId,
+      this.difficulty,
+      color,
+      this.step
+    );
+  }
+
+  endRace() {
+    this.currentRace = null;
+  }
+
+  saveRaceData(outcome: "win" |"loss" | "crash") {
+    if (!this.currentRace || !this.recordRaceData) return;
+    let raceData = this.currentRace.exportForSave(outcome);
+    console.log("about to POST race data")
+    axios
+      .post("/races", raceData)
+      .then((data: any) => {
+        let { id } = data.data;
+        console.log(`Saved race data under id ${id}`);
+        this.endRace();
+      })
+      .catch((err: any) => console.error(err));
   }
 }
 

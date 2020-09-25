@@ -98,6 +98,7 @@ export class CollisionSystem extends ECS.System {
 
   handleMapCollisions(entity: Entity) {
     let mapCollision = this.detectMapCollision(entity);
+    let szStart, szEnd;
     switch (mapCollision) {
       case "boundary":
         while (mapCollision === "boundary") {
@@ -182,12 +183,16 @@ export class CollisionSystem extends ECS.System {
       }
       if (c.has("Timer") && c.has("Color") && c.Color.color === "red") {
         //if car is moving AND if car's pre-move location is NOT colliding with the light, then stop car
-        if (this.checkForValidLightCollision(entity, c)) this.stop(entity);
+        if (this.checkForValidLightCollision(entity, c)) {
+          this.game.publish("redLight", entity, c);
+          this.stop(entity);
+        }
       }
       if (c.has("Caffeine")) {
-        c.removeComponentByType("Renderable");
+        this.game.publish("caffeinate", entity, c);
+        // c.removeComponentByType("Renderable");
         this.collidables = this.collidables.filter((e) => e !== c);
-        entity.addComponent("CaffeineBoost", c.Caffeine);
+        // entity.addComponent("CaffeineBoost", c.Caffeine);
       }
     }
   }

@@ -144,7 +144,6 @@ app.post("/races", async (req, res) => {
       outcome,
       difficulty,
       raceTime,
-      winMargin,
       raceDate,
       playerColor,
       coffeesConsumed,
@@ -154,25 +153,26 @@ app.post("/races", async (req, res) => {
       schoolZoneTime,
     } = req.body;
     let returned = await db.query(
-      "INSERT INTO races (level_id, outcome, difficulty, race_time, win_margin, race_date, player_color, coffees_consumed, coffees_consumed_count, red_lights_hit, red_lights_hit_count, time_in_schoolzone) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id",
+      "INSERT INTO races (level_id, outcome, difficulty, race_time, race_date, player_color, coffees_consumed, coffees_consumed_count, red_lights_hit, red_lights_hit_count, time_in_schoolzone) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id",
       [
         levelId,
         outcome,
         difficulty,
         raceTime,
-        winMargin,
         raceDate,
         playerColor,
-        coffeesConsumed,
+        JSON.stringify(coffeesConsumed),
         coffeesConsumedCount,
-        redLightsHit,
+        JSON.stringify(redLightsHit),
         redLightsHitCount,
         schoolZoneTime,
       ]
     );
     res.send(returned.rows[0]);
   } catch (err) {
-    res.send(`${err.name}: ${err.message}`);
+    console.error(err);
+    res.status(400).send(err);
+    // res.send(`${err.name}: ${err.message}`);
   }
 });
 //@ts-ignore
