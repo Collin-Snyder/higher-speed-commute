@@ -129,7 +129,7 @@ class GameModeMachine {
           1,
           "spaceEvenly"
         ).start;
-        
+
         game.startRace();
         game.mode = "playing";
       },
@@ -162,6 +162,17 @@ class GameModeMachine {
         game.mode = "lost";
         //stop game music/animations
         //render lose animation and game over options
+      },
+      oncrash: function() {
+        let game = <Game>(<unknown>this);
+        let entities = game.ecs.queryEntities({
+          has: ["menu", "gameplay", "lost"],
+        });
+        for (let entity of entities) {
+          entity.removeTag("noninteractive");
+        }
+        game.saveRaceData("crash")
+        game.mode = "lost";
       },
       onpause: function() {
         //show paused menu
@@ -201,6 +212,7 @@ class GameModeMachine {
       onnextLevel: function() {
         let game = <Game>(<unknown>this);
         let next = game.currentLevel.number ? game.currentLevel.number + 1 : 1;
+        game.publish("start");
         game.loadLevel(next);
       },
       ondesign: function() {
@@ -363,6 +375,7 @@ class GameModeMachine {
       { name: "restart", from: ["paused", "won", "lost"], to: "playing" },
       { name: "win", from: "playing", to: "won" },
       { name: "lose", from: "playing", to: "lost" },
+      { name: "crash", from: "playing", to: "lost" },
       { name: "quit", from: ["paused", "won", "lost"], to: "menu" },
       { name: "nextLevel", from: "won", to: "playing" },
       { name: "design", from: "menu", to: "designing" },

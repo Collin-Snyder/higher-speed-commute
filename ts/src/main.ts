@@ -85,7 +85,7 @@ export class Game {
       nextLevelId: null,
     };
     this.currentRace = null;
-    this.recordRaceData = false;
+    this.recordRaceData = true;
     this.difficulty = null;
     this.width = 1000;
     this.height = 625;

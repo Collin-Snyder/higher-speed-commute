@@ -30,7 +30,7 @@ export class MenuButtons {
             //@ts-ignore
             this.publish("start");
             //@ts-ignore
-            this.loadLevel(4);
+            this.loadLevel(5);
           // }
         },
         height: 75,
