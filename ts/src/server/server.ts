@@ -70,7 +70,7 @@ app.get("/levels/:levelNum", async (req, res) => {
 });
 
 //@ts-ignore
-app.get("/map/:id", (req, res) => {
+app.get("/maps/:id", (req, res) => {
   db.query("SELECT * FROM levels WHERE id = $1", [req.params.id])
     .then((data: any) => {
       let mapInfo = data.rows[0];
@@ -85,7 +85,7 @@ app.get("/map/:id", (req, res) => {
 });
 
 //@ts-ignore
-app.post("/map", async (req, res) => {
+app.post("/maps", async (req, res) => {
   // console.log("Req body: ", req.body);
   let {
     user_id,
@@ -122,7 +122,7 @@ app.post("/map", async (req, res) => {
 });
 
 //@ts-ignore
-app.put("/map/:id", async (req, res) => {
+app.put("/maps/:id", async (req, res) => {
   let { id } = req.params;
   let { player_home, boss_home, office, squares, lights, coffees } = req.body;
   try {
@@ -136,6 +136,45 @@ app.put("/map/:id", async (req, res) => {
   }
 });
 
+//@ts-ignore
+app.post("/races", async (req, res) => {
+  try {
+    let {
+      levelId,
+      outcome,
+      difficulty,
+      raceTime,
+      winMargin,
+      raceDate,
+      playerColor,
+      coffeesConsumed,
+      coffeesConsumedCount,
+      redLightsHit,
+      redLightsHitCount,
+      schoolZoneTime,
+    } = req.body;
+    let returned = await db.query(
+      "INSERT INTO races (level_id, outcome, difficulty, race_time, win_margin, race_date, player_color, coffees_consumed, coffees_consumed_count, red_lights_hit, red_lights_hit_count, time_in_schoolzone) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id",
+      [
+        levelId,
+        outcome,
+        difficulty,
+        raceTime,
+        winMargin,
+        raceDate,
+        playerColor,
+        coffeesConsumed,
+        coffeesConsumedCount,
+        redLightsHit,
+        redLightsHitCount,
+        schoolZoneTime,
+      ]
+    );
+    res.send(returned.rows[0]);
+  } catch (err) {
+    res.send(`${err.name}: ${err.message}`);
+  }
+});
 //@ts-ignore
 app.post("/convert_legacy_levels", async (req, res) => {
   try {

@@ -292,7 +292,7 @@ export class Game {
 
   loadMap(id: number): void {
     axios
-      .get(`/map/${id}`)
+      .get(`/maps/${id}`)
       //@ts-ignore
       .then((data) => {
         let mapInfo = data.data;
