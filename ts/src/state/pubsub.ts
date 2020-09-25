@@ -245,7 +245,12 @@ class GameModeMachine {
           "spaceEvenly"
         ).start;
 
-        game.designModule.createDesignMenus();
+        let entities = game.ecs.queryEntities({ has: ["menu", "design"] });
+        for (let entity of entities) {
+          entity.removeTag("noninteractive");
+        }
+
+        // game.designModule.createDesignMenus();
 
         game.mode = "designing";
         //(eventually) if first time, play walk-through
@@ -387,7 +392,6 @@ class GameModeMachine {
       { name: "endOfGame", from: ["won", "starting"], to: "end" },
     ];
     this.customEvents = [
-      { name: "crash", action: function() {} },
       { name: "redLight", action: function(driver: Entity, light: Entity) {
         let gmm = <GameModeMachine>(<unknown>this);
           gmm.customActions.onRedLight(driver, light);
