@@ -12,7 +12,8 @@ export type Mode =
   | "paused"
   | "won"
   | "lost"
-  | "designing";
+  | "designing"
+  | "end";
 
 interface StateInterface {
   on: { [action: string]: string };
@@ -77,70 +78,39 @@ class GameModeMachine {
     };
     //all actions are this-bound to the game instance in main.ts
     this.defaultActions = {
-      onready: function () {
+      validate: function() {
+        let game = <Game>(<unknown>this);
+        let [event, from] = [...arguments].slice(0, 2);
+        let current = game.mode;
+
+        return GameModeMachine.validateTransition(from, current, event);
+      },
+      onready: function() {
         let game = <Game>(<unknown>this);
         game.mode = "menu";
       },
-      onmenu: function () {
+      onmenu: function() {
         let game = <Game>(<unknown>this);
         if (game.mode !== "menu") return;
-        let entities = game.ecs.queryEntities({has: ["menu", "main"]});
+        let entities = game.ecs.queryEntities({ has: ["menu", "main"] });
         for (let entity of entities) {
           entity.removeTag("noninteractive");
         }
-        //load menu
-        // let y = 125;
-        // let buttons = [];
-        // //@ts-ignore
-        // for (let button of game.menuButtons.main) {
-        //   //@ts-ignore
-        //   let coords = game.ecs.getEntity("global").Global.spriteMap[
-        //     `${button.name}Button`
-        //   ];
-        //   buttons.push(
-        //     //@ts-ignore
-        //     game.ecs.createEntity({
-        //       id: `${button.name}Button`,
-        //       Button: { name: button.name },
-        //       Clickable: { onClick: button.onClick },
-        //       Coordinates: {
-        //         X: 500,
-        //         Y: y,
-        //       },
-        //       Renderable: {
-        //         spriteX: coords.X,
-        //         spriteY: coords.Y,
-        //         spriteWidth: button.width,
-        //         spriteHeight: button.height,
-        //         renderWidth: button.width,
-        //         renderHeight: button.height,
-        //       },
-        //     })
-        //   );
-        //   y += 125;
-        // }
-        // for (let btn of buttons) {
-        //   btn.addTag("menu");
-        //   btn.addTag("main");
-        // }
         console.log("menu loaded");
       },
-      onleaveMenu: function () {
+      onleaveMenu: function() {
         let game = <Game>(<unknown>this);
-        let entities = game.ecs.queryEntities({has: ["menu", "main"]});
+        let entities = game.ecs.queryEntities({ has: ["menu", "main"] });
         for (let entity of entities) {
           entity.addTag("noninteractive");
         }
-        // let menuButtons = game.ecs.queryEntities({ has: ["menu", "main"] });
-        // for (let button of menuButtons) {
-        //   button.destroy();
-        // }
       },
-      onstart: function () {
+      onstart: function() {
         //play starting animations
       },
-      onplay: function () {
+      onplay: function() {
         let game = <Game>(<unknown>this);
+
         let mapEntity = game.globalEntity.Global.map;
         mapEntity.Coordinates.X = findCenteredElementSpread(
           window.innerWidth,
@@ -154,79 +124,78 @@ class GameModeMachine {
           1,
           "spaceEvenly"
         ).start;
+
         game.mode = "playing";
       },
-      onwin: function () {
+      onwin: function() {
         let game = <Game>(<unknown>this);
-        let [from, to] = [...arguments].slice(0, 2);
-        let currentMode = game.mode;
-
-        if (currentMode !== from) {
-          console.log(
-            `Invalid state transition. "Win" event must transition from mode "playing", but mode is currently "${currentMode}"`
-          );
-          return;
-        }
         console.log("YOU WIN!");
-
-        let entities = game.ecs.queryEntities({has: ["menu", "gameplay", "won"]});
+        let entities = game.ecs.queryEntities({
+          has: ["menu", "gameplay", "won"],
+        });
         for (let entity of entities) {
           entity.removeTag("noninteractive");
         }
 
-        game.mode = to;
+        game.mode = "won";
         // game.globalEntity.Global.mode = to;
         //stop game music/animations
         //render win animation and gameover options
       },
-      onlose: function () {
+      onlose: function() {
         let game = <Game>(<unknown>this);
-        let [from, to] = [...arguments].slice(0, 2);
-        let currentMode = game.mode;
 
-        if (currentMode !== from) {
-          console.log(
-            `Invalid state transition. "Lose" event must transition from mode "playing", but mode is currently "${currentMode}"`
-          );
-          return;
-        }
         console.log("YOU LOSE");
-        let entities = game.ecs.queryEntities({has: ["menu", "gameplay", "lost"]});
+        let entities = game.ecs.queryEntities({
+          has: ["menu", "gameplay", "lost"],
+        });
         for (let entity of entities) {
           entity.removeTag("noninteractive");
         }
-        game.mode = to;
+        game.mode = "lost";
         //stop game music/animations
         //render lose animation and game over options
       },
-      onpause: function () {
+      onpause: function() {
         //show paused menu
         let game = <Game>(<unknown>this);
-        let entities = game.ecs.queryEntities({has: ["menu", "gameplay", "paused"]});
+
+        let entities = game.ecs.queryEntities({
+          has: ["menu", "gameplay", "paused"],
+        });
         for (let entity of entities) {
           entity.removeTag("noninteractive");
         }
         game.mode = "paused";
       },
-      onresume: function () {
+      onresume: function() {
         //hide paused menu
         let game = <Game>(<unknown>this);
-        let entities = game.ecs.queryEntities({has: ["menu", "gameplay", "paused"]});
+
+        let entities = game.ecs.queryEntities({
+          has: ["menu", "gameplay", "paused"],
+        });
         for (let entity of entities) {
           entity.addTag("noninteractive");
         }
         game.mode = "playing";
       },
-      onrestart: function () {
+      onrestart: function() {
         let game = <Game>(<unknown>this);
-        let entities = game.ecs.queryEntities({has: ["menu", "gameplay"]});
+
+        let entities = game.ecs.queryEntities({ has: ["menu", "gameplay"] });
         for (let entity of entities) {
           if (!entity.has("noninteractive")) entity.addTag("noninteractive");
         }
         game.ecs.runSystemGroup("map");
         game.mode = "playing";
       },
-      ondesign: function () {
+      onnextLevel: function() {
+        let game = <Game>(<unknown>this);
+        let next = game.currentLevel.number ? game.currentLevel.number + 1 : 1;
+        game.loadLevel(next);
+      },
+      ondesign: function() {
         let game = <Game>(<unknown>this);
         let UICanvas = <HTMLCanvasElement>document.getElementById("ui");
 
@@ -237,7 +206,7 @@ class GameModeMachine {
         mapEntity.Map.map = designMap;
         mapEntity.TileMap.tiles = designMap.generateTileMap();
         mapEntity.addComponent("Clickable", {
-          onClick: function () {
+          onClick: function() {
             game.designModule.editDesign();
           },
         });
@@ -259,14 +228,14 @@ class GameModeMachine {
         game.mode = "designing";
         //(eventually) if first time, play walk-through
       },
-      onbeforeleaveDesign: function () {
+      onbeforeleaveDesign: function() {
         //if design state is unsaved, prompt to save
         let game = <Game>(<unknown>this);
         if (!game.designModule.saved) {
           game.designModule.confirmUnsaved();
         }
       },
-      onleaveDesign: function () {
+      onleaveDesign: function() {
         let game = <Game>(<unknown>this);
         let mapEntity = game.globalEntity.Global.map;
         if (game.designModule.saved) {
@@ -289,21 +258,21 @@ class GameModeMachine {
           game.mode = "menu";
         }
       },
-      onbeforetest: function () {
+      onbeforetest: function() {
         //check for map issues - i.e. no valid path for boss or player
         //if map issue present, prompt user to confirm
       },
-      ontest: function () {
+      ontest: function() {
         //load current state of map into game as Map
         //do not save automatically
       },
-      onbeforequit: function () {
+      onbeforequit: function() {
         //if state is currently playing/paused, prompt "Are you sure you want to quit?"
       },
-      onquit: function () {
+      onquit: function() {
         //hide game canvas
         let game = <Game>(<unknown>this);
-        let entities = game.ecs.queryEntities({has: ["menu", "gameplay"]});
+        let entities = game.ecs.queryEntities({ has: ["menu", "gameplay"] });
         for (let entity of entities) {
           if (!entity.has("noninteractive")) entity.addTag("noninteractive");
         }
@@ -312,33 +281,47 @@ class GameModeMachine {
         mapEntity.map = null;
         game.mode = "menu";
       },
+      onendOfGame: function() {
+        let game = <Game>(<unknown>this);
+        console.log("YOU WON THE WHOLE GAME!");
+
+        let entities = game.ecs.queryEntities({
+          has: ["menu", "gameplay", "won"],
+        });
+        for (let entity of entities) {
+          entity.addTag("noninteractive");
+        }
+
+        game.mode = "end";
+
+      }
     };
     this.customActions = {
-      onSetDesignTool: function (tool: Tool) {
+      onSetDesignTool: function(tool: Tool) {
         let game = <Game>(<unknown>this);
         game.designModule.setDesignTool(tool);
       },
-      onSave: function () {
+      onSave: function() {
         let game = <Game>(<unknown>this);
         game.designModule.save();
       },
-      onSaveAs: function () {
+      onSaveAs: function() {
         let game = <Game>(<unknown>this);
         game.designModule.saveAs();
       },
-      onLoadSaved: function () {
+      onLoadSaved: function() {
         let game = <Game>(<unknown>this);
         game.designModule.loadSaved();
       },
-      onUndo: function () {
+      onUndo: function() {
         let game = <Game>(<unknown>this);
         game.designModule.undo();
       },
-      onRedo: function () {
+      onRedo: function() {
         let game = <Game>(<unknown>this);
         game.designModule.redo();
       },
-      onForceMouseUp: function () {
+      onForceMouseUp: function() {
         let game = <Game>(<unknown>this);
         // game.ecs.getEntity("global").Global.inputs.setMouseUp();
         game.inputs.setMouseUp();
@@ -346,7 +329,7 @@ class GameModeMachine {
       onResetMap: function() {
         let game = <Game>(<unknown>this);
         game.designModule.resetMap();
-      }
+      },
     };
     this.events = [
       { name: "ready", from: "init", to: "menu" },
@@ -354,70 +337,72 @@ class GameModeMachine {
       { name: "play", from: "starting", to: "playing" },
       { name: "pause", from: ["playing", "starting"], to: "paused" },
       { name: "resume", from: "paused", to: "playing" },
-      { name: "restart", from: ["paused", "won", "lost"], to: "playing"},
+      { name: "restart", from: ["paused", "won", "lost"], to: "playing" },
       { name: "win", from: "playing", to: "won" },
       { name: "lose", from: "playing", to: "lost" },
       { name: "quit", from: ["paused", "won", "lost"], to: "menu" },
+      { name: "nextLevel", from: "won", to: "playing" },
       { name: "design", from: "menu", to: "designing" },
       { name: "test", from: "designing", to: "starting" },
       { name: "leaveDesign", from: "designing", to: "menu" },
       { name: "leaveMenu", from: "menu", to: ["starting", "designing"] },
+      { name: "endOfGame", from: "won", to: "end" },
     ];
     this.customEvents = [
-      { name: "crash", action: function () {} },
-      { name: "caffeinate", action: function () {} },
+      { name: "crash", action: function() {} },
+      { name: "caffeinate", action: function() {} },
       {
         name: "setDesignTool",
-        action: function (tool: Tool) {
+        action: function(tool: Tool) {
           let gmm = <GameModeMachine>(<unknown>this);
           gmm.customActions.onSetDesignTool(tool);
         },
       },
       {
         name: "save",
-        action: function () {
+        action: function() {
           let gmm = <GameModeMachine>(<unknown>this);
           gmm.customActions.onSave();
         },
       },
       {
         name: "saveAs",
-        action: function () {
+        action: function() {
           let gmm = <GameModeMachine>(<unknown>this);
           gmm.customActions.onSaveAs();
         },
       },
       {
         name: "loadSaved",
-        action: function () {
+        action: function() {
           let gmm = <GameModeMachine>(<unknown>this);
           gmm.customActions.onLoadSaved();
         },
       },
       {
         name: "undo",
-        action: function () {
+        action: function() {
           let gmm = <GameModeMachine>(<unknown>this);
           gmm.customActions.onUndo();
         },
       },
       {
         name: "redo",
-        action: function () {
+        action: function() {
           let gmm = <GameModeMachine>(<unknown>this);
           gmm.customActions.onRedo();
         },
       },
       {
         name: "forceMouseUp",
-        action: function () {
+        action: function() {
           let gmm = <GameModeMachine>(<unknown>this);
           gmm.customActions.onForceMouseUp();
         },
       },
       {
         name: "resetMap",
-        action: function () {
+        action: function() {
           let gmm = <GameModeMachine>(<unknown>this);
           gmm.customActions.onResetMap();
         },
@@ -426,6 +411,21 @@ class GameModeMachine {
     for (let event of this.customEvents) {
       event.action = event.action.bind(this);
     }
+  }
+
+  static validateTransition(from: string, current: string, event: string) {
+    let valid = true;
+    if (Array.isArray(from)) {
+      if (!from.includes(current)) valid = false;
+    } else if (current !== from) valid = false;
+
+    if (!valid) {
+      console.log(
+        `Attempted invalid state transition - ${event} event must transition from mode "${from}", but mode is currently "${current}"`
+      );
+    }
+
+    return valid;
   }
 }
 
@@ -437,13 +437,13 @@ export enum EVENT {
 
 class PubSub {
   static enable(target: any) {
-    target.subscribe = function (event: any, callback: Function) {
+    target.subscribe = function(event: any, callback: Function) {
       this.subscribers = this.subscribers || {};
       this.subscribers[event] = this.subscribers[event] || [];
       this.subscribers[event].push(callback);
     };
 
-    target.publish = function (event: any) {
+    target.publish = function(event: any) {
       if (this.subscribers && this.subscribers[event]) {
         const subs = this.subscribers[event];
         const args = [].slice.call(arguments, 1);

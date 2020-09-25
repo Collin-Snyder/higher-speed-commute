@@ -219,6 +219,7 @@ export class Game {
 
   registerSubscribers(): void {
     console.log("Subscribing events...");
+    let validate = this.modeMachine.defaultActions.validate;
     for (let event of this.modeMachine.events) {
       if (event.name === "ready") {
         this.subscribe(
@@ -232,6 +233,7 @@ export class Game {
       } else {
         let onbefore = this.modeMachine.defaultActions[`onbefore${event.name}`];
         let on = this.modeMachine.defaultActions[`on${event.name}`];
+        this.subscribe(event.name, validate.bind(this, event.name, event.from));
         if (onbefore) {
           this.subscribe(event.name, onbefore.bind(this, event.from, event.to));
         }
@@ -261,6 +263,11 @@ export class Game {
       .get(`/levels/${num}`)
       //@ts-ignore
       .then((data) => {
+        if (data.data === "end of game") {
+          this.publish("endOfGame");
+          return;
+        }
+
         let levelInfo = data.data;
         let { id, level_number, next_level_id, level_name } = levelInfo;
         this.currentLevel = {
@@ -353,7 +360,15 @@ export class Game {
     if (this.subscribers && this.subscribers[event]) {
       const subs = this.subscribers[event];
       const args = [].slice.call(arguments, 1);
-      for (let n = 0; n < subs.length; n++) {
+      let start = 0;
+
+      if (subs[start].name === "validate") {
+        start = 1;
+        let valid = subs[start]();
+        if (!valid) return;
+      }
+
+      for (let n = start; n < subs.length; n++) {
         subs[n].apply(this, args);
       }
     }

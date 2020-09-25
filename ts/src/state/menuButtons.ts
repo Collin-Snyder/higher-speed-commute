@@ -30,9 +30,7 @@ export class MenuButtons {
             //@ts-ignore
             this.publish("start");
             //@ts-ignore
-            this.publish("forceMouseUp");
-            //@ts-ignore
-            this.loadLevel(1);
+            this.loadLevel(9);
           // }
         },
         height: 75,
@@ -60,7 +58,6 @@ export class MenuButtons {
       quit: {
         name: "quit",
         onClick: function() {
-          console.log("Clicking quit button")
           this.publish("quit");
         },
         height: 75,
@@ -71,6 +68,7 @@ export class MenuButtons {
         name: "nextLevel",
         onClick: function() {
           console.log("Clicked Next Level");
+          this.publish("nextLevel");
         },
         height: 75,
         width: 200,

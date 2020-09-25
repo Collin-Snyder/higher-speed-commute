@@ -14,12 +14,20 @@ app.use(express.json({ limit: "50mb" }));
 app.set("port", process.env.PORT || 3000);
 
 //@ts-ignore
-app.get("/levels/:levelNum", (req, res) => {
-  db.query(
-    "SELECT l.*, n.next_level_id, n.level_number FROM levels l JOIN next_levels n ON l.id = n.level_id WHERE n.level_number = $1",
-    [req.params.levelNum]
-  )
-    .then((data: any) => {
+app.get("/levels/:levelNum", async (req, res) => {
+  try {
+    let next = await db.query(
+      "SELECT level_id FROM next_levels WHERE level_number = $1",
+      [req.params.levelNum]
+    );
+    if (next.rows[0] === undefined) {
+      console.log(next.rows[0]);
+      res.send("end of game");
+    } else {
+      let data = await db.query(
+        "SELECT l.*, n.next_level_id, n.level_number FROM levels l JOIN next_levels n ON l.id = n.level_id WHERE n.level_number = $1",
+        [req.params.levelNum]
+      );
       let {
         id,
         next_level_id,
@@ -34,6 +42,7 @@ app.get("/levels/:levelNum", (req, res) => {
         lights,
         coffees,
       } = data.rows[0];
+
       let levelInfo = {
         id,
         level_number,
@@ -47,17 +56,17 @@ app.get("/levels/:levelNum", (req, res) => {
           office,
           squares,
           lights,
-          coffees
+          coffees,
         },
       };
       res.send(levelInfo);
-    })
-    .catch((err: any) => {
-      console.error(err);
-      res.send(
-        `You asked for level number ${req.params.levelNum} but there was an error: ${err}`
-      );
-    });
+    }
+  } catch (err) {
+    console.error(err);
+    res.send(
+      `You asked for level number ${req.params.levelNum} but there was an error: ${err}`
+    );
+  }
 });
 
 //@ts-ignore
