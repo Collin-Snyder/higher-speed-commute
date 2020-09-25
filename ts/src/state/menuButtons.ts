@@ -30,7 +30,7 @@ export class MenuButtons {
             //@ts-ignore
             this.publish("start");
             //@ts-ignore
-            this.loadLevel(5);
+            this.loadLevel(9);
           // }
         },
         height: 75,
@@ -67,7 +67,6 @@ export class MenuButtons {
       nextLevel: {
         name: "nextLevel",
         onClick: function() {
-          console.log("Clicked Next Level");
           this.publish("nextLevel");
         },
         height: 75,

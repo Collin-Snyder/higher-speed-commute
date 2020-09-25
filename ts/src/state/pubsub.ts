@@ -165,6 +165,8 @@ class GameModeMachine {
       },
       oncrash: function() {
         let game = <Game>(<unknown>this);
+
+        console.log("CRASH! YOU LOSE BIG TIME");
         let entities = game.ecs.queryEntities({
           has: ["menu", "gameplay", "lost"],
         });
@@ -382,7 +384,7 @@ class GameModeMachine {
       { name: "test", from: "designing", to: "starting" },
       { name: "leaveDesign", from: "designing", to: "menu" },
       { name: "leaveMenu", from: "menu", to: ["starting", "designing"] },
-      { name: "endOfGame", from: "won", to: "end" },
+      { name: "endOfGame", from: ["won", "starting"], to: "end" },
     ];
     this.customEvents = [
       { name: "crash", action: function() {} },

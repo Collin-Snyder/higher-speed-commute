@@ -110,18 +110,11 @@ export class MapGrid implements MapGridInterface {
     newMap.office = office;
     newMap.lights = lights;
     newMap.coffees = coffees;
-
-    let updateIndividualSquaresStart = window.performance.now();
+    
     for (let i = 0; i < squares.length; i++) {
       newMap.squares[i].drivable = squares[i].drivable;
       newMap.squares[i].schoolZone = squares[i].schoolZone;
     }
-    let updateIndividualSquaresEnd = window.performance.now();
-    console.log(
-      `UPDATING SQUARES WITH DRIVABLE/SCHOOLZONE PROPERTIES TOOK ${
-        updateIndividualSquaresEnd - updateIndividualSquaresStart
-      }ms`
-    );
     return newMap;
   }
 

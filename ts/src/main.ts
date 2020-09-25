@@ -371,7 +371,6 @@ export class Game {
       if (/validate/.test(subs[start].name)) {
         let valid = subs[start].call(this);
         if (!valid) return;
-        console.log("transition validated")
         start = 1;
       }
       for (let n = start; n < subs.length; n++) {
@@ -437,7 +436,6 @@ export class Game {
   saveRaceData(outcome: "win" |"loss" | "crash") {
     if (!this.currentRace || !this.recordRaceData) return;
     let raceData = this.currentRace.exportForSave(outcome);
-    console.log("about to POST race data")
     axios
       .post("/races", raceData)
       .then((data: any) => {

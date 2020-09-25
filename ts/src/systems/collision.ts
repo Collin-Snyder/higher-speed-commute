@@ -177,7 +177,6 @@ export class CollisionSystem extends ECS.System {
     let collisions = this.detectEntityCollisions(entity);
     for (let c of collisions) {
       if (c.has("Car") && this.game.mode !== "lost") {
-        console.log(`${entity.id} hit ${c.id} - GAME OVER`);
         this.game.publish("crash");
       }
       if (c.has("Timer") && c.has("Color") && c.Color.color === "red") {
