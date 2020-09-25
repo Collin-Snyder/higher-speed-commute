@@ -434,7 +434,7 @@ export class Game {
   }
 
   saveRaceData(outcome: "win" |"loss" | "crash") {
-    if (!this.currentRace || !this.recordRaceData) return;
+    if (!this.currentRace) return;
     let raceData = this.currentRace.exportForSave(outcome);
     axios
       .post("/races", raceData)

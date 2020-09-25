@@ -142,7 +142,7 @@ class GameModeMachine {
         for (let entity of entities) {
           entity.removeTag("noninteractive");
         }
-        game.saveRaceData("win");
+        if (game.recordRaceData) game.saveRaceData("win");
         game.mode = "won";
         // game.globalEntity.Global.mode = to;
         //stop game music/animations
