@@ -1,3 +1,5 @@
+import {Game} from "../main";
+
 export interface ButtonInterface {
   name: string;
   height: number;
@@ -10,28 +12,14 @@ export interface ButtonInterface {
 export type DesignMenuName = "toolbar" | "admin" | "config";
 
 export class MenuButtons {
-  menus: {
-    [menu: string]:
-      | Array<ButtonInterface>
-      | { [submenu: string]: Array<ButtonInterface> };
-  };
-  buttons: {
-    [name: string]: ButtonInterface;
-  };
-  constructor(game: any) {
-    this.buttons = {
+  static createEntities(game: any) {
+    const buttons = {
       play: {
         name: "play",
         onClick: function() {
-          // let id = window.prompt("Please enter a level ID to play");
-          // if (id) {
-          //@ts-ignore
-          this.publish("leaveMenu");
-          //@ts-ignore
-          this.publish("start");
-          //@ts-ignore
-          this.loadLevel(2);
-          // }
+          game.publish("leaveMenu");
+          game.publish("start");
+          game.loadLevel(2);
         },
         height: 75,
         width: 200,
@@ -40,7 +28,7 @@ export class MenuButtons {
       resume: {
         name: "resume",
         onClick: function() {
-          this.publish("resume");
+          game.publish("resume");
         },
         height: 75,
         width: 200,
@@ -49,7 +37,7 @@ export class MenuButtons {
       restart: {
         name: "restart",
         onClick: function() {
-          this.publish("restart");
+          game.publish("restart");
         },
         height: 75,
         width: 200,
@@ -58,7 +46,7 @@ export class MenuButtons {
       quit: {
         name: "quit",
         onClick: function() {
-          this.publish("quit");
+          game.publish("quit");
         },
         height: 75,
         width: 200,
@@ -67,7 +55,7 @@ export class MenuButtons {
       nextLevel: {
         name: "nextLevel",
         onClick: function() {
-          this.publish("nextLevel");
+          game.publish("nextLevel");
         },
         height: 75,
         width: 200,
@@ -76,12 +64,9 @@ export class MenuButtons {
       design: {
         name: "design",
         onClick: function() {
-          //@ts-ignore
-          this.publish("leaveMenu");
-          //@ts-ignore
-          this.publish("design");
-          //@ts-ignore
-          this.publish("forceMouseUp");
+          game.publish("leaveMenu");
+          game.publish("design");
+          game.publish("forceMouseUp");
         },
         height: 75,
         width: 200,
@@ -90,7 +75,7 @@ export class MenuButtons {
       playerHome: {
         name: "playerHome",
         onClick: function() {
-          this.publish("setDesignTool", "playerHome");
+          game.publish("setDesignTool", "playerHome");
         },
         height: 75,
         width: 75,
@@ -99,7 +84,7 @@ export class MenuButtons {
       bossHome: {
         name: "bossHome",
         onClick: function() {
-          this.publish("setDesignTool", "bossHome");
+          game.publish("setDesignTool", "bossHome");
         },
         height: 75,
         width: 75,
@@ -108,7 +93,7 @@ export class MenuButtons {
       office: {
         name: "office",
         onClick: function() {
-          this.publish("setDesignTool", "office");
+          game.publish("setDesignTool", "office");
         },
         height: 75,
         width: 75,
@@ -117,7 +102,7 @@ export class MenuButtons {
       street: {
         name: "street",
         onClick: function() {
-          this.publish("setDesignTool", "street");
+          game.publish("setDesignTool", "street");
         },
         height: 75,
         width: 75,
@@ -126,7 +111,7 @@ export class MenuButtons {
       light: {
         name: "light",
         onClick: function() {
-          this.publish("setDesignTool", "light");
+          game.publish("setDesignTool", "light");
         },
         height: 75,
         width: 75,
@@ -135,7 +120,7 @@ export class MenuButtons {
       schoolZone: {
         name: "schoolZone",
         onClick: function() {
-          this.publish("setDesignTool", "schoolZone");
+          game.publish("setDesignTool", "schoolZone");
         },
         height: 75,
         width: 75,
@@ -144,7 +129,7 @@ export class MenuButtons {
       coffee: {
         name: "coffee",
         onClick: function() {
-          this.publish("setDesignTool", "coffee");
+          game.publish("setDesignTool", "coffee");
         },
         height: 75,
         width: 75,
@@ -153,8 +138,8 @@ export class MenuButtons {
       home: {
         name: "home",
         onClick: function() {
-          this.publish("leaveDesign");
-          this.publish("forceMouseUp");
+          game.publish("leaveDesign");
+          game.publish("forceMouseUp");
         },
         height: 75,
         width: 200,
@@ -163,7 +148,7 @@ export class MenuButtons {
       save: {
         name: "save",
         onClick: function() {
-          this.publish("save");
+          game.publish("save");
         },
         height: 75,
         width: 200,
@@ -172,8 +157,8 @@ export class MenuButtons {
       saveAs: {
         name: "saveAs",
         onClick: function() {
-          this.publish("saveAs");
-          this.publish("forceMouseUp");
+          game.publish("saveAs");
+          game.publish("forceMouseUp");
           //on failure, display failure message
         },
         height: 75,
@@ -183,8 +168,8 @@ export class MenuButtons {
       loadSaved: {
         name: "loadSaved",
         onClick: function() {
-          this.publish("loadSaved");
-          this.publish("forceMouseUp");
+          game.publish("loadSaved");
+          game.publish("forceMouseUp");
         },
         width: 200,
         height: 75,
@@ -194,7 +179,7 @@ export class MenuButtons {
       undo: {
         name: "undo",
         onClick: function() {
-          this.publish("undo");
+          game.publish("undo");
         },
         height: 75,
         width: 75,
@@ -203,7 +188,7 @@ export class MenuButtons {
       redo: {
         name: "redo",
         onClick: function() {
-          this.publish("redo");
+          game.publish("redo");
         },
         height: 75,
         width: 75,
@@ -212,7 +197,7 @@ export class MenuButtons {
       erase: {
         name: "eraser",
         onClick: function() {
-          this.publish("setDesignTool", "eraser");
+          game.publish("setDesignTool", "eraser");
         },
         height: 75,
         width: 75,
@@ -221,8 +206,8 @@ export class MenuButtons {
       reset: {
         name: "reset",
         onClick: function() {
-          this.publish("resetMap");
-          this.publish("forceMouseUp");
+          game.publish("resetMap");
+          game.publish("forceMouseUp");
         },
         height: 75,
         width: 75,
@@ -258,58 +243,46 @@ export class MenuButtons {
       },
     };
 
-    this.menus = {
-      main: [this.buttons.play, this.buttons.design],
-      gameplay: {
-        paused: [this.buttons.resume, this.buttons.restart, this.buttons.quit],
-        won: [this.buttons.nextLevel, this.buttons.restart, this.buttons.quit],
-        lost: [this.buttons.restart, this.buttons.quit],
-      },
-      design: {
-        toolbar: [
-          this.buttons.playerHome,
-          this.buttons.bossHome,
-          this.buttons.office,
-          this.buttons.street,
-          this.buttons.light,
-          this.buttons.schoolZone,
-          this.buttons.coffee,
-        ],
-        admin: [
-          this.buttons.home,
-          this.buttons.save,
-          this.buttons.saveAs,
-          this.buttons.loadSaved,
-          this.buttons.undo,
-          this.buttons.redo,
-          this.buttons.eraser,
-          this.buttons.reset,
-        ],
-        config: [
-          this.buttons.issues,
-          this.buttons.overlays,
-          this.buttons.stoplight,
-          this.buttons.test,
-        ],
-      },
-    };
-    this.bindButtons(this.buttons, game);
+    // MenuButtons.bindButtons(buttons, game);
+    MenuButtons.createButtonEntities(buttons, game);
   }
 
-  bindButtons(buttons: any, game: any) {
+  private static bindButtons(buttons: any, game: Game) {
     for (let button in buttons) {
       let b = buttons[button];
       b.onClick = b.onClick.bind(game);
     }
-    // for (let group in buttons) {
-    //   if (Array.isArray(buttons[group])) {
-    //     for (let button of buttons[group].flat()) {
-    //       button.onClick = button.onClick.bind(game);
-    //     }
-    //     continue;
-    //   }
-    //   if (!Array.isArray(buttons[group]) && typeof buttons[group] === "object")
-    //     this.bindButtons(buttons[group], game);
-    // }
+  }
+
+  private static createButtonEntities(buttons: {[key: string]: ButtonInterface}, game: Game) {
+    for (let name in buttons) {
+      let button = buttons[name];
+      let coords = game.ecs.getEntity("global").Global.spriteMap[
+        `${button.name}Button`
+      ];
+  
+      if (!coords) return;
+  
+      let entity = game.ecs.createEntity({
+        id: `${button.name}Button`,
+        Button: { name: button.name },
+        Clickable: { onClick: button.onClick },
+        Coordinates: {},
+        Renderable: {
+          spriteX: coords.X,
+          spriteY: coords.Y,
+          spriteWidth: button.width,
+          spriteHeight: button.height,
+          renderWidth: button.width,
+          renderHeight: button.height,
+        },
+      });
+  
+      for (let tag of button.tags) {
+        entity.addTag(tag);
+      }
+  
+      entity.addTag("noninteractive");
+    }
   }
 }

@@ -158,7 +158,7 @@ class GameModeMachine {
         for (let entity of entities) {
           entity.removeTag("noninteractive");
         }
-        game.saveRaceData("loss")
+        if (game.recordRaceData) game.saveRaceData("loss")
         game.mode = "lost";
         //stop game music/animations
         //render lose animation and game over options
@@ -173,7 +173,7 @@ class GameModeMachine {
         for (let entity of entities) {
           entity.removeTag("noninteractive");
         }
-        game.saveRaceData("crash")
+        if (game.recordRaceData) game.saveRaceData("crash")
         game.mode = "lost";
       },
       onpause: function() {

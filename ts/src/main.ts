@@ -8,7 +8,7 @@ import DesignModule from "./modules/designModule";
 import { MapGrid, MapGridInterface } from "./state/map";
 import GameModeMachine, { Mode } from "./state/pubsub";
 import Race from "./modules/raceData";
-import { MenuButtons, ButtonInterface } from "./state/menuButtons";
+import { MenuButtons } from "./state/menuButtons";
 import Components from "./components/index";
 import Tags from "./tags/tags";
 import { MapSystem } from "./systems/map";
@@ -99,7 +99,6 @@ export class Game {
     this.subscribers = {};
     this.map = new MapGrid(40, 25);
     this.designModule = new DesignModule(this);
-    // this.menuButtons = new MenuButtons(this).buttons;
     this.spritesheet = new Image();
     this.background = new Image();
     this.spriteSheetIsLoaded = false;
@@ -187,7 +186,9 @@ export class Game {
       this.bossEntity.Renderable.spriteX = bossSpriteCoords.X;
       this.bossEntity.Renderable.spriteY = bossSpriteCoords.Y;
 
-      this.createButtonEntities(new MenuButtons(this).buttons);
+
+      MenuButtons.createEntities(this);
+      
 
       this.ecs.addSystem("render", new RenderTileMap(this.ecs, this.uictx));
       this.ecs.addSystem("render", new RenderMenu(this.ecs, this.uictx));
@@ -399,42 +400,42 @@ export class Game {
     }
   }
 
-  makeButtonEntity(button: ButtonInterface) {
-    let coords = this.ecs.getEntity("global").Global.spriteMap[
-      `${button.name}Button`
-    ];
+  // makeButtonEntity(button: ButtonInterface) {
+  //   let coords = this.ecs.getEntity("global").Global.spriteMap[
+  //     `${button.name}Button`
+  //   ];
 
-    if (!coords) return;
+  //   if (!coords) return;
 
-    let entity = this.ecs.createEntity({
-      id: `${button.name}Button`,
-      Button: { name: button.name },
-      Clickable: { onClick: button.onClick },
-      Coordinates: {},
-      Renderable: {
-        spriteX: coords.X,
-        spriteY: coords.Y,
-        spriteWidth: button.width,
-        spriteHeight: button.height,
-        renderWidth: button.width,
-        renderHeight: button.height,
-      },
-    });
+  //   let entity = this.ecs.createEntity({
+  //     id: `${button.name}Button`,
+  //     Button: { name: button.name },
+  //     Clickable: { onClick: button.onClick },
+  //     Coordinates: {},
+  //     Renderable: {
+  //       spriteX: coords.X,
+  //       spriteY: coords.Y,
+  //       spriteWidth: button.width,
+  //       spriteHeight: button.height,
+  //       renderWidth: button.width,
+  //       renderHeight: button.height,
+  //     },
+  //   });
 
-    for (let tag of button.tags) {
-      entity.addTag(tag);
-    }
+  //   for (let tag of button.tags) {
+  //     entity.addTag(tag);
+  //   }
 
-    entity.addTag("noninteractive");
+  //   entity.addTag("noninteractive");
 
-    return entity;
-  }
+  //   return entity;
+  // }
 
-  createButtonEntities(buttons: any) {
-    for (let button in buttons) {
-      this.makeButtonEntity(buttons[button]);
-    }
-  }
+  // createButtonEntities(buttons: any) {
+  //   for (let button in buttons) {
+  //     this.makeButtonEntity(buttons[button]);
+  //   }
+  // }
 
   startRace() {
     if (!this.recordRaceData) return;
