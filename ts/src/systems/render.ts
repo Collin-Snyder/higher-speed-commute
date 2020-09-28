@@ -53,6 +53,7 @@ export class RenderMenu extends EntityComponentSystem.System {
           this.renderLostMenu(X, Y, pixelWidth, pixelHeight);
           break;
         case "designing":
+          this.renderDesignMenus(X, Y, pixelWidth, pixelHeight);
           return;
         default:
           return;
@@ -210,6 +211,77 @@ export class RenderMenu extends EntityComponentSystem.System {
       "spaceEvenly"
     );
     this.drawButtons(this.buttonEntities);
+  }
+
+  renderDesignToolbarMenu(
+    toolbarBtns: Entity[],
+    mapX: number,
+    mapY: number,
+    mapWidth: number,
+    mapHeight: number
+  ) {
+    this.positionButtons(
+      mapX,
+      0,
+      mapWidth,
+      (window.innerHeight - mapHeight) / 2,
+      75,
+      75,
+      "horizontal",
+      toolbarBtns,
+      "spaceEvenly"
+    );
+    this.drawButtons(toolbarBtns);
+  }
+
+  renderDesignAdminMenu(
+    adminBtns: Entity[],
+    mapX: number,
+    mapY: number,
+    mapWidth: number,
+    mapHeight: number
+  ) {
+    let formattedBtns = this.formatDesignAdminButtons(adminBtns);
+    this.positionButtons(
+      mapX + mapWidth,
+      (window.innerHeight - mapHeight) / 2,
+      (window.innerWidth - mapWidth) / 2,
+      mapHeight,
+      200,
+      75,
+      "vertical",
+      formattedBtns,
+      "spaceEvenly"
+    );
+    this.drawButtons(adminBtns);
+  }
+
+  renderDesignMenus(
+    mapX: number,
+    mapY: number,
+    mapWidth: number,
+    mapHeight: number
+  ) {
+    const toolbarBtns = this.buttonEntities.filter((e) => e.has("toolbar"));
+    const adminBtns = this.buttonEntities.filter((e) => e.has("admin"));
+    // const configBtns = this.buttonEntities.filter(e => e.has("config"));
+
+    this.renderDesignToolbarMenu(toolbarBtns, mapX, mapY, mapWidth, mapHeight);
+    this.renderDesignAdminMenu(adminBtns, mapX, mapY, mapWidth, mapHeight);
+  }
+
+  formatDesignAdminButtons(adminBtns: Entity[]) {
+    const undoredo = adminBtns.filter(
+      (b) => b.Button.name === "undo" || b.Button.name === "redo"
+    );
+    const erasereset = adminBtns.filter(
+      (b) => b.Button.name === "eraser" || b.Button.name === "reset"
+    );
+    let btns: Array<Entity | Array<Entity>> = adminBtns.slice();
+    btns.splice(4, 2, undoredo);
+    btns.splice(5, 2, erasereset);
+
+    return btns;
   }
 }
 
@@ -410,7 +482,8 @@ export class RenderEntities extends EntityComponentSystem.System {
     let spriteName;
 
     if (entity.Velocity.vector.X > 0) spriteName = `${entity.Car.color}CarR`;
-    else if (entity.Velocity.vector.X < 0) spriteName = `${entity.Car.color}CarL`;
+    else if (entity.Velocity.vector.X < 0)
+      spriteName = `${entity.Car.color}CarL`;
 
     if (spriteName) {
       let { X, Y } = spriteMap[spriteName];

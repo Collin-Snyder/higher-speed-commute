@@ -142,7 +142,7 @@ class GameModeMachine {
         for (let entity of entities) {
           entity.removeTag("noninteractive");
         }
-        game.saveRaceData("win");
+        if (game.recordRaceData) game.saveRaceData("win");
         game.mode = "won";
         // game.globalEntity.Global.mode = to;
         //stop game music/animations
@@ -158,7 +158,7 @@ class GameModeMachine {
         for (let entity of entities) {
           entity.removeTag("noninteractive");
         }
-        game.saveRaceData("loss")
+        if (game.recordRaceData) game.saveRaceData("loss")
         game.mode = "lost";
         //stop game music/animations
         //render lose animation and game over options
@@ -173,7 +173,7 @@ class GameModeMachine {
         for (let entity of entities) {
           entity.removeTag("noninteractive");
         }
-        game.saveRaceData("crash")
+        if (game.recordRaceData) game.saveRaceData("crash")
         game.mode = "lost";
       },
       onpause: function() {
@@ -245,7 +245,12 @@ class GameModeMachine {
           "spaceEvenly"
         ).start;
 
-        game.designModule.createDesignMenus();
+        let entities = game.ecs.queryEntities({ has: ["menu", "design"] });
+        for (let entity of entities) {
+          entity.removeTag("noninteractive");
+        }
+
+        // game.designModule.createDesignMenus();
 
         game.mode = "designing";
         //(eventually) if first time, play walk-through
@@ -387,7 +392,6 @@ class GameModeMachine {
       { name: "endOfGame", from: ["won", "starting"], to: "end" },
     ];
     this.customEvents = [
-      { name: "crash", action: function() {} },
       { name: "redLight", action: function(driver: Entity, light: Entity) {
         let gmm = <GameModeMachine>(<unknown>this);
           gmm.customActions.onRedLight(driver, light);

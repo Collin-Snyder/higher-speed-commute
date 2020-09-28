@@ -8,7 +8,7 @@ import DesignModule from "./modules/designModule";
 import { MapGrid, MapGridInterface } from "./state/map";
 import GameModeMachine, { Mode } from "./state/pubsub";
 import Race from "./modules/raceData";
-import { MenuButtons, ButtonInterface } from "./state/menuButtons";
+import { MenuButtons } from "./state/menuButtons";
 import Components from "./components/index";
 import Tags from "./tags/tags";
 import { MapSystem } from "./systems/map";
@@ -46,8 +46,10 @@ export class Game {
   public modeMachine: GameModeMachine;
   public subscribers: { [key: string]: Function[] };
   public spritesheet: HTMLImageElement;
+  public background: HTMLImageElement;
   public spriteMap: { [entity: string]: { X: number; Y: number } };
   public spriteSheetIsLoaded: boolean;
+  public backgroundIsLoaded: boolean;
   private UICanvas: HTMLCanvasElement;
   private uictx: CanvasRenderingContext2D;
   public ecs: ECS;
@@ -97,11 +99,13 @@ export class Game {
     this.subscribers = {};
     this.map = new MapGrid(40, 25);
     this.designModule = new DesignModule(this);
-    // this.menuButtons = new MenuButtons(this).buttons;
     this.spritesheet = new Image();
+    this.background = new Image();
     this.spriteSheetIsLoaded = false;
+    this.backgroundIsLoaded = false;
     this.spriteMap = spriteMap;
 
+    this.background.src = "../background.png";
     this.spritesheet.src = "../spritesheet.png";
     this.UICanvas.width = window.innerWidth;
     this.UICanvas.height = window.innerHeight;
@@ -163,6 +167,10 @@ export class Game {
     this.globalEntity.Global.map = this.mapEntity;
     this.globalEntity.Global.player = this.playerEntity;
 
+    this.background.onload = () => {
+      this.backgroundIsLoaded = true;
+    };
+
     this.spritesheet.onload = () => {
       this.spriteSheetIsLoaded = true;
       this.globalEntity.Global.spriteSheet = this.spritesheet;
@@ -178,8 +186,8 @@ export class Game {
       this.bossEntity.Renderable.spriteX = bossSpriteCoords.X;
       this.bossEntity.Renderable.spriteY = bossSpriteCoords.Y;
 
-      this.createButtonEntities(new MenuButtons(this).buttons);
-
+      MenuButtons.createEntities(this);
+      
       this.ecs.addSystem("render", new RenderTileMap(this.ecs, this.uictx));
       this.ecs.addSystem("render", new RenderMenu(this.ecs, this.uictx));
       this.ecs.addSystem(
@@ -348,9 +356,19 @@ export class Game {
   }
 
   render() {
-    this.uictx.fillStyle = "#50cdff";
-    // this.gamectx.fillRect(0, 0, this.width, this.height);
-    this.uictx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+    if (this.backgroundIsLoaded)
+      this.uictx.drawImage(
+        this.background,
+        0,
+        0,
+        window.innerWidth,
+        window.innerHeight
+      );
+    else {
+      this.uictx.fillStyle = "#50cdff";
+      // this.gamectx.fillRect(0, 0, this.width, this.height);
+      this.uictx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+    }
     if (this.spriteSheetIsLoaded) {
       this.ecs.runSystemGroup("render");
     }
@@ -367,54 +385,55 @@ export class Game {
       const subs = this.subscribers[event];
       const args = [].slice.call(arguments, 1);
       let start = 0;
-     
+
       if (/validate/.test(subs[start].name)) {
         let valid = subs[start].call(this);
         if (!valid) return;
         start = 1;
       }
+
       for (let n = start; n < subs.length; n++) {
         subs[n].apply(this, args);
       }
     }
   }
 
-  makeButtonEntity(button: ButtonInterface) {
-    let coords = this.ecs.getEntity("global").Global.spriteMap[
-      `${button.name}Button`
-    ];
+  // makeButtonEntity(button: ButtonInterface) {
+  //   let coords = this.ecs.getEntity("global").Global.spriteMap[
+  //     `${button.name}Button`
+  //   ];
 
-    if (!coords) return;
+  //   if (!coords) return;
 
-    let entity = this.ecs.createEntity({
-      id: `${button.name}Button`,
-      Button: { name: button.name },
-      Clickable: { onClick: button.onClick },
-      Coordinates: {},
-      Renderable: {
-        spriteX: coords.X,
-        spriteY: coords.Y,
-        spriteWidth: button.width,
-        spriteHeight: button.height,
-        renderWidth: button.width,
-        renderHeight: button.height,
-      },
-    });
+  //   let entity = this.ecs.createEntity({
+  //     id: `${button.name}Button`,
+  //     Button: { name: button.name },
+  //     Clickable: { onClick: button.onClick },
+  //     Coordinates: {},
+  //     Renderable: {
+  //       spriteX: coords.X,
+  //       spriteY: coords.Y,
+  //       spriteWidth: button.width,
+  //       spriteHeight: button.height,
+  //       renderWidth: button.width,
+  //       renderHeight: button.height,
+  //     },
+  //   });
 
-    for (let tag of button.tags) {
-      entity.addTag(tag);
-    }
+  //   for (let tag of button.tags) {
+  //     entity.addTag(tag);
+  //   }
 
-    entity.addTag("noninteractive");
+  //   entity.addTag("noninteractive");
 
-    return entity;
-  }
+  //   return entity;
+  // }
 
-  createButtonEntities(buttons: any) {
-    for (let button in buttons) {
-      this.makeButtonEntity(buttons[button]);
-    }
-  }
+  // createButtonEntities(buttons: any) {
+  //   for (let button in buttons) {
+  //     this.makeButtonEntity(buttons[button]);
+  //   }
+  // }
 
   startRace() {
     if (!this.recordRaceData) return;
@@ -433,8 +452,8 @@ export class Game {
     this.currentRace = null;
   }
 
-  saveRaceData(outcome: "win" |"loss" | "crash") {
-    if (!this.currentRace || !this.recordRaceData) return;
+  saveRaceData(outcome: "win" | "loss" | "crash") {
+    if (!this.currentRace) return;
     let raceData = this.currentRace.exportForSave(outcome);
     axios
       .post("/races", raceData)
