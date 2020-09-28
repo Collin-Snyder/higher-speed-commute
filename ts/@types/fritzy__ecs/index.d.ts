@@ -5,10 +5,10 @@ declare module "@fritzy/ecs" {
     import { System as S } from "system";
     import { BaseComponent as C } from "component";
 
-    export { ECS } from "ecs";
-    export { Entity } from "entity";
-    export { System } from "system";
-    export { BaseComponent } from "component";
+    export type { ECS } from "ecs";
+    export type { Entity } from "entity";
+    export type { System } from "system";
+    export type { BaseComponent } from "component";
 
     const e: {
         ECS: typeof E;
@@ -17,4 +17,3 @@ declare module "@fritzy/ecs" {
     };
     export default e;
 }
-

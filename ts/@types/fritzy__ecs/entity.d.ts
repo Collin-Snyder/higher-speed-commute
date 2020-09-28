@@ -14,13 +14,13 @@ export class Entity {
     updatedValues: number;
     [key: string]: any;
 
-    has(tagOrComponent: any): Array<BaseComponent>;
-    addTag(tag: any): void;
-    removeTag(tag: any): void;
-    addComponent(type: any, definition: any, delayCache?: any): BaseComponent;
-    removeComponentByType(cname: any): void;
-    removeComponent(component: any, delayCache?: any, destroy?: boolean): void;
-    getObject(): any;
+    has(tagOrComponent: string): Array<BaseComponent>;
+    addTag(tag: string): void;
+    removeTag(tag: string): void;
+    addComponent(type: string, definition: object, delayCache?: boolean): BaseComponent;
+    removeComponentByType(type: string): void;
+    removeComponent(component: BaseComponent, delayCache?: any, destroy?: boolean): void;
+    getObject(): object;
 
     destroy(): void;
 
