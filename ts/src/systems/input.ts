@@ -2,6 +2,7 @@ import ECS, { Entity, BaseComponent } from "@fritzy/ecs";
 import keyCodes from "../keyCodes";
 import { checkForMouseCollision } from "../modules/gameMath";
 import e from "@fritzy/ecs";
+import { isConstructSignatureDeclaration } from "../../../node_modules/typescript/lib/typescript";
 
 export class InputSystem extends ECS.System {
   public keyPressMap: { [key: string]: boolean };
@@ -38,7 +39,8 @@ export class InputSystem extends ECS.System {
 
     //handle mouse inputs
     let clickable = this.ecs.queryEntities({
-      has: ["Clickable", "Coordinates"], hasnt: ["noninteractive"]
+      has: ["Clickable", "Coordinates"],
+      hasnt: ["noninteractive"],
     });
     let cursor = "default";
     let clicked;
@@ -105,15 +107,21 @@ export class InputSystem extends ECS.System {
   }
 
   getPotentialVectors() {
-    let potentials = [];
-    if (this.keyPressMap[keyCodes.LEFT] && !this.keyPressMap[keyCodes.RIGHT])
-      potentials.push({ X: -1, Y: 0 });
-    if (this.keyPressMap[keyCodes.RIGHT] && !this.keyPressMap[keyCodes.LEFT])
-      potentials.push({ X: 1, Y: 0 });
-    if (this.keyPressMap[keyCodes.UP] && !this.keyPressMap[keyCodes.DOWN])
-      potentials.push({ X: 0, Y: -1 });
-    if (this.keyPressMap[keyCodes.DOWN] && !this.keyPressMap[keyCodes.UP])
-      potentials.push({ X: 0, Y: 1 });
+    const potentials = [];
+    // const isUp = this.isUp();
+    // const isDown = this.isDown();
+    // const isLeft = this.isLeft();
+    // const isRight = this.isRight();
+    const [isLeft, isRight, isUp, isDown] = [
+      this.isLeft(),
+      this.isRight(),
+      this.isUp(),
+      this.isDown(),
+    ];
+    if (isLeft && !isRight) potentials.push({ X: -1, Y: 0 });
+    if (isRight && !isLeft) potentials.push({ X: 1, Y: 0 });
+    if (isUp && !isDown) potentials.push({ X: 0, Y: -1 });
+    if (isDown && !isUp) potentials.push({ X: 0, Y: 1 });
     if (!potentials.length) potentials.push({ X: 0, Y: 0 });
     return potentials;
   }
@@ -128,5 +136,21 @@ export class InputSystem extends ECS.System {
     } else if (!spaceDown && this.lastSpaceDown) {
       this.lastSpaceDown = spaceDown;
     }
+  }
+
+  isUp() {
+    return this.keyPressMap[keyCodes.UP] || this.keyPressMap[keyCodes.W];
+  }
+
+  isDown() {
+    return this.keyPressMap[keyCodes.DOWN] || this.keyPressMap[keyCodes.S];
+  }
+
+  isLeft() {
+    return this.keyPressMap[keyCodes.LEFT] || this.keyPressMap[keyCodes.A];
+  }
+
+  isRight() {
+    return this.keyPressMap[keyCodes.RIGHT] || this.keyPressMap[keyCodes.D];
   }
 }

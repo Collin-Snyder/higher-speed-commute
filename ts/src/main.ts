@@ -186,10 +186,8 @@ export class Game {
       this.bossEntity.Renderable.spriteX = bossSpriteCoords.X;
       this.bossEntity.Renderable.spriteY = bossSpriteCoords.Y;
 
-
       MenuButtons.createEntities(this);
       
-
       this.ecs.addSystem("render", new RenderTileMap(this.ecs, this.uictx));
       this.ecs.addSystem("render", new RenderMenu(this.ecs, this.uictx));
       this.ecs.addSystem(
