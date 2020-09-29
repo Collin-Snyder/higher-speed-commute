@@ -1,13 +1,22 @@
-import { ECS } from "ecs";
-import { Entity } from "entity";
-import { QueryCache } from "querycache";
+import {ECS} from "ecs";
+import {Entity} from "entity";
+import {QueryCache} from "querycache";
+import {BaseComponent} from "./component";
+
+interface Change {
+    component: BaseComponent,
+    op: string,
+    key?: string,
+    old?: any,
+    value?: any
+}
 
 export abstract class System {
 
-    constructor(ecs: ECS);
+    protected constructor(ecs: ECS);
 
     ecs: ECS;
-    changes: Array<any>;
+    changes: Array<Change>;
     lastTick: number;
     query: QueryCache;
 
