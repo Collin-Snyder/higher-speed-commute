@@ -24,6 +24,15 @@ export class MenuButtons {
         width: 200,
         tags: ["menu", "main"],
       },
+      nextLevel: {
+        name: "nextLevel",
+        onClick: function() {
+          game.publish("nextLevel");
+        },
+        height: 75,
+        width: 200,
+        tags: ["menu", "gameplay", "won"],
+      },
       resume: {
         name: "resume",
         onClick: function() {
@@ -50,15 +59,6 @@ export class MenuButtons {
         height: 75,
         width: 200,
         tags: ["menu", "gameplay", "paused", "won", "lost"],
-      },
-      nextLevel: {
-        name: "nextLevel",
-        onClick: function() {
-          game.publish("nextLevel");
-        },
-        height: 75,
-        width: 200,
-        tags: ["menu", "gameplay", "won"],
       },
       design: {
         name: "design",
