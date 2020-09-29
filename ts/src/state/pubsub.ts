@@ -1,7 +1,7 @@
 import { Entity } from "@fritzy/ecs";
 import { Game } from "../main";
 import Race from "../modules/raceData";
-import { findCenteredElementSpread, randomNumBtwn } from "../modules/gameMath";
+import { findCenteredElementSpread } from "../modules/gameMath";
 import { MapGrid, DesignMapGrid } from "./map";
 import { Tool } from "../modules/designModule";
 import { DisabledButtons } from "../buttonModifiers";
@@ -9,6 +9,7 @@ export type Mode =
   | "init"
   | "menu"
   | "starting"
+  | "levelStartAnimation"
   | "playing"
   | "paused"
   | "won"
@@ -109,26 +110,32 @@ class GameModeMachine {
       onstart: function() {
         //play starting animations
         let game = <Game>(<unknown>this);
+        let mapEntity = game.ecs.getEntity("map");
+        // mapEntity.Map.background = "rgba(129, 199, 109, 1)";
         game.mode = "starting";
+        game.loadLevel(1);
+      },
+      onstartingAnimation: function() {
+        let game = <Game>(<unknown>this);
+        game.mode = "levelStartAnimation";
       },
       onplay: function() {
         let game = <Game>(<unknown>this);
         // let mapEntity = game.ecs.getEntity("global").Global.map;
         let mapEntity = game.ecs.getEntity("map");
-        
 
-        mapEntity.Coordinates.X = findCenteredElementSpread(
-          window.innerWidth,
-          mapEntity.Map.map.pixelWidth,
-          1,
-          "spaceEvenly"
-        ).start;
-        mapEntity.Coordinates.Y = findCenteredElementSpread(
-          window.innerHeight,
-          mapEntity.Map.map.pixelHeight,
-          1,
-          "spaceEvenly"
-        ).start;
+        // mapEntity.Coordinates.X = findCenteredElementSpread(
+        //   window.innerWidth,
+        //   mapEntity.Map.map.pixelWidth,
+        //   1,
+        //   "spaceEvenly"
+        // ).start;
+        // mapEntity.Coordinates.Y = findCenteredElementSpread(
+        //   window.innerHeight,
+        //   mapEntity.Map.map.pixelHeight,
+        //   1,
+        //   "spaceEvenly"
+        // ).start;
 
         game.startRace();
         game.mode = "playing";
@@ -150,6 +157,7 @@ class GameModeMachine {
       },
       onlose: function() {
         let game = <Game>(<unknown>this);
+        let mapEntity = game.ecs.getEntity("map");
 
         console.log("YOU LOSE");
         let entities = game.ecs.queryEntities({
@@ -158,7 +166,9 @@ class GameModeMachine {
         for (let entity of entities) {
           entity.removeTag("noninteractive");
         }
-        if (game.recordRaceData) game.saveRaceData("loss")
+        if (game.recordRaceData) game.saveRaceData("loss");
+
+        mapEntity.Map.background = "#eb5555";
         game.mode = "lost";
         //stop game music/animations
         //render lose animation and game over options
@@ -173,7 +183,7 @@ class GameModeMachine {
         for (let entity of entities) {
           entity.removeTag("noninteractive");
         }
-        if (game.recordRaceData) game.saveRaceData("crash")
+        if (game.recordRaceData) game.saveRaceData("crash");
         game.mode = "lost";
       },
       onpause: function() {
@@ -202,7 +212,7 @@ class GameModeMachine {
       },
       onrestart: function() {
         let game = <Game>(<unknown>this);
-        
+
         let entities = game.ecs.queryEntities({ has: ["menu", "gameplay"] });
         for (let entity of entities) {
           if (!entity.has("noninteractive")) entity.addTag("noninteractive");
@@ -227,6 +237,7 @@ class GameModeMachine {
 
         mapEntity.Map.map = designMap;
         mapEntity.TileMap.tiles = designMap.generateTileMap();
+        mapEntity.Map.background = "lightgray";
         mapEntity.addComponent("Clickable", {
           onClick: function() {
             game.designModule.editDesign();
@@ -360,10 +371,11 @@ class GameModeMachine {
         let game = <Game>(<unknown>this);
         coffee.removeComponentByType("Renderable");
         driver.addComponent("CaffeineBoost", coffee.Caffeine);
-        
+
         if (driver.id === "player") {
           let coffeeId = coffee.id.match(/\d+/g);
-          if (coffeeId && coffeeId[0]) game.currentRace?.logCoffee(Number(coffeeId[0]));
+          if (coffeeId && coffeeId[0])
+            game.currentRace?.logCoffee(Number(coffeeId[0]));
         }
       },
       onRedLight: function(driver: Entity, light: Entity) {
@@ -371,12 +383,13 @@ class GameModeMachine {
         if (driver.id === "player") {
           game.currentRace?.logRedLight(light);
         }
-      }
+      },
     };
     this.events = [
       { name: "ready", from: "init", to: "menu" },
       { name: "start", from: ["menu", "won", "lost"], to: "starting" },
-      { name: "play", from: "starting", to: "playing" },
+      { name: "startingAnimation", from: "starting", to: "levelStartAnimation" },
+      { name: "play", from: ["starting", "levelStartAnimation"], to: "playing" },
       { name: "pause", from: ["playing", "starting"], to: "paused" },
       { name: "resume", from: "paused", to: "playing" },
       { name: "restart", from: ["paused", "won", "lost"], to: "playing" },
@@ -392,10 +405,13 @@ class GameModeMachine {
       { name: "endOfGame", from: ["won", "starting"], to: "end" },
     ];
     this.customEvents = [
-      { name: "redLight", action: function(driver: Entity, light: Entity) {
-        let gmm = <GameModeMachine>(<unknown>this);
+      {
+        name: "redLight",
+        action: function(driver: Entity, light: Entity) {
+          let gmm = <GameModeMachine>(<unknown>this);
           gmm.customActions.onRedLight(driver, light);
-      }},
+        },
+      },
       {
         name: "caffeinate",
         action: function(driver: Entity, coffee: Entity) {

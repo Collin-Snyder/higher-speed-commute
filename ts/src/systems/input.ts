@@ -108,10 +108,6 @@ export class InputSystem extends ECS.System {
 
   getPotentialVectors() {
     const potentials = [];
-    // const isUp = this.isUp();
-    // const isDown = this.isDown();
-    // const isLeft = this.isLeft();
-    // const isRight = this.isRight();
     const [isLeft, isRight, isUp, isDown] = [
       this.isLeft(),
       this.isRight(),

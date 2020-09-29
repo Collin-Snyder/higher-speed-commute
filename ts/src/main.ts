@@ -18,6 +18,7 @@ import { MovementSystem } from "./systems/move";
 import { CollisionSystem } from "./systems/collision";
 import { CaffeineSystem } from "./systems/caffeine";
 import { RaceTimerSystem } from "./systems/timers";
+import { LevelStartAnimation } from "./systems/animations";
 import {
   RenderTileMap,
   RenderEntities,
@@ -37,7 +38,7 @@ export class Game {
   public lastTick: number;
   public totalElapsedTime: number;
   public frameElapsedTime: number;
-  public step: number = 17; //1/60s
+  public step: number = 1000/60 //17; //1/60s
   private tickTimes: number[];
   public inputs: InputEvents;
   public width: number;
@@ -152,7 +153,7 @@ export class Game {
         color: "red",
       },
       Velocity: {
-        speedConstant: 2,
+        speedConstant: 1,
       },
       Path: {
         driver: "boss",
@@ -187,7 +188,7 @@ export class Game {
       this.bossEntity.Renderable.spriteY = bossSpriteCoords.Y;
 
       MenuButtons.createEntities(this);
-      
+
       this.ecs.addSystem("render", new RenderTileMap(this.ecs, this.uictx));
       this.ecs.addSystem("render", new RenderMenu(this.ecs, this.uictx));
       this.ecs.addSystem(
@@ -205,6 +206,7 @@ export class Game {
     this.ecs.addSystem("move", new MovementSystem(this.ecs));
     this.ecs.addSystem("collision", new CollisionSystem(this.ecs));
     this.ecs.addSystem("map", new MapSystem(this.ecs));
+    this.ecs.addSystem("animations", new LevelStartAnimation(this.ecs, this.step, this.uictx));
 
     this.loadMap = this.loadMap.bind(this);
   }
@@ -294,8 +296,9 @@ export class Game {
         mapEntity.Map.mapId = levelInfo.id;
         mapEntity.Map.map = MapGrid.fromMapObject(map_info);
         this.ecs.runSystemGroup("map");
-        this.publish("play");
-        this.publish("pause");
+        this.publish("startingAnimation");
+        // this.publish("play");
+        // this.publish("pause");
       })
       //@ts-ignore
       .catch((err) => {
@@ -370,6 +373,7 @@ export class Game {
       this.uictx.fillRect(0, 0, window.innerWidth, window.innerHeight);
     }
     if (this.spriteSheetIsLoaded) {
+      this.ecs.runSystemGroup("animations");
       this.ecs.runSystemGroup("render");
     }
   }
@@ -397,43 +401,6 @@ export class Game {
       }
     }
   }
-
-  // makeButtonEntity(button: ButtonInterface) {
-  //   let coords = this.ecs.getEntity("global").Global.spriteMap[
-  //     `${button.name}Button`
-  //   ];
-
-  //   if (!coords) return;
-
-  //   let entity = this.ecs.createEntity({
-  //     id: `${button.name}Button`,
-  //     Button: { name: button.name },
-  //     Clickable: { onClick: button.onClick },
-  //     Coordinates: {},
-  //     Renderable: {
-  //       spriteX: coords.X,
-  //       spriteY: coords.Y,
-  //       spriteWidth: button.width,
-  //       spriteHeight: button.height,
-  //       renderWidth: button.width,
-  //       renderHeight: button.height,
-  //     },
-  //   });
-
-  //   for (let tag of button.tags) {
-  //     entity.addTag(tag);
-  //   }
-
-  //   entity.addTag("noninteractive");
-
-  //   return entity;
-  // }
-
-  // createButtonEntities(buttons: any) {
-  //   for (let button in buttons) {
-  //     this.makeButtonEntity(buttons[button]);
-  //   }
-  // }
 
   startRace() {
     if (!this.recordRaceData) return;

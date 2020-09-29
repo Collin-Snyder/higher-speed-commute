@@ -3,7 +3,8 @@ export const Map = {
     mapId: null,
     width: 40,
     height: 25,
-    map: null
+    map: null,
+    background: null
   }
 }
 

@@ -357,7 +357,7 @@ export class RenderTileMap extends EntityComponentSystem.System {
   constructor(ecs: any, ctx: CanvasRenderingContext2D) {
     super(ecs);
     this.ctx = ctx;
-    this.modeNames = ["playing", "paused", "won", "lost", "designing"];
+    this.modeNames = ["playing", "paused", "won", "lost", "designing", "levelStartAnimation"];
   }
 
   update(tick: number, entities: Set<Entity> | Array<Entity>) {
@@ -371,24 +371,23 @@ export class RenderTileMap extends EntityComponentSystem.System {
     const map = mapEntity.Map.map;
     let x = 0;
     let y = 0;
-
-    switch (mode) {
-      case "playing":
-      case "won":
-        this.ctx.fillStyle = "#81c76d";
-        break;
-      case "lost":
-        this.ctx.fillStyle = "#eb5555";
-        break;
-      case "paused":
-      case "designing":
-      default:
-        this.ctx.fillStyle = "lightgray";
-    }
-
+    // switch (mode) {
+    //   case "playing":
+    //   case "won":
+    //     this.ctx.fillStyle = "#81c76d";
+    //     break;
+    //   case "lost":
+    //     this.ctx.fillStyle = "#eb5555";
+    //     break;
+    //   case "paused":
+    //   case "designing":
+    //   default:
+    //     this.ctx.fillStyle = "lightgray";
+    // }
+    this.ctx.fillStyle = mapEntity.Map.background;
     this.ctx.fillRect(coords.X, coords.Y, map.pixelWidth, map.pixelHeight);
 
-    if (mode === "playing" || mode === "designing") {
+    if (mode === "playing" || mode === "designing" || mode === "levelStartAnimation") {
       for (let tile of tileMap.tiles) {
         if (tile) {
           if (typeof tile === "string") {

@@ -78,6 +78,10 @@ export class Square implements SquareInterface {
   coordinates(): { X: number; Y: number } {
     return { X: (this.column - 1) * 25, Y: (this.row - 1) * 25 };
   }
+
+  tileIndex(): number {
+    return this.id - 1;
+  }
 }
 
 export class MapGrid implements MapGridInterface {
@@ -282,6 +286,10 @@ export class MapGrid implements MapGridInterface {
     if (Object.keys(attrVals).length === 0) return null;
     //@ts-ignore
     return square[attribute];
+  }
+
+  getKeySquare(k: "playerHome" | "bossHome" | "office") {
+    return this.get(this[k]);
   }
 
   findPath(

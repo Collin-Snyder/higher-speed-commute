@@ -1,4 +1,5 @@
 import EntityComponentSystem, { ECS, Entity } from "@fritzy/ecs";
+import { findCenteredElementSpread } from "../modules/gameMath";
 
 export class MapSystem extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -17,7 +18,20 @@ export class MapSystem extends EntityComponentSystem.System {
     let lights = this.ecs.queryEntities({ has: ["Timer", "Color"] });
     let coffees = this.ecs.queryEntities({ has: ["Caffeine"] });
 
-    mapEntity.TileMap.tiles = newMap.generateTileMap();
+    mapEntity.Coordinates.X = findCenteredElementSpread(
+      window.innerWidth,
+      mapEntity.Map.map.pixelWidth,
+      1,
+      "spaceEvenly"
+    ).start;
+    mapEntity.Coordinates.Y = findCenteredElementSpread(
+      window.innerHeight,
+      mapEntity.Map.map.pixelHeight,
+      1,
+      "spaceEvenly"
+    ).start;
+
+    // mapEntity.TileMap.tiles = newMap.generateTileMap();
 
     let playerCoords = newMap.get(newMap.playerHome)
       ? newMap.get(newMap.playerHome).coordinates()
