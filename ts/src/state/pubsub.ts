@@ -107,13 +107,11 @@ class GameModeMachine {
           entity.addTag("noninteractive");
         }
       },
-      onstart: function() {
+      onstart: function(level: number) {
         //play starting animations
         let game = <Game>(<unknown>this);
-        let mapEntity = game.ecs.getEntity("map");
-        // mapEntity.Map.background = "rgba(129, 199, 109, 1)";
         game.mode = "starting";
-        game.loadLevel(1);
+        game.loadLevel(level);
       },
       onstartingAnimation: function() {
         let game = <Game>(<unknown>this);
@@ -217,15 +215,17 @@ class GameModeMachine {
         for (let entity of entities) {
           if (!entity.has("noninteractive")) entity.addTag("noninteractive");
         }
+
+        game.mode = "starting";
         game.ecs.runSystemGroup("map");
-        game.startRace();
-        game.mode = "playing";
+        game.publish("startingAnimation");
+        // game.startRace();
+        // game.publish("play");
       },
       onnextLevel: function() {
         let game = <Game>(<unknown>this);
         let next = game.currentLevel.number ? game.currentLevel.number + 1 : 1;
-        game.publish("start");
-        game.loadLevel(next);
+        game.publish("start", next);
       },
       ondesign: function() {
         let game = <Game>(<unknown>this);

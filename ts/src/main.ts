@@ -153,7 +153,7 @@ export class Game {
         color: "red",
       },
       Velocity: {
-        speedConstant: 1,
+        speedConstant: 3,
       },
       Path: {
         driver: "boss",
@@ -250,10 +250,10 @@ export class Game {
         let on = this.modeMachine.defaultActions[`on${event.name}`];
         this.subscribe(event.name, validate.bind(this, event.name, event.from));
         if (onbefore) {
-          this.subscribe(event.name, onbefore.bind(this, event.from, event.to));
+          this.subscribe(event.name, onbefore.bind(this));
         }
         if (on) {
-          this.subscribe(event.name, on.bind(this, event.from, event.to));
+          this.subscribe(event.name, on.bind(this));
         }
       }
       let onNewState = this.modeMachine.defaultActions[`on${event.to}`];
@@ -384,10 +384,9 @@ export class Game {
     this.subscribers[event].push(callback);
   }
 
-  publish(event: any) {
+  publish(event: any, ...args: any[]) {
     if (this.subscribers && this.subscribers[event]) {
       const subs = this.subscribers[event];
-      const args = [].slice.call(arguments, 1);
       let start = 0;
 
       if (/validate/.test(subs[start].name)) {

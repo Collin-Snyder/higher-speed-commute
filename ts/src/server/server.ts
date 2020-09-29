@@ -62,10 +62,12 @@ app.get("/levels/:levelNum", async (req, res) => {
       res.send(levelInfo);
     }
   } catch (err) {
+    console.log("Error in GET levels/:levelNum handler")
     console.error(err);
-    res.send(
-      `You asked for level number ${req.params.levelNum} but there was an error: ${err}`
-    );
+    res.send(err);
+    // res.send(
+    //   `You asked for level number ${req.params.levelNum} but there was an error: ${err}`
+    // );
   }
 });
 

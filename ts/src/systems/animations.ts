@@ -19,7 +19,7 @@ abstract class Animation extends EntityComponentSystem.System {
   constructor(ecs: any, step: number) {
     super(ecs);
     this.gameStep = step;
-    this.currentState = "";
+    this.currentState = "start";
     this.currentStep = 0;
     this.currentTimeRemaining = 0;
     this.states = {};
@@ -27,7 +27,8 @@ abstract class Animation extends EntityComponentSystem.System {
 
   update(tick: number, entities: Set<Entity>) {
     if (!this.isAnimationRunning()) return;
-    if (this.currentTimeRemaining > 0) this.nextStep();
+    // if (this.currentState === "start") this.onStart();
+    else if (this.currentTimeRemaining > 0) this.nextStep();
     else this.transition();
   }
 
@@ -54,6 +55,7 @@ abstract class Animation extends EntityComponentSystem.System {
   }
 
   abstract isAnimationRunning(): boolean;
+  //   abstract onStart(): void;
   abstract done(): void;
 }
 
@@ -68,6 +70,12 @@ export class LevelStartAnimation extends Animation {
     super(ecs, step);
     this.ctx = ctx;
     this.states = {
+      start: {
+        onDone: this.onStart.bind(this),
+        onStep: function() {},
+        duration: 0,
+        step: 0,
+      },
       gameboard: {
         onDone: this.onGameBoardDone.bind(this),
         onStep: this.onGameBoardStep.bind(this),
@@ -107,7 +115,7 @@ export class LevelStartAnimation extends Animation {
         stepStart: 0,
       },
     };
-    this.currentState = "gameboard";
+    this.currentState = "start";
     this.currentStep = this.states[this.currentState].step;
     this.currentTimeRemaining = this.states[this.currentState].duration;
     this.gameboardAlpha = 0;
@@ -181,7 +189,7 @@ export class LevelStartAnimation extends Animation {
   }
 
   reset(): void {
-    this.currentState = "gameboard";
+    this.currentState = "start";
     this.currentStep = this.states[this.currentState].step;
     this.currentTimeRemaining = this.states[this.currentState].duration;
     this.gameboardAlpha = 0;
@@ -197,6 +205,13 @@ export class LevelStartAnimation extends Animation {
       bossHome: false,
       office: false,
     };
+  }
+
+  onStart(): string {
+    let mapEntity = this.ecs.getEntity("map");
+    console.log("resetting tilemap")
+    mapEntity.TileMap.tiles = this.tiles;
+    return "gameboard";
   }
 
   done(): void {

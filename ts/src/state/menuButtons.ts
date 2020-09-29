@@ -18,7 +18,7 @@ export class MenuButtons {
         name: "play",
         onClick: function() {
           game.publish("leaveMenu");
-          game.publish("start");
+          game.publish("start", 1);
         },
         height: 75,
         width: 200,
