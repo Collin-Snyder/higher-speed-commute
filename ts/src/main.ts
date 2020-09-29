@@ -153,7 +153,7 @@ export class Game {
         color: "red",
       },
       Velocity: {
-        speedConstant: 3,
+        speedConstant: 1,
       },
       Path: {
         driver: "boss",

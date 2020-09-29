@@ -141,11 +141,22 @@ class GameModeMachine {
       onwin: function() {
         let game = <Game>(<unknown>this);
         console.log("YOU WIN!");
-        let entities = game.ecs.queryEntities({
+
+        let caffeinated = game.ecs.queryEntities({
+          has: ["Car", "CaffeineBoost"]
+        })
+
+        if (caffeinated.size) {
+          for (let driver of caffeinated) {
+            driver.removeComponentByType("CaffeineBoost");
+          }
+        }
+
+        let buttons = game.ecs.queryEntities({
           has: ["menu", "gameplay", "won"],
         });
-        for (let entity of entities) {
-          entity.removeTag("noninteractive");
+        for (let button of buttons) {
+          button.removeTag("noninteractive");
         }
         if (game.recordRaceData) game.saveRaceData("win");
         game.mode = "won";
@@ -158,11 +169,22 @@ class GameModeMachine {
         let mapEntity = game.ecs.getEntity("map");
 
         console.log("YOU LOSE");
-        let entities = game.ecs.queryEntities({
+
+        let caffeinated = game.ecs.queryEntities({
+          has: ["Car", "CaffeineBoost"]
+        })
+
+        if (caffeinated.size) {
+          for (let driver of caffeinated) {
+            driver.removeComponentByType("CaffeineBoost");
+          }
+        }
+
+        let buttons = game.ecs.queryEntities({
           has: ["menu", "gameplay", "lost"],
         });
-        for (let entity of entities) {
-          entity.removeTag("noninteractive");
+        for (let button of buttons) {
+          button.removeTag("noninteractive");
         }
         if (game.recordRaceData) game.saveRaceData("loss");
 
@@ -175,11 +197,22 @@ class GameModeMachine {
         let game = <Game>(<unknown>this);
 
         console.log("CRASH! YOU LOSE BIG TIME");
-        let entities = game.ecs.queryEntities({
+
+        let caffeinated = game.ecs.queryEntities({
+          has: ["Car", "CaffeineBoost"]
+        })
+
+        if (caffeinated.size) {
+          for (let driver of caffeinated) {
+            driver.removeComponentByType("CaffeineBoost");
+          }
+        }
+
+        let buttons = game.ecs.queryEntities({
           has: ["menu", "gameplay", "lost"],
         });
-        for (let entity of entities) {
-          entity.removeTag("noninteractive");
+        for (let button of buttons) {
+          button.removeTag("noninteractive");
         }
         if (game.recordRaceData) game.saveRaceData("crash");
         game.mode = "lost";
