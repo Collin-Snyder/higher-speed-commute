@@ -37,6 +37,7 @@ export const Renderable = {
     spriteHeight: 25,
     renderWidth: 25,
     renderHeight: 25,
+    alpha: 1
   },
 };
 

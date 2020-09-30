@@ -42,6 +42,9 @@ const spriteMap = {
   restartButton: { X: 0, Y: 575 },
   quitButton: { X: 0, Y: 650 },
   nextLevelButton: { X: 0, Y: 725 },
+  countdown3: { X: 200, Y: 275 },
+  countdown2: { X: 275, Y: 275 },
+  countdown1: { X: 350, Y: 275 },
 };
 
 export default spriteMap;

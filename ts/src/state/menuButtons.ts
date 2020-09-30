@@ -246,13 +246,6 @@ export class MenuButtons {
     MenuButtons.createButtonEntities(buttons, game);
   }
 
-  private static bindButtons(buttons: any, game: Game) {
-    for (let button in buttons) {
-      let b = buttons[button];
-      b.onClick = b.onClick.bind(game);
-    }
-  }
-
   private static createButtonEntities(buttons: {[key: string]: ButtonInterface}, game: Game) {
     for (let name in buttons) {
       let button = buttons[name];

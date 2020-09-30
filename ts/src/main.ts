@@ -20,10 +20,12 @@ import { CaffeineSystem } from "./systems/caffeine";
 import { RaceTimerSystem } from "./systems/timers";
 import { LevelStartAnimation } from "./systems/animations";
 import {
-  RenderTileMap,
-  RenderEntities,
-  RenderMenu,
+  RenderBackground,
+  RenderMap,
+  RenderGameplayEntities,
+  RenderMenus,
   RenderButtonModifiers,
+  RenderTopLevelGraphics,
 } from "./systems/render";
 
 interface InputEventsInterface {
@@ -38,7 +40,7 @@ export class Game {
   public lastTick: number;
   public totalElapsedTime: number;
   public frameElapsedTime: number;
-  public step: number = 1000/60 //17; //1/60s
+  public step: number = 1000 / 60; //17; //1/60s
   private tickTimes: number[];
   public inputs: InputEvents;
   public width: number;
@@ -170,6 +172,7 @@ export class Game {
 
     this.background.onload = () => {
       this.backgroundIsLoaded = true;
+      this.ecs.addSystem("render", new RenderBackground(this.ecs, this.uictx));
     };
 
     this.spritesheet.onload = () => {
@@ -189,13 +192,20 @@ export class Game {
 
       MenuButtons.createEntities(this);
 
-      this.ecs.addSystem("render", new RenderTileMap(this.ecs, this.uictx));
-      this.ecs.addSystem("render", new RenderMenu(this.ecs, this.uictx));
+      this.ecs.addSystem("render", new RenderMap(this.ecs, this.uictx));
+      this.ecs.addSystem(
+        "render",
+        new RenderGameplayEntities(this.ecs, this.uictx)
+      );
+      this.ecs.addSystem("render", new RenderMenus(this.ecs, this.uictx));
       this.ecs.addSystem(
         "render",
         new RenderButtonModifiers(this.ecs, this.uictx)
       );
-      this.ecs.addSystem("render", new RenderEntities(this.ecs, this.uictx));
+      this.ecs.addSystem(
+        "render",
+        new RenderTopLevelGraphics(this.ecs, this.uictx)
+      );
 
       this.publish("ready");
     };
@@ -206,7 +216,10 @@ export class Game {
     this.ecs.addSystem("move", new MovementSystem(this.ecs));
     this.ecs.addSystem("collision", new CollisionSystem(this.ecs));
     this.ecs.addSystem("map", new MapSystem(this.ecs));
-    this.ecs.addSystem("animations", new LevelStartAnimation(this.ecs, this.step, this.uictx));
+    this.ecs.addSystem(
+      "animations",
+      new LevelStartAnimation(this.ecs, this.step, this.uictx)
+    );
 
     this.loadMap = this.loadMap.bind(this);
   }
@@ -359,20 +372,20 @@ export class Game {
   }
 
   render() {
-    if (this.backgroundIsLoaded)
-      this.uictx.drawImage(
-        this.background,
-        0,
-        0,
-        window.innerWidth,
-        window.innerHeight
-      );
-    else {
-      this.uictx.fillStyle = "#50cdff";
-      // this.gamectx.fillRect(0, 0, this.width, this.height);
-      this.uictx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-    }
-    if (this.spriteSheetIsLoaded) {
+    // if (this.backgroundIsLoaded)
+    //   this.uictx.drawImage(
+    //     this.background,
+    //     0,
+    //     0,
+    //     window.innerWidth,
+    //     window.innerHeight
+    //   );
+    // else {
+    //   this.uictx.fillStyle = "#50cdff";
+    //   // this.gamectx.fillRect(0, 0, this.width, this.height);
+    //   this.uictx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+    // }
+    if (this.backgroundIsLoaded && this.spriteSheetIsLoaded) {
       this.ecs.runSystemGroup("animations");
       this.ecs.runSystemGroup("render");
     }

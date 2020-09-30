@@ -46,12 +46,12 @@ abstract class Animation extends EntityComponentSystem.System {
 
   nextStep(): void {
     const { onStep, step } = this.states[this.currentState];
-    this.currentTimeRemaining -= this.gameStep;
     this.currentStep -= this.gameStep;
     if (this.currentStep <= 0) {
-      onStep();
-      this.currentStep = step;
+        onStep();
+        this.currentStep = step;
     }
+    this.currentTimeRemaining -= this.gameStep;
   }
 
   abstract isAnimationRunning(): boolean;
@@ -65,6 +65,9 @@ export class LevelStartAnimation extends Animation {
   private gameboardAlphaStep: number;
   private tiles: Array<string | Array<string>>;
   private keySquaresVisible: { [key: string]: boolean };
+  private countdownNum: number;
+  private countdownAlpha: number;
+  private countdownAlphaStep: number;
 
   constructor(ecs: any, step: number, ctx: CanvasRenderingContext2D) {
     super(ecs, step);
@@ -111,7 +114,7 @@ export class LevelStartAnimation extends Animation {
         onDone: this.onCountdownDone.bind(this),
         onStep: this.onCountdownStep.bind(this),
         duration: 3000,
-        step: 1000,
+        step: this.gameStep,
         stepStart: 0,
       },
     };
@@ -131,6 +134,11 @@ export class LevelStartAnimation extends Animation {
       bossHome: false,
       office: false,
     };
+    this.countdownNum = 3;
+    this.countdownAlpha = 1;
+    this.countdownAlphaStep = Number(
+      (1 / Math.floor(1000 / this.states.countdown.step)).toFixed(3)
+    );
   }
 
   isAnimationRunning(): boolean {
@@ -176,9 +184,60 @@ export class LevelStartAnimation extends Animation {
   }
 
   onCountdownStep(): void {
-    if (this.currentTimeRemaining <= 1000) console.log(1);
-    else if (this.currentTimeRemaining <= 2000) console.log(2);
-    else if (this.currentTimeRemaining <= 3000) console.log(3);
+    let spriteMap = this.ecs.getEntity("global").Global.spriteMap;
+    if (this.currentTimeRemaining <= 1000 && this.countdownNum > 1) {
+      this.countdownNum = 1;
+      this.countdownAlpha = 1;
+      let cd = this.ecs.getEntity("countdown");
+      let spriteCoords = spriteMap.countdown1;
+      cd.Renderable.spriteX = spriteCoords.X;
+      cd.Renderable.spriteY = spriteCoords.Y;
+      cd.Renderable.alpha = this.countdownAlpha;
+      return;
+    } else if (this.currentTimeRemaining <= 2000 && this.countdownNum > 2) {
+      this.countdownNum = 2;
+      this.countdownAlpha = 1;
+      let cd = this.ecs.getEntity("countdown");
+      let spriteCoords = spriteMap.countdown2;
+      cd.Renderable.spriteX = spriteCoords.X;
+      cd.Renderable.spriteY = spriteCoords.Y;
+      cd.Renderable.alpha = this.countdownAlpha;
+      return;
+    } else if (this.currentTimeRemaining === 3000) {
+      this.countdownNum = 3;
+      this.countdownAlpha = 1;
+      console.log("creating countdown entity");
+      let spriteCoords = spriteMap[`countdown${this.countdownNum}`];
+      this.ecs
+        .createEntity({
+          id: "countdown",
+          Coordinates: {},
+          Renderable: {
+            spriteX: spriteCoords.X,
+            spriteY: spriteCoords.Y,
+            spriteWidth: 75,
+            spriteHeight: 75,
+            renderWidth: 500,
+            renderHeight: 500,
+            alpha: this.countdownAlpha,
+          },
+        })
+        .addTag("anim");
+      return;
+    }
+
+    this.countdownAlpha -= this.countdownAlphaStep;
+
+    if (this.countdownAlpha < 0) this.countdownAlpha = 0;
+
+    let cd = this.ecs.getEntity("countdown");
+    cd.Renderable.alpha = this.countdownAlpha;
+
+    //keep existing structure but instead of console logging, set countdownNum to that number and reset alpha to 1
+    //each time decrement alpha by step and set entity's Renderable alpha to new alpha
+
+    //if time remaining is within 1 step below a second marker, change number and reset countdownAlpha to 1
+    //else decrement alpha by step
   }
 
   onCountdownDone(): string {
@@ -209,13 +268,19 @@ export class LevelStartAnimation extends Animation {
 
   onStart(): string {
     let mapEntity = this.ecs.getEntity("map");
-    console.log("resetting tilemap")
+    let spriteMap = this.ecs.getEntity("global").Global.spriteMap;
+
+    console.log("resetting tilemap");
     mapEntity.TileMap.tiles = this.tiles;
+
     return "gameboard";
   }
 
   done(): void {
     let game = this.ecs.getEntity("global").Global.game;
+
+    this.ecs.getEntity("countdown").destroy();
+
     game.publish("play");
     this.reset();
   }

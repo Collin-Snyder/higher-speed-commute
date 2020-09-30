@@ -72,7 +72,7 @@ export function findCenteredElementSpread(
   n: number,
   style: "spaceEvenly" | "spaceBetween",
   c?: number
-) {
+): { start: number; step: number } {
   //requires that elements have uniform dimension - either height or width
   //p is parent dimension - either the width or height of containing element, depending on if centering horizontally or vertically
   //e is element dimension - either width or height of elements to be centered
@@ -122,7 +122,7 @@ export function centerWithin(
   n: number,
   dir: "vertical" | "horizontal",
   style: "spaceEvenly" | "spaceBetween" = "spaceEvenly"
-) {
+): { x: { start: number; step: number }; y: { start: number; step: number } } {
   let x = findCenteredElementSpread(
     cw,
     ew,
@@ -142,5 +142,5 @@ export function centerWithin(
   // let x = dir === "horizontal" ? horiz : horiz.start;
   // let y = dir === "vertical" ? vert : vert.start;
 
-  return {x, y};
-};
+  return { x, y };
+}

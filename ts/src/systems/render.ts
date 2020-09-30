@@ -1,7 +1,188 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { centerWithin } from "../modules/gameMath";
 
-export class RenderMenu extends EntityComponentSystem.System {
+//systems must be added in this order
+
+export class RenderBackground extends EntityComponentSystem.System {
+  private ctx: CanvasRenderingContext2D;
+  constructor(ecs: ECS, ctx: CanvasRenderingContext2D) {
+    super(ecs);
+    this.ctx = ctx;
+  }
+  update(tick: number, entities: Set<Entity>) {
+    let game = this.ecs.getEntity("global").Global.game;
+    if (game.backgroundIsLoaded) {
+      this.ctx.drawImage(
+        game.background,
+        0,
+        0,
+        window.innerWidth,
+        window.innerHeight
+      );
+    } else {
+      this.ctx.fillStyle = "#50cdff";
+      this.ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+    }
+  }
+}
+
+export class RenderMap extends EntityComponentSystem.System {
+  static query: { has?: string[]; hasnt?: string[] } = { has: ["TileMap"] };
+  private ctx: CanvasRenderingContext2D;
+  private modeNames: string[];
+
+  constructor(ecs: ECS, ctx: CanvasRenderingContext2D) {
+    super(ecs);
+    this.ctx = ctx;
+    this.modeNames = [
+      "playing",
+      "paused",
+      "won",
+      "lost",
+      "designing",
+      "levelStartAnimation",
+    ];
+  }
+
+  update(tick: number, entities: Set<Entity> | Array<Entity>) {
+    const global = this.ecs.getEntity("global").Global;
+    let mode = global.game.mode;
+    if (!this.modeNames.includes(mode)) return;
+
+    const mapEntity = entities.values().next().value;
+    const coords = mapEntity.Coordinates;
+    const tileMap = mapEntity.TileMap;
+    const map = mapEntity.Map.map;
+    let x = 0;
+    let y = 0;
+    // switch (mode) {
+    //   case "playing":
+    //   case "won":
+    //     this.ctx.fillStyle = "#81c76d";
+    //     break;
+    //   case "lost":
+    //     this.ctx.fillStyle = "#eb5555";
+    //     break;
+    //   case "paused":
+    //   case "designing":
+    //   default:
+    //     this.ctx.fillStyle = "lightgray";
+    // }
+    this.ctx.fillStyle = mapEntity.Map.background;
+    this.ctx.fillRect(coords.X, coords.Y, map.pixelWidth, map.pixelHeight);
+
+    if (
+      mode === "playing" ||
+      mode === "designing" ||
+      mode === "levelStartAnimation"
+    ) {
+      for (let tile of tileMap.tiles) {
+        if (tile) {
+          if (typeof tile === "string") {
+            let tileCoords = global.spriteMap[tile];
+            this.ctx.drawImage(
+              global.spriteSheet,
+              tileCoords.X,
+              tileCoords.Y,
+              tileMap.tileWidth,
+              tileMap.tileHeight,
+              x * tileMap.tileWidth + coords.X,
+              y * tileMap.tileHeight + coords.Y,
+              tileMap.tileWidth,
+              tileMap.tileHeight
+            );
+          } else if (Array.isArray(tile)) {
+            for (let t of tile) {
+              let tileCoords = global.spriteMap[t];
+              this.ctx.drawImage(
+                global.spriteSheet,
+                tileCoords.X,
+                tileCoords.Y,
+                tileMap.tileWidth,
+                tileMap.tileHeight,
+                x * tileMap.tileWidth + coords.X,
+                y * tileMap.tileHeight + coords.Y,
+                tileMap.tileWidth,
+                tileMap.tileHeight
+              );
+            }
+          }
+        }
+        if (++x >= map.width) {
+          x = 0;
+          y++;
+        }
+      }
+
+      if (mode === "designing" && global.game.designModule.gridLoaded) {
+        this.ctx.drawImage(
+          global.game.designModule.gridOverlay,
+          coords.X,
+          coords.Y
+        );
+      }
+    }
+  }
+}
+
+export class RenderGameplayEntities extends EntityComponentSystem.System {
+  static query: { has?: string[]; hasnt?: string[] } = {
+    has: ["Coordinates", "Renderable"],
+    hasnt: ["Button", "Car"],
+  };
+  private ctx: CanvasRenderingContext2D;
+
+  constructor(ecs: ECS, ctx: CanvasRenderingContext2D) {
+    super(ecs);
+    this.ctx = ctx;
+  }
+
+  update(tick: number, entities: Set<Entity>) {
+    const global = this.ecs.getEntity("global").Global;
+    const mode = global.game.mode;
+    const mapCoords = global.map.Coordinates;
+
+    if (mode === "playing") {
+      let bossEntity = this.ecs.getEntity("boss");
+      let playerEntity = this.ecs.getEntity("player");
+
+      entities.add(this.updateCarSprite(bossEntity, global.spriteMap));
+      entities.add(this.updateCarSprite(playerEntity, global.spriteMap));
+
+      for (let entity of entities) {
+        this.ctx.drawImage(
+          global.spriteSheet,
+          entity.Renderable.spriteX,
+          entity.Renderable.spriteY,
+          entity.Renderable.spriteWidth,
+          entity.Renderable.spriteHeight,
+          entity.Coordinates.X + mapCoords.X,
+          entity.Coordinates.Y + mapCoords.Y,
+          entity.Renderable.renderWidth,
+          entity.Renderable.renderHeight
+        );
+      }
+    }
+  }
+
+  updateCarSprite(entity: Entity, spriteMap: any) {
+    let spriteName;
+
+    if (entity.Velocity.vector.X > 0) spriteName = `${entity.Car.color}CarR`;
+    else if (entity.Velocity.vector.X < 0)
+      spriteName = `${entity.Car.color}CarL`;
+
+    if (spriteName) {
+      let { X, Y } = spriteMap[spriteName];
+      entity.Renderable.spriteX = X;
+      entity.Renderable.spriteY = Y;
+    }
+
+    return entity;
+  }
+}
+
+export class RenderMenus extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
     has: ["Button", "Coordinates", "Renderable"],
   };
@@ -11,7 +192,7 @@ export class RenderMenu extends EntityComponentSystem.System {
   private modeNames: string[];
   private buttonEntities: Entity[];
 
-  constructor(ecs: any, ctx: CanvasRenderingContext2D) {
+  constructor(ecs: ECS, ctx: CanvasRenderingContext2D) {
     super(ecs);
     this.ctx = ctx;
     this.spriteSheet = this.ecs.getEntity("global").Global.spriteSheet;
@@ -289,7 +470,7 @@ export class RenderButtonModifiers extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = { has: ["Button"] };
   private ctx: CanvasRenderingContext2D;
 
-  constructor(ecs: any, ctx: CanvasRenderingContext2D) {
+  constructor(ecs: ECS, ctx: CanvasRenderingContext2D) {
     super(ecs);
     this.ctx = ctx;
   }
@@ -349,147 +530,50 @@ export class RenderButtonModifiers extends EntityComponentSystem.System {
   }
 }
 
-export class RenderTileMap extends EntityComponentSystem.System {
-  static query: { has?: string[]; hasnt?: string[] } = { has: ["TileMap"] };
-  private ctx: CanvasRenderingContext2D;
-  private modeNames: string[];
-
-  constructor(ecs: any, ctx: CanvasRenderingContext2D) {
-    super(ecs);
-    this.ctx = ctx;
-    this.modeNames = ["playing", "paused", "won", "lost", "designing", "levelStartAnimation"];
-  }
-
-  update(tick: number, entities: Set<Entity> | Array<Entity>) {
-    const global = this.ecs.getEntity("global").Global;
-    let mode = global.game.mode;
-    if (!this.modeNames.includes(mode)) return;
-
-    const mapEntity = entities.values().next().value;
-    const coords = mapEntity.Coordinates;
-    const tileMap = mapEntity.TileMap;
-    const map = mapEntity.Map.map;
-    let x = 0;
-    let y = 0;
-    // switch (mode) {
-    //   case "playing":
-    //   case "won":
-    //     this.ctx.fillStyle = "#81c76d";
-    //     break;
-    //   case "lost":
-    //     this.ctx.fillStyle = "#eb5555";
-    //     break;
-    //   case "paused":
-    //   case "designing":
-    //   default:
-    //     this.ctx.fillStyle = "lightgray";
-    // }
-    this.ctx.fillStyle = mapEntity.Map.background;
-    this.ctx.fillRect(coords.X, coords.Y, map.pixelWidth, map.pixelHeight);
-
-    if (mode === "playing" || mode === "designing" || mode === "levelStartAnimation") {
-      for (let tile of tileMap.tiles) {
-        if (tile) {
-          if (typeof tile === "string") {
-            let tileCoords = global.spriteMap[tile];
-            this.ctx.drawImage(
-              global.spriteSheet,
-              tileCoords.X,
-              tileCoords.Y,
-              tileMap.tileWidth,
-              tileMap.tileHeight,
-              x * tileMap.tileWidth + coords.X,
-              y * tileMap.tileHeight + coords.Y,
-              tileMap.tileWidth,
-              tileMap.tileHeight
-            );
-          } else if (Array.isArray(tile)) {
-            for (let t of tile) {
-              let tileCoords = global.spriteMap[t];
-              this.ctx.drawImage(
-                global.spriteSheet,
-                tileCoords.X,
-                tileCoords.Y,
-                tileMap.tileWidth,
-                tileMap.tileHeight,
-                x * tileMap.tileWidth + coords.X,
-                y * tileMap.tileHeight + coords.Y,
-                tileMap.tileWidth,
-                tileMap.tileHeight
-              );
-            }
-          }
-        }
-        if (++x >= map.width) {
-          x = 0;
-          y++;
-        }
-      }
-
-      if (mode === "designing" && global.game.designModule.gridLoaded) {
-        this.ctx.drawImage(
-          global.game.designModule.gridOverlay,
-          coords.X,
-          coords.Y
-        );
-      }
-    }
-  }
-}
-
-export class RenderEntities extends EntityComponentSystem.System {
+export class RenderTopLevelGraphics extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
-    has: ["Coordinates", "Renderable"],
-    hasnt: ["Button", "Car"],
+    has: ["Coordinates", "Renderable", "anim"],
   };
   private ctx: CanvasRenderingContext2D;
 
-  constructor(ecs: any, ctx: CanvasRenderingContext2D) {
+  constructor(ecs: ECS, ctx: CanvasRenderingContext2D) {
     super(ecs);
     this.ctx = ctx;
   }
 
   update(tick: number, entities: Set<Entity>) {
     const global = this.ecs.getEntity("global").Global;
-    let mode = global.game.mode;
-    const mapCoords = global.map.Coordinates;
-
-    if (mode === "playing") {
-      let bossEntity = this.ecs.getEntity("boss");
-      let playerEntity = this.ecs.getEntity("player");
-
-      entities.add(this.updateCarSprite(bossEntity, global.spriteMap));
-      entities.add(this.updateCarSprite(playerEntity, global.spriteMap));
-
-      for (let entity of entities) {
-        this.ctx.drawImage(
-          global.spriteSheet,
-          entity.Renderable.spriteX,
-          entity.Renderable.spriteY,
-          entity.Renderable.spriteWidth,
-          entity.Renderable.spriteHeight,
-          entity.Coordinates.X + mapCoords.X,
-          entity.Coordinates.Y + mapCoords.Y,
+    //will render countdown numbers
+    for (let entity of entities) {
+      if (entity.Coordinates.X === 0 && entity.Coordinates.Y === 0) {
+        let { x, y } = centerWithin(
+          0,
+          0,
+          window.innerWidth,
+          window.innerHeight,
           entity.Renderable.renderWidth,
-          entity.Renderable.renderHeight
+          entity.Renderable.renderHeight,
+          1,
+          "vertical",
+          "spaceEvenly"
         );
+        entity.Coordinates.X = x.start;
+        entity.Coordinates.Y = y.start;
       }
+      this.ctx.save();
+      this.ctx.globalAlpha = entity.Renderable.alpha;
+      this.ctx.drawImage(
+        global.spriteSheet,
+        entity.Renderable.spriteX,
+        entity.Renderable.spriteY,
+        entity.Renderable.spriteWidth,
+        entity.Renderable.spriteHeight,
+        entity.Coordinates.X,
+        entity.Coordinates.Y,
+        entity.Renderable.renderWidth,
+        entity.Renderable.renderHeight
+      );
+      this.ctx.restore();
     }
-  }
-
-  updateCarSprite(entity: Entity, spriteMap: any) {
-    let spriteName;
-
-    if (entity.Velocity.vector.X > 0) spriteName = `${entity.Car.color}CarR`;
-    else if (entity.Velocity.vector.X < 0)
-      spriteName = `${entity.Car.color}CarL`;
-
-    if (spriteName) {
-      let { X, Y } = spriteMap[spriteName];
-      entity.Renderable.spriteX = X;
-      entity.Renderable.spriteY = Y;
-    }
-
-    return entity;
   }
 }
