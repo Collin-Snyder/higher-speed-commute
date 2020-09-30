@@ -148,10 +148,8 @@ export class LevelStartAnimation extends Animation {
 
   onGameBoardStep(): void {
     let mapEntity = this.ecs.getEntity("map");
-    let newAlpha =
-      this.gameboardAlpha + this.gameboardAlphaStep > 1
-        ? 1
-        : this.gameboardAlpha + this.gameboardAlphaStep;
+    let newAlpha = this.gameboardAlpha + this.gameboardAlphaStep;
+    if (newAlpha > 1) newAlpha = 1;
     mapEntity.Map.background = `rgba(129, 199, 109, ${newAlpha})`;
     this.gameboardAlpha = newAlpha;
   }
@@ -217,8 +215,8 @@ export class LevelStartAnimation extends Animation {
             spriteY: spriteCoords.Y,
             spriteWidth: 75,
             spriteHeight: 75,
-            renderWidth: 500,
-            renderHeight: 500,
+            renderWidth: 400,
+            renderHeight: 400,
             alpha: this.countdownAlpha,
           },
         })
@@ -232,12 +230,6 @@ export class LevelStartAnimation extends Animation {
 
     let cd = this.ecs.getEntity("countdown");
     cd.Renderable.alpha = this.countdownAlpha;
-
-    //keep existing structure but instead of console logging, set countdownNum to that number and reset alpha to 1
-    //each time decrement alpha by step and set entity's Renderable alpha to new alpha
-
-    //if time remaining is within 1 step below a second marker, change number and reset countdownAlpha to 1
-    //else decrement alpha by step
   }
 
   onCountdownDone(): string {

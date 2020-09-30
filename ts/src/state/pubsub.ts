@@ -114,27 +114,13 @@ class GameModeMachine {
         game.loadLevel(level);
       },
       onstartingAnimation: function() {
-        let game = <Game>(<unknown>this);
+        const game = <Game>(<unknown>this);
+        const mapEntity = game.ecs.getEntity("map");
+        mapEntity.Map.background = "rgba(129, 199, 109, 0)";
         game.mode = "levelStartAnimation";
       },
       onplay: function() {
         let game = <Game>(<unknown>this);
-        // let mapEntity = game.ecs.getEntity("global").Global.map;
-        let mapEntity = game.ecs.getEntity("map");
-
-        // mapEntity.Coordinates.X = findCenteredElementSpread(
-        //   window.innerWidth,
-        //   mapEntity.Map.map.pixelWidth,
-        //   1,
-        //   "spaceEvenly"
-        // ).start;
-        // mapEntity.Coordinates.Y = findCenteredElementSpread(
-        //   window.innerHeight,
-        //   mapEntity.Map.map.pixelHeight,
-        //   1,
-        //   "spaceEvenly"
-        // ).start;
-
         game.startRace();
         game.mode = "playing";
       },
