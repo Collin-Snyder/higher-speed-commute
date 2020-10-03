@@ -37,7 +37,9 @@ export const Renderable = {
     spriteHeight: 25,
     renderWidth: 25,
     renderHeight: 25,
-    alpha: 1
+    alpha: 1,
+    bgColor: `rgba(0, 0, 0, 0)`,
+    visible: true
   },
 };
 

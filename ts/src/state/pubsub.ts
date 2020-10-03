@@ -110,13 +110,16 @@ class GameModeMachine {
       onstart: function(level: number) {
         //play starting animations
         let game = <Game>(<unknown>this);
+        const mapEntity = game.ecs.getEntity("map");
+        mapEntity.Renderable.alpha = 0;
         game.mode = "starting";
         game.loadLevel(level);
       },
       onstartingAnimation: function() {
         const game = <Game>(<unknown>this);
         const mapEntity = game.ecs.getEntity("map");
-        mapEntity.Map.background = "rgba(129, 199, 109, 0)";
+        mapEntity.Renderable.bgColor = "#81c76d";
+        mapEntity.Renderable.visible = true;
         game.mode = "levelStartAnimation";
       },
       onplay: function() {
@@ -174,13 +177,14 @@ class GameModeMachine {
         }
         if (game.recordRaceData) game.saveRaceData("loss");
 
-        mapEntity.Map.background = "#eb5555";
+        mapEntity.Renderable.bgColor = "#eb5555";
         game.mode = "lost";
         //stop game music/animations
         //render lose animation and game over options
       },
       oncrash: function() {
         let game = <Game>(<unknown>this);
+        let mapEntity = game.ecs.getEntity("map");
 
         console.log("CRASH! YOU LOSE BIG TIME");
 
@@ -201,11 +205,13 @@ class GameModeMachine {
           button.removeTag("noninteractive");
         }
         if (game.recordRaceData) game.saveRaceData("crash");
+        mapEntity.Renderable.bgColor = "#eb5555";
         game.mode = "lost";
       },
       onpause: function() {
         //show paused menu
         let game = <Game>(<unknown>this);
+        let mapEntity = game.ecs.getEntity("map");
 
         let entities = game.ecs.queryEntities({
           has: ["menu", "gameplay", "paused"],
@@ -213,11 +219,14 @@ class GameModeMachine {
         for (let entity of entities) {
           entity.removeTag("noninteractive");
         }
+
+        mapEntity.Renderable.bgColor = "lightgray";
         game.mode = "paused";
       },
       onresume: function() {
         //hide paused menu
         let game = <Game>(<unknown>this);
+        let mapEntity = game.ecs.getEntity("map");
 
         let entities = game.ecs.queryEntities({
           has: ["menu", "gameplay", "paused"],
@@ -225,16 +234,17 @@ class GameModeMachine {
         for (let entity of entities) {
           entity.addTag("noninteractive");
         }
+        mapEntity.Renderable.bgColor = "#81c76d";
         game.mode = "playing";
       },
       onrestart: function() {
         let game = <Game>(<unknown>this);
-
+        const mapEntity = game.ecs.getEntity("map");
         let entities = game.ecs.queryEntities({ has: ["menu", "gameplay"] });
         for (let entity of entities) {
           if (!entity.has("noninteractive")) entity.addTag("noninteractive");
         }
-
+        mapEntity.Renderable.alpha = 0;
         game.mode = "starting";
         game.ecs.runSystemGroup("map");
         game.publish("startingAnimation");
@@ -256,7 +266,7 @@ class GameModeMachine {
 
         mapEntity.Map.map = designMap;
         mapEntity.TileMap.tiles = designMap.generateTileMap();
-        mapEntity.Map.background = "lightgray";
+        mapEntity.Renderable.bgColor = "lightgray";
         mapEntity.addComponent("Clickable", {
           onClick: function() {
             game.designModule.editDesign();
@@ -336,10 +346,12 @@ class GameModeMachine {
         let mapEntity = game.ecs.getEntity("map");
         mapEntity.mapId = null;
         mapEntity.map = null;
+        mapEntity.Renderable.visible = false;
         game.mode = "menu";
       },
       onendOfGame: function() {
         let game = <Game>(<unknown>this);
+        let mapEntity = game.globalEntity.Global.map;
         console.log("YOU WON THE WHOLE GAME!");
 
         let entities = game.ecs.queryEntities({
@@ -348,6 +360,7 @@ class GameModeMachine {
         for (let entity of entities) {
           entity.addTag("noninteractive");
         }
+        mapEntity.Renderable.visible = false;
 
         game.mode = "end";
       },

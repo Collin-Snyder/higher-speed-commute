@@ -26,6 +26,7 @@ import {
   RenderMenus,
   RenderButtonModifiers,
   RenderTopLevelGraphics,
+  RenderBorders,
 } from "./systems/render";
 
 interface InputEventsInterface {
@@ -43,8 +44,8 @@ export class Game {
   public step: number = 1000 / 60; //17; //1/60s
   private tickTimes: number[];
   public inputs: InputEvents;
-  public width: number;
-  public height: number;
+  // public width: number;
+  // public height: number;
   public mode: Mode;
   public modeMachine: GameModeMachine;
   public subscribers: { [key: string]: Function[] };
@@ -92,8 +93,8 @@ export class Game {
     this.currentRace = null;
     this.recordRaceData = true;
     this.difficulty = null;
-    this.width = 1000;
-    this.height = 625;
+    // this.width = 1000;
+    // this.height = 625;
     this.inputs = new InputEvents();
     // this.gameCanvas = <HTMLCanvasElement>document.getElementById("game");
     // this.gamectx = <CanvasRenderingContext2D>this.gameCanvas.getContext("2d");
@@ -131,6 +132,15 @@ export class Game {
       Map: {},
       TileMap: {},
       Coordinates: {},
+      Renderable: {
+        renderWidth: 1000,
+        renderHeight: 625,
+        visible: false
+      },
+      Border: {
+        weight: 20,
+        radius: 20,
+      },
     });
 
     this.playerEntity = this.ecs.createEntity({
@@ -192,6 +202,7 @@ export class Game {
 
       MenuButtons.createEntities(this);
 
+      this.ecs.addSystem("render", new RenderBorders(this.ecs, this.uictx));
       this.ecs.addSystem("render", new RenderMap(this.ecs, this.uictx));
       this.ecs.addSystem(
         "render",
@@ -220,6 +231,7 @@ export class Game {
       "animations",
       new LevelStartAnimation(this.ecs, this.step, this.uictx)
     );
+    
 
     this.loadMap = this.loadMap.bind(this);
   }

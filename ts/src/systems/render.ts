@@ -26,8 +26,92 @@ export class RenderBackground extends EntityComponentSystem.System {
   }
 }
 
+export class RenderBorders extends EntityComponentSystem.System {
+  static query: { has?: string[]; hasnt?: string[] } = {
+    has: ["Border", "Renderable"],
+  };
+  private ctx: CanvasRenderingContext2D;
+
+  constructor(ecs: ECS, ctx: CanvasRenderingContext2D) {
+    super(ecs);
+    this.ctx = ctx;
+  }
+
+  update(tick: number, entities: Set<Entity>) {
+    const global = this.ecs.getEntity("global").Global;
+
+    this.ctx.save();
+    for (let entity of entities) {
+      if (!entity.Renderable.visible) continue;
+      const { renderWidth, renderHeight, alpha } = entity.Renderable;
+      const { X, Y } = entity.Coordinates;
+      const { weight, radius } = entity.Border;
+      this.ctx.globalAlpha = alpha;
+      this.drawChrome(X, Y, renderWidth, renderHeight, weight, radius);
+    }
+    this.ctx.restore();
+  }
+
+  roundRect(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    radius: number
+  ) {
+    this.ctx.beginPath();
+    this.ctx.moveTo(x + radius, y);
+    this.ctx.lineTo(x + width - radius, y);
+    this.ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    this.ctx.lineTo(x + width, y + height - radius);
+    this.ctx.quadraticCurveTo(
+      x + width,
+      y + height,
+      x + width - radius,
+      y + height
+    );
+    this.ctx.lineTo(x + radius, y + height);
+    this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    this.ctx.lineTo(x, y + radius);
+    this.ctx.quadraticCurveTo(x, y, x + radius, y);
+    this.ctx.closePath();
+    this.ctx.fill();
+  }
+
+  drawChrome(x: number, y: number, w: number, h: number, t: number, r: number) {
+    let grd = this.ctx.createLinearGradient(x + w, y, x, y);
+    grd.addColorStop(0, "#808080");
+    grd.addColorStop(0.38, "#202020");
+    grd.addColorStop(0.4, "#242424");
+    grd.addColorStop(0.66, "#fff");
+    grd.addColorStop(1, "#808080");
+
+    this.ctx.fillStyle = grd;
+    this.roundRect(x - t, y - t, w + 2 * t, h + 2 * t, r);
+
+    //30% down/up
+    //15% in
+    grd = this.ctx.createLinearGradient(
+      x + w * 0.15,
+      y + h * 0.33,
+      x + 0.85 * w,
+      y + h * 0.66
+    );
+    grd.addColorStop(0, "#676767");
+    grd.addColorStop(0.38, "#202020");
+    grd.addColorStop(0.4, "#242424");
+    grd.addColorStop(0.66, "#fff");
+    grd.addColorStop(1, "#acacac");
+
+    this.ctx.fillStyle = grd;
+    this.roundRect(x - t / 2, y - t / 2, w + t, h + t, r / 2);
+  }
+}
+
 export class RenderMap extends EntityComponentSystem.System {
-  static query: { has?: string[]; hasnt?: string[] } = { has: ["TileMap"] };
+  static query: { has?: string[]; hasnt?: string[] } = {
+    has: ["TileMap", "Map"],
+  };
   private ctx: CanvasRenderingContext2D;
   private modeNames: string[];
 
@@ -55,21 +139,12 @@ export class RenderMap extends EntityComponentSystem.System {
     const map = mapEntity.Map.map;
     let x = 0;
     let y = 0;
-    // switch (mode) {
-    //   case "playing":
-    //   case "won":
-    //     this.ctx.fillStyle = "#81c76d";
-    //     break;
-    //   case "lost":
-    //     this.ctx.fillStyle = "#eb5555";
-    //     break;
-    //   case "paused":
-    //   case "designing":
-    //   default:
-    //     this.ctx.fillStyle = "lightgray";
-    // }
-    this.ctx.fillStyle = mapEntity.Map.background;
+
+    this.ctx.save();
+    this.ctx.globalAlpha = mapEntity.Renderable.alpha;
+    this.ctx.fillStyle = mapEntity.Renderable.bgColor;
     this.ctx.fillRect(coords.X, coords.Y, map.pixelWidth, map.pixelHeight);
+    
 
     if (
       mode === "playing" ||
@@ -122,13 +197,14 @@ export class RenderMap extends EntityComponentSystem.System {
         );
       }
     }
+    this.ctx.restore();
   }
 }
 
 export class RenderGameplayEntities extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
     has: ["Coordinates", "Renderable"],
-    hasnt: ["Button", "Car"],
+    hasnt: ["Button", "Car", "Map"],
   };
   private ctx: CanvasRenderingContext2D;
 

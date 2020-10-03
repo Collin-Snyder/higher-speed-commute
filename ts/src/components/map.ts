@@ -16,6 +16,13 @@ export const TileMap = {
   },
 };
 
+export const Border = {
+  properties: {
+    weight: 0,
+    radius: 0,
+  }
+}
+
 export const Canvas = {
   properties: {
     canvas: null,

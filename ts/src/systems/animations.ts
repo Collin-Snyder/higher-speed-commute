@@ -16,7 +16,7 @@ abstract class Animation extends EntityComponentSystem.System {
   public currentTimeRemaining: number;
   public states: { [state: string]: AnimationStateInterface };
 
-  constructor(ecs: any, step: number) {
+  constructor(ecs: ECS, step: number) {
     super(ecs);
     this.gameStep = step;
     this.currentState = "start";
@@ -150,14 +150,14 @@ export class LevelStartAnimation extends Animation {
     let mapEntity = this.ecs.getEntity("map");
     let newAlpha = this.gameboardAlpha + this.gameboardAlphaStep;
     if (newAlpha > 1) newAlpha = 1;
-    mapEntity.Map.background = `rgba(129, 199, 109, ${newAlpha})`;
+    mapEntity.Renderable.alpha = newAlpha;
     this.gameboardAlpha = newAlpha;
   }
 
   onGameBoardDone(): string {
     if (this.gameboardAlpha !== 1) {
       let mapEntity = this.ecs.getEntity("map");
-      mapEntity.Map.background = `rgba(129, 199, 109, 1)`;
+      mapEntity.Renderable.alpha = 1;
     }
     return "pause1";
   }
