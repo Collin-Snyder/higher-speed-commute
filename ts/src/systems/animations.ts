@@ -48,8 +48,8 @@ abstract class Animation extends EntityComponentSystem.System {
     const { onStep, step } = this.states[this.currentState];
     this.currentStep -= this.gameStep;
     if (this.currentStep <= 0) {
-        onStep();
-        this.currentStep = step;
+      onStep();
+      this.currentStep = step;
     }
     this.currentTimeRemaining -= this.gameStep;
   }
@@ -286,3 +286,25 @@ export class LevelStartAnimation extends Animation {
 //whole map spirals in (3s during countdown)
 //go!
 //cars appear and boss starts
+
+export class BackgroundAnimation extends EntityComponentSystem.System {
+  constructor(ecs: any) {
+    super(ecs);
+  }
+
+  update(tick: number, entities: Set<Entity>) {
+    if (!this.isAnimationRunning()) return;
+    const layers = this.ecs.getEntity("bg").ParallaxLayer;
+    for (let layer of layers) {
+      layer.offset += layer.step;
+      if (layer.offset >= layer.width / 2) {
+        layer.offset -= layer.width / 2;
+      }
+    }
+  }
+
+  isAnimationRunning() {
+    const game = this.ecs.getEntity("global").Global.game;
+    return game.mode === "menu";
+  }
+}

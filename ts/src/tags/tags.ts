@@ -1,7 +1,7 @@
 const tagGroups: { [group: string]: string[] } = {
   menu: ["menu", "main", "gameplay", "design", "toolbar", "admin", "config", "paused", "won", "lost"],
   interactibility: ["noninteractive"],
-  animation: ["anim"]
+  animation: ["anim", "bg"]
 };
 
 let AllTags: Array<string> = [];

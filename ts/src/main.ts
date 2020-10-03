@@ -3,6 +3,7 @@ import { average, findCenteredElementSpread } from "./modules/gameMath";
 //@ts-ignore
 import axios from "axios";
 import spriteMap from "./spriteMap";
+import bgMap from "./bgMap";
 import keyCodes from "./keyCodes";
 import DesignModule from "./modules/designModule";
 import { MapGrid, MapGridInterface } from "./state/map";
@@ -18,7 +19,7 @@ import { MovementSystem } from "./systems/move";
 import { CollisionSystem } from "./systems/collision";
 import { CaffeineSystem } from "./systems/caffeine";
 import { RaceTimerSystem } from "./systems/timers";
-import { LevelStartAnimation } from "./systems/animations";
+import { LevelStartAnimation, BackgroundAnimation } from "./systems/animations";
 import {
   RenderBackground,
   RenderMap,
@@ -109,7 +110,7 @@ export class Game {
     this.backgroundIsLoaded = false;
     this.spriteMap = spriteMap;
 
-    this.background.src = "../background.png";
+    this.background.src = "../bgsheet.png";
     this.spritesheet.src = "../spritesheet.png";
     this.UICanvas.width = window.innerWidth;
     this.UICanvas.height = window.innerHeight;
@@ -135,7 +136,7 @@ export class Game {
       Renderable: {
         renderWidth: 1000,
         renderHeight: 625,
-        visible: false
+        visible: false,
       },
       Border: {
         weight: 20,
@@ -182,43 +183,12 @@ export class Game {
 
     this.background.onload = () => {
       this.backgroundIsLoaded = true;
-      this.ecs.addSystem("render", new RenderBackground(this.ecs, this.uictx));
+      if (this.spriteSheetIsLoaded) this.buildWorld();
     };
 
     this.spritesheet.onload = () => {
       this.spriteSheetIsLoaded = true;
-      this.globalEntity.Global.spriteSheet = this.spritesheet;
-      this.globalEntity.Global.spriteMap = this.spriteMap;
-
-      let playerSpriteCoords = this.spriteMap[
-        `${this.playerEntity.Car.color}Car`
-      ];
-      this.playerEntity.Renderable.spriteX = playerSpriteCoords.X;
-      this.playerEntity.Renderable.spriteY = playerSpriteCoords.Y;
-
-      let bossSpriteCoords = this.spriteMap[`${this.bossEntity.Car.color}Car`];
-      this.bossEntity.Renderable.spriteX = bossSpriteCoords.X;
-      this.bossEntity.Renderable.spriteY = bossSpriteCoords.Y;
-
-      MenuButtons.createEntities(this);
-
-      this.ecs.addSystem("render", new RenderBorders(this.ecs, this.uictx));
-      this.ecs.addSystem("render", new RenderMap(this.ecs, this.uictx));
-      this.ecs.addSystem(
-        "render",
-        new RenderGameplayEntities(this.ecs, this.uictx)
-      );
-      this.ecs.addSystem("render", new RenderMenus(this.ecs, this.uictx));
-      this.ecs.addSystem(
-        "render",
-        new RenderButtonModifiers(this.ecs, this.uictx)
-      );
-      this.ecs.addSystem(
-        "render",
-        new RenderTopLevelGraphics(this.ecs, this.uictx)
-      );
-
-      this.publish("ready");
+      if (this.backgroundIsLoaded) this.buildWorld();
     };
     this.ecs.addSystem("timers", new RaceTimerSystem(this.ecs, this.step));
     this.ecs.addSystem("lights", new LightTimer(this.ecs, this.step));
@@ -231,7 +201,6 @@ export class Game {
       "animations",
       new LevelStartAnimation(this.ecs, this.step, this.uictx)
     );
-    
 
     this.loadMap = this.loadMap.bind(this);
   }
@@ -296,6 +265,78 @@ export class Game {
     for (let event of this.modeMachine.customEvents) {
       this.subscribe(event.name, event.action);
     }
+  }
+
+  buildWorld(): void {
+    this.globalEntity.Global.bgSheet = this.background;
+    this.globalEntity.Global.bgMap = bgMap;
+    this.ecs.createEntity({
+      id: "bg",
+      ParallaxLayer: [
+        {
+          name: "back",
+          X: 0,
+          Y: 1286,
+          height: 1034,
+          width: 3840,
+          step: 1,
+          offset: 0,
+        },
+        {
+          name: "mid",
+          X: 0,
+          Y: 619,
+          height: 667,
+          width: 3840,
+          step: 2,
+          offset: 0,
+        },
+        {
+          name: "fg",
+          X: 0,
+          Y: 0,
+          height: 619,
+          width: 3840,
+          step: 4,
+          offset: 0,
+        },
+      ],
+    });
+    this.ecs.addSystem("animations", new BackgroundAnimation(this.ecs));
+    this.ecs.addSystem("render", new RenderBackground(this.ecs, this.uictx));
+
+    this.globalEntity.Global.spriteSheet = this.spritesheet;
+    this.globalEntity.Global.spriteMap = this.spriteMap;
+
+    let playerSpriteCoords = this.spriteMap[
+      `${this.playerEntity.Car.color}Car`
+    ];
+    this.playerEntity.Renderable.spriteX = playerSpriteCoords.X;
+    this.playerEntity.Renderable.spriteY = playerSpriteCoords.Y;
+
+    let bossSpriteCoords = this.spriteMap[`${this.bossEntity.Car.color}Car`];
+    this.bossEntity.Renderable.spriteX = bossSpriteCoords.X;
+    this.bossEntity.Renderable.spriteY = bossSpriteCoords.Y;
+
+    MenuButtons.createEntities(this);
+
+    this.ecs.addSystem("render", new RenderBorders(this.ecs, this.uictx));
+    this.ecs.addSystem("render", new RenderMap(this.ecs, this.uictx));
+    this.ecs.addSystem(
+      "render",
+      new RenderGameplayEntities(this.ecs, this.uictx)
+    );
+    this.ecs.addSystem("render", new RenderMenus(this.ecs, this.uictx));
+    this.ecs.addSystem(
+      "render",
+      new RenderButtonModifiers(this.ecs, this.uictx)
+    );
+    this.ecs.addSystem(
+      "render",
+      new RenderTopLevelGraphics(this.ecs, this.uictx)
+    );
+
+    this.publish("ready");
   }
 
   loadLevel(num: number): void {

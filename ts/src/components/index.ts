@@ -4,6 +4,7 @@ import * as GlobalComponents from "./global";
 import * as LightComponents from "./light";
 import * as ItemComponents from "./item";
 import * as ButtonComponents from "./button";
+import * as AnimationComponents from "./animation";
 
 const Components: { [key: string]: any } = {
   ...GlobalComponents,
@@ -11,7 +12,8 @@ const Components: { [key: string]: any } = {
   ...DriverComponents,
   ...LightComponents,
   ...ItemComponents,
-  ...ButtonComponents
+  ...ButtonComponents,
+  ...AnimationComponents
 };
 
 export default Components;

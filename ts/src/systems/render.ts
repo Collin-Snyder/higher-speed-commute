@@ -11,18 +11,42 @@ export class RenderBackground extends EntityComponentSystem.System {
   }
   update(tick: number, entities: Set<Entity>) {
     let game = this.ecs.getEntity("global").Global.game;
+    let layers = this.ecs.getEntity("bg").ParallaxLayer;
+
+    this.ctx.fillStyle = "#8edbfa";
+    this.ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
     if (game.backgroundIsLoaded) {
-      this.ctx.drawImage(
-        game.background,
-        0,
-        0,
-        window.innerWidth,
-        window.innerHeight
-      );
-    } else {
-      this.ctx.fillStyle = "#50cdff";
-      this.ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+      for (let layer of layers) {
+        this.drawLayer(game.background, layer);
+      }
     }
+  }
+
+  drawLayer(
+    bg: HTMLImageElement,
+    l: {
+      X: number;
+      Y: number;
+      width: number;
+      height: number;
+      offset: number;
+      [key: string]: any;
+    }
+  ) {
+    let { X, Y, width, height, offset } = l;
+    let renderHeight = (height / (width / 2)) * window.innerWidth;
+    this.ctx.drawImage(
+      bg,
+      X + offset,
+      Y,
+      width / 2,
+      height,
+      0,
+      window.innerHeight - renderHeight,
+      window.innerWidth,
+      renderHeight
+    );
   }
 }
 
@@ -144,7 +168,6 @@ export class RenderMap extends EntityComponentSystem.System {
     this.ctx.globalAlpha = mapEntity.Renderable.alpha;
     this.ctx.fillStyle = mapEntity.Renderable.bgColor;
     this.ctx.fillRect(coords.X, coords.Y, map.pixelWidth, map.pixelHeight);
-    
 
     if (
       mode === "playing" ||

@@ -6,6 +6,8 @@ export const Global = {
         inputs: {},
         spriteSheet: null,
         spriteMap: {},
+        bgSheet: null,
+        bgMap: {},
         mode: "init"
     }
 };
