@@ -279,7 +279,7 @@ export class Game {
           Y: 1286,
           height: 1034,
           width: 3840,
-          step: 1,
+          step: 0.5,
           offset: 0,
         },
         {
@@ -288,7 +288,7 @@ export class Game {
           Y: 619,
           height: 667,
           width: 3840,
-          step: 2,
+          step: 1,
           offset: 0,
         },
         {
@@ -297,7 +297,7 @@ export class Game {
           Y: 0,
           height: 619,
           width: 3840,
-          step: 4,
+          step: 1.5,
           offset: 0,
         },
       ],
