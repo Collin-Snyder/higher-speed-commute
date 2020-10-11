@@ -55,10 +55,12 @@ export class RenderBorders extends EntityComponentSystem.System {
     has: ["Border", "Renderable"],
   };
   private ctx: CanvasRenderingContext2D;
+  private canvases: { [entityId: string]: HTMLCanvasElement };
 
   constructor(ecs: ECS, ctx: CanvasRenderingContext2D) {
     super(ecs);
     this.ctx = ctx;
+    this.canvases = {};
   }
 
   update(tick: number, entities: Set<Entity>) {
@@ -71,51 +73,97 @@ export class RenderBorders extends EntityComponentSystem.System {
       const { X, Y } = entity.Coordinates;
       const { weight, radius } = entity.Border;
       this.ctx.globalAlpha = alpha;
-      this.drawChrome(X, Y, renderWidth, renderHeight, weight, radius);
+      if (!this.canvases[entity.id])
+        this.initializeCanvas(
+          entity.id,
+          renderWidth,
+          renderHeight,
+          weight,
+          radius
+        );
+      // this.drawChrome(X, Y, renderWidth, renderHeight, weight, radius);
+      this.ctx.drawImage(
+        this.canvases[entity.id],
+        X - weight,
+        Y - weight,
+        renderWidth + weight * 2,
+        renderHeight + weight * 2
+      );
     }
     this.ctx.restore();
   }
 
+  initializeCanvas(
+    id: string,
+    w: number,
+    h: number,
+    weight: number,
+    r: number
+  ) {
+    const sweight = weight / 8;
+    const sw = w / 8;
+    const sh = h / 8;
+    const sr = r / 8;
+
+    const canv = document.createElement("canvas");
+    canv.id = id;
+    canv.width = sw + sweight * 2;
+    canv.height = sh + sweight * 2;
+
+    this.canvases[id] = canv;
+
+    const ctx = <CanvasRenderingContext2D>canv.getContext("2d");
+    // ctx.fillStyle = "#fff";
+    // ctx.fillRect(0, 0, 125, 78);
+    this.drawChrome(ctx, sweight, sweight, sw, sh, sweight, sr);
+    // document.body.appendChild(canv);
+    // canv.style.position = "absolute";
+  }
+
   roundRect(
+    ctx: CanvasRenderingContext2D,
     x: number,
     y: number,
     width: number,
     height: number,
     radius: number
   ) {
-    this.ctx.beginPath();
-    this.ctx.moveTo(x + radius, y);
-    this.ctx.lineTo(x + width - radius, y);
-    this.ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-    this.ctx.lineTo(x + width, y + height - radius);
-    this.ctx.quadraticCurveTo(
-      x + width,
-      y + height,
-      x + width - radius,
-      y + height
-    );
-    this.ctx.lineTo(x + radius, y + height);
-    this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-    this.ctx.lineTo(x, y + radius);
-    this.ctx.quadraticCurveTo(x, y, x + radius, y);
-    this.ctx.closePath();
-    this.ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+    ctx.fill();
   }
 
-  drawChrome(x: number, y: number, w: number, h: number, t: number, r: number) {
-    let grd = this.ctx.createLinearGradient(x + w, y, x, y);
+  drawChrome(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    t: number,
+    r: number
+  ) {
+    let grd = ctx.createLinearGradient(x + w, y, x, y);
     grd.addColorStop(0, "#808080");
     grd.addColorStop(0.38, "#202020");
     grd.addColorStop(0.4, "#242424");
     grd.addColorStop(0.66, "#fff");
     grd.addColorStop(1, "#808080");
 
-    this.ctx.fillStyle = grd;
-    this.roundRect(x - t, y - t, w + 2 * t, h + 2 * t, r);
+    ctx.fillStyle = grd;
+    this.roundRect(ctx, x - t, y - t, w + 2 * t, h + 2 * t, r);
 
     //30% down/up
     //15% in
-    grd = this.ctx.createLinearGradient(
+    grd = ctx.createLinearGradient(
       x + w * 0.15,
       y + h * 0.33,
       x + 0.85 * w,
@@ -127,8 +175,17 @@ export class RenderBorders extends EntityComponentSystem.System {
     grd.addColorStop(0.66, "#fff");
     grd.addColorStop(1, "#acacac");
 
-    this.ctx.fillStyle = grd;
-    this.roundRect(x - t / 2, y - t / 2, w + t, h + t, r / 2);
+    ctx.fillStyle = grd;
+    this.roundRect(ctx, x - t / 2, y - t / 2, w + t, h + t, r / 2);
+
+    let pixels = ctx.getImageData(x - t, y - t, w + 2 * t, h + 2 * t);
+
+    for (let p = 3; p < pixels.data.length; p += 4) {
+      if (pixels.data[p] < 128) pixels.data[p] = 0;
+      else pixels.data[p] = 255;
+    }
+
+    ctx.putImageData(pixels, x - t, y - t);
   }
 }
 
@@ -287,6 +344,7 @@ export class RenderMenus extends EntityComponentSystem.System {
   };
   private ctx: CanvasRenderingContext2D;
   private spriteSheet: HTMLImageElement;
+  private spriteMap: { [key: string]: { X: number; Y: number } };
   private menuTags: { [key: string]: Array<string> };
   private modeNames: string[];
   private buttonEntities: Entity[];
@@ -294,7 +352,9 @@ export class RenderMenus extends EntityComponentSystem.System {
   constructor(ecs: ECS, ctx: CanvasRenderingContext2D) {
     super(ecs);
     this.ctx = ctx;
-    this.spriteSheet = this.ecs.getEntity("global").Global.spriteSheet;
+    let { spriteSheet, spriteMap } = this.ecs.getEntity("global").Global;
+    this.spriteSheet = spriteSheet;
+    this.spriteMap = spriteMap;
     this.menuTags = {
       menu: ["main"],
       designing: ["design"],
@@ -418,12 +478,49 @@ export class RenderMenus extends EntityComponentSystem.System {
     }
   }
 
+  drawTitle() {
+    let spriteCoords = this.spriteMap.title2;
+    let spriteW = 195;
+    let spriteH = 53;
+    let renderH = window.innerHeight / 4;
+    let renderW = renderH * (spriteW / spriteH);
+
+    let { x, y } = centerWithin(
+      0,
+      0,
+      window.innerWidth,
+      window.innerHeight / 3,
+      renderW,
+      renderH,
+      1,
+      "vertical",
+      "spaceEvenly"
+    );
+
+    this.ctx.drawImage(
+      this.spriteSheet,
+      spriteCoords.X,
+      spriteCoords.Y,
+      spriteW,
+      spriteH,
+      x.start,
+      window.innerHeight / 8,
+      renderW,
+      renderH
+    );
+
+    return { titleY: window.innerHeight / 8, titleHeight: renderH };
+  }
+
   renderMainMenu() {
+    let { titleY, titleHeight } = this.drawTitle();
+    let menuY = titleY + titleHeight;
+    let menuH = (window.innerHeight / 3) * 2 - window.innerHeight / 8;
     this.positionButtons(
       window.innerWidth / 2 - window.innerWidth / 4,
-      window.innerHeight / 2 - window.innerHeight / 4,
+      menuY,
       window.innerWidth / 2,
-      window.innerHeight / 2,
+      menuH,
       200,
       75,
       "vertical",

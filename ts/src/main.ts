@@ -110,7 +110,7 @@ export class Game {
     this.backgroundIsLoaded = false;
     this.spriteMap = spriteMap;
 
-    this.background.src = "../bgsheet.png";
+    this.background.src = "../bgsheet-sm.png";
     this.spritesheet.src = "../spritesheet.png";
     this.UICanvas.width = window.innerWidth;
     this.UICanvas.height = window.innerHeight;
@@ -276,28 +276,28 @@ export class Game {
         {
           name: "back",
           X: 0,
-          Y: 1286,
-          height: 1034,
-          width: 3840,
-          step: 0.5,
+          Y: 162,
+          height: 130,
+          width: 480,
+          step: 0.1,
           offset: 0,
         },
         {
           name: "mid",
           X: 0,
-          Y: 619,
-          height: 667,
-          width: 3840,
-          step: 1,
+          Y: 78,
+          height: 84,
+          width: 480,
+          step: 0.2,
           offset: 0,
         },
         {
           name: "fg",
           X: 0,
           Y: 0,
-          height: 619,
-          width: 3840,
-          step: 1.5,
+          height: 78,
+          width: 480,
+          step: 0.3,
           offset: 0,
         },
       ],

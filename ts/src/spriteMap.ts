@@ -45,6 +45,8 @@ const spriteMap = {
   countdown3: { X: 200, Y: 275 },
   countdown2: { X: 275, Y: 275 },
   countdown1: { X: 350, Y: 275 },
+  title: {X: 0, Y: 876 },
+  title2: {X: 0, Y: 926}
 };
 
 export default spriteMap;
