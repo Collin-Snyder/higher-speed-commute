@@ -9,7 +9,9 @@ import DesignModule from "./modules/designModule";
 import { MapGrid, MapGridInterface } from "./state/map";
 import GameModeMachine, { Mode } from "./state/pubsub";
 import Race from "./modules/raceData";
+import Sounds from "./modules/sound";
 import { MenuButtons } from "./state/menuButtons";
+import allSounds from "./state/sounds";
 import Components from "./components/index";
 import Tags from "./tags/tags";
 import { MapSystem } from "./systems/map";
@@ -75,6 +77,7 @@ export class Game {
   private coffeeEntities: { [key: string]: Entity };
   private map: MapGridInterface;
   public difficulty: "easy" | "medium" | "hard" | null;
+  // public sounds: Sounds;
 
   constructor() {
     this.start = this.timestamp();
@@ -97,6 +100,7 @@ export class Game {
     // this.width = 1000;
     // this.height = 625;
     this.inputs = new InputEvents();
+    // this.sounds = new Sounds(this);
     // this.gameCanvas = <HTMLCanvasElement>document.getElementById("game");
     // this.gamectx = <CanvasRenderingContext2D>this.gameCanvas.getContext("2d");
     this.UICanvas = <HTMLCanvasElement>document.getElementById("ui");
@@ -119,6 +123,7 @@ export class Game {
     this.registerComponents();
     this.registerTags();
     this.registerSubscribers();
+    // this.registerSounds();
 
     this.globalEntity = this.ecs.createEntity({
       id: "global",
@@ -266,6 +271,12 @@ export class Game {
       this.subscribe(event.name, event.action);
     }
   }
+
+  // registerSounds(): void {
+  //   allSounds.forEach(({ name, src, loop, startMusic }) => {
+  //     this.sounds.addSound(name, src, loop, startMusic);
+  //   });
+  // }
 
   buildWorld(): void {
     this.globalEntity.Global.bgSheet = this.background;

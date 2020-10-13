@@ -229,7 +229,9 @@ export class RenderMap extends EntityComponentSystem.System {
     if (
       mode === "playing" ||
       mode === "designing" ||
-      mode === "levelStartAnimation"
+      mode === "levelStartAnimation" ||
+      mode === "won" ||
+      mode === "lost"
     ) {
       for (let tile of tileMap.tiles) {
         if (tile) {
@@ -278,6 +280,14 @@ export class RenderMap extends EntityComponentSystem.System {
       }
     }
     this.ctx.restore();
+
+    if (mode === "won" || mode === "lost") {
+      this.ctx.save();
+      this.ctx.globalAlpha = 0.75;
+      this.ctx.fillStyle = "#000";
+      this.ctx.fillRect(coords.X, coords.Y, map.pixelWidth, map.pixelHeight);
+      this.ctx.restore();
+    }
   }
 }
 
@@ -322,16 +332,30 @@ export class RenderGameplayEntities extends EntityComponentSystem.System {
   }
 
   updateCarSprite(entity: Entity, spriteMap: any) {
-    let spriteName;
+    let spriteName = entity.Renderable.prevSpriteName;
+    let { X, Y } = entity.Velocity.vector;
 
-    if (entity.Velocity.vector.X > 0) spriteName = `${entity.Car.color}CarR`;
-    else if (entity.Velocity.vector.X < 0)
-      spriteName = `${entity.Car.color}CarL`;
+    if (!spriteName) spriteName = `${entity.Car.color}CarU`;
+    // else if (X > 0 && Y > 0) spriteName = `${entity.Car.color}CarDR`;
+    // else if (X < 0 && Y > 0) spriteName = `${entity.Car.color}CarDL`;
+    // else if (X < 0 && Y < 0) spriteName = `${entity.Car.color}CarUL`;
+    // else if (X > 0 && Y < 0) spriteName = `${entity.Car.color}CarUR`;
+    // else if (X > 0) spriteName = spriteName.replace("L", "R");
+    // else if (X < 0) spriteName = spriteName.replace("R", "L");
+    // else if (Y > 0) spriteName = spriteName.replace("U", "D");
+    // else if (Y < 0) spriteName = spriteName.replace("D", "U");
+    else if (X > 0) spriteName = `${entity.Car.color}CarR`;
+    else if (X < 0) spriteName = `${entity.Car.color}CarL`;
+    else if (Y > 0) spriteName = `${entity.Car.color}CarD`;
+    else if (Y < 0) spriteName = `${entity.Car.color}CarU`;
+    // else if (entity.Velocity.vector.X > 0) spriteName = `${entity.Car.color}CarR`;
+    // else if (entity.Velocity.vector.X < 0) spriteName = `${entity.Car.color}CarL`;
 
     if (spriteName) {
       let { X, Y } = spriteMap[spriteName];
       entity.Renderable.spriteX = X;
       entity.Renderable.spriteY = Y;
+      entity.Renderable.prevSpriteName = spriteName;
     }
 
     return entity;
@@ -479,7 +503,7 @@ export class RenderMenus extends EntityComponentSystem.System {
   }
 
   drawTitle() {
-    let spriteCoords = this.spriteMap.title2;
+    let spriteCoords = this.spriteMap.title;
     let spriteW = 195;
     let spriteH = 53;
     let renderH = window.innerHeight / 4;
@@ -530,6 +554,41 @@ export class RenderMenus extends EntityComponentSystem.System {
     this.drawButtons(this.buttonEntities);
   }
 
+  drawGameplayMenuGraphic(menu: "paused" | "win" | "loss" | "crash", mapX: number, mapY: number, mapW: number, mapH: number) {
+    let spriteCoords = this.spriteMap[`${menu}Graphic`];
+
+    let spriteW = 75;
+    let spriteH = 75;
+    let renderH = mapH / 4;
+    let renderW = renderH;
+
+    let { x, y } = centerWithin(
+      mapX,
+      mapY,
+      mapW,
+      mapH / 3,
+      renderW,
+      renderH,
+      1,
+      "vertical",
+      "spaceEvenly"
+    );
+
+    this.ctx.drawImage(
+      this.spriteSheet,
+      spriteCoords.X,
+      spriteCoords.Y,
+      spriteW,
+      spriteH,
+      x.start,
+      y.start,
+      renderW,
+      renderH
+    );
+
+    return { graphicY: y.start, graphicH: renderH };
+  }
+
   renderPausedMenu(
     mapX: number,
     mapY: number,
@@ -556,11 +615,15 @@ export class RenderMenus extends EntityComponentSystem.System {
     mapWidth: number,
     mapHeight: number
   ) {
+    let { graphicY, graphicH } = this.drawGameplayMenuGraphic("win", mapX, mapY, mapWidth, mapHeight);
+    let menuY = graphicY + graphicH;
+    let menuH = (mapHeight / 3) * 2 - mapHeight / 8;
+
     this.positionButtons(
       mapX,
-      mapY,
+      menuY,
       mapWidth,
-      mapHeight,
+      menuH,
       200,
       75,
       "vertical",
