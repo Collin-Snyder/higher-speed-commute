@@ -132,8 +132,8 @@ class GameModeMachine {
         console.log("YOU WIN!");
 
         let caffeinated = game.ecs.queryEntities({
-          has: ["Car", "CaffeineBoost"]
-        })
+          has: ["Car", "CaffeineBoost"],
+        });
 
         if (caffeinated.size) {
           for (let driver of caffeinated) {
@@ -147,6 +147,18 @@ class GameModeMachine {
         for (let button of buttons) {
           button.removeTag("noninteractive");
         }
+
+        let graphic = game.ecs.getEntity("wonGraphic");
+
+        if (!graphic) {
+          graphic = game.ecs.createEntity({
+            id: "wonGraphic",
+            Coordinates: {},
+            Animation: { startSprite: game.spriteMap.shine, degStep: 1 },
+            Renderable: {}
+          });
+        }
+
         if (game.recordRaceData) game.saveRaceData("win");
         game.mode = "won";
         // game.globalEntity.Global.mode = to;
@@ -160,8 +172,8 @@ class GameModeMachine {
         console.log("YOU LOSE");
 
         let caffeinated = game.ecs.queryEntities({
-          has: ["Car", "CaffeineBoost"]
-        })
+          has: ["Car", "CaffeineBoost"],
+        });
 
         if (caffeinated.size) {
           for (let driver of caffeinated) {
@@ -189,8 +201,8 @@ class GameModeMachine {
         console.log("CRASH! YOU LOSE BIG TIME");
 
         let caffeinated = game.ecs.queryEntities({
-          has: ["Car", "CaffeineBoost"]
-        })
+          has: ["Car", "CaffeineBoost"],
+        });
 
         if (caffeinated.size) {
           for (let driver of caffeinated) {
@@ -254,6 +266,12 @@ class GameModeMachine {
       onnextLevel: function() {
         let game = <Game>(<unknown>this);
         let next = game.currentLevel.number ? game.currentLevel.number + 1 : 1;
+
+        let entities = game.ecs.queryEntities({ has: ["menu", "gameplay"] });
+        for (let entity of entities) {
+          entity.addTag("noninteractive");
+        }
+
         game.publish("start", next);
       },
       ondesign: function() {
@@ -420,8 +438,16 @@ class GameModeMachine {
     this.events = [
       { name: "ready", from: "init", to: "menu" },
       { name: "start", from: ["menu", "won", "lost"], to: "starting" },
-      { name: "startingAnimation", from: "starting", to: "levelStartAnimation" },
-      { name: "play", from: ["starting", "levelStartAnimation"], to: "playing" },
+      {
+        name: "startingAnimation",
+        from: "starting",
+        to: "levelStartAnimation",
+      },
+      {
+        name: "play",
+        from: ["starting", "levelStartAnimation"],
+        to: "playing",
+      },
       { name: "pause", from: ["playing", "starting"], to: "paused" },
       { name: "resume", from: "paused", to: "playing" },
       { name: "restart", from: ["paused", "won", "lost"], to: "playing" },

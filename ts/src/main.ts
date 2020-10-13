@@ -21,7 +21,7 @@ import { MovementSystem } from "./systems/move";
 import { CollisionSystem } from "./systems/collision";
 import { CaffeineSystem } from "./systems/caffeine";
 import { RaceTimerSystem } from "./systems/timers";
-import { LevelStartAnimation, BackgroundAnimation } from "./systems/animations";
+import { LevelStartAnimation, BackgroundAnimation, Animation } from "./systems/animations";
 import {
   RenderBackground,
   RenderMap,
@@ -206,6 +206,7 @@ export class Game {
       "animations",
       new LevelStartAnimation(this.ecs, this.step, this.uictx)
     );
+    this.ecs.addSystem("animations", new Animation(this.ecs))
 
     this.loadMap = this.loadMap.bind(this);
   }

@@ -9,7 +9,7 @@ interface AnimationStateInterface {
   [key: string]: any;
 }
 
-abstract class Animation extends EntityComponentSystem.System {
+abstract class StateAnimation extends EntityComponentSystem.System {
   public gameStep: number;
   public currentState: string;
   public currentStep: number;
@@ -59,7 +59,7 @@ abstract class Animation extends EntityComponentSystem.System {
   abstract done(): void;
 }
 
-export class LevelStartAnimation extends Animation {
+export class LevelStartAnimation extends StateAnimation {
   private ctx: CanvasRenderingContext2D;
   private gameboardAlpha: number;
   private gameboardAlphaStep: number;
@@ -306,5 +306,36 @@ export class BackgroundAnimation extends EntityComponentSystem.System {
   isAnimationRunning() {
     const game = this.ecs.getEntity("global").Global.game;
     return game.mode === "menu";
+  }
+}
+
+export class Animation extends EntityComponentSystem.System {
+  static query: { has?: string[]; hasnt?: string[] } = {
+    has: ["Animation"],
+  };
+  constructor(ecs: any) {
+    super(ecs);
+  }
+
+  update(tick: number, entities: Set<Entity>) {
+    for (let entity of entities) {
+      console.log(entity)
+      let anim = entity.Animation;
+      if (anim.frames.length > 0) {
+        //if not at end, update entity based on next frame
+        //if at end, return to start if looping or else remove animation component
+      } else {
+        if (anim.xStep) {
+          anim.xOffset += anim.xStep;
+        }
+        if (anim.yStep) {
+          anim.yOffset += anim.yStep;
+        }
+        if (anim.degStep) {
+          console.log("Updating degOffset to ", anim.degOffset + anim.degStep)
+          anim.degOffset += anim.degStep;
+        }
+      }
+    }
   }
 }

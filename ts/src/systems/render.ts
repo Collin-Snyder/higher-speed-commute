@@ -372,11 +372,13 @@ export class RenderMenus extends EntityComponentSystem.System {
   private menuTags: { [key: string]: Array<string> };
   private modeNames: string[];
   private buttonEntities: Entity[];
+  private global: Entity;
 
   constructor(ecs: ECS, ctx: CanvasRenderingContext2D) {
     super(ecs);
     this.ctx = ctx;
-    let { spriteSheet, spriteMap } = this.ecs.getEntity("global").Global;
+    this.global = this.ecs.getEntity("global");
+    let { spriteSheet, spriteMap } = this.global.Global;
     this.spriteSheet = spriteSheet;
     this.spriteMap = spriteMap;
     this.menuTags = {
@@ -408,13 +410,16 @@ export class RenderMenus extends EntityComponentSystem.System {
           this.renderMainMenu();
           break;
         case "paused":
-          this.renderPausedMenu(X, Y, pixelWidth, pixelHeight);
+          // this.renderPausedMenu(X, Y, pixelWidth, pixelHeight);
+          this.renderGameplayMenu("paused", X, Y, pixelWidth, pixelHeight);
           break;
         case "won":
-          this.renderWonMenu(X, Y, pixelWidth, pixelHeight);
+          // this.renderWonMenu(X, Y, pixelWidth, pixelHeight);
+          this.renderGameplayMenu("won", X, Y, pixelWidth, pixelHeight);
           break;
         case "lost":
-          this.renderLostMenu(X, Y, pixelWidth, pixelHeight);
+          // this.renderLostMenu(X, Y, pixelWidth, pixelHeight);
+          this.renderGameplayMenu("lost", X, Y, pixelWidth, pixelHeight);
           break;
         case "designing":
           this.renderDesignMenus(X, Y, pixelWidth, pixelHeight);
@@ -554,7 +559,13 @@ export class RenderMenus extends EntityComponentSystem.System {
     this.drawButtons(this.buttonEntities);
   }
 
-  drawGameplayMenuGraphic(menu: "paused" | "win" | "loss" | "crash", mapX: number, mapY: number, mapW: number, mapH: number) {
+  drawGameplayMenuGraphic(
+    menu: "paused" | "won" | "lost" | "crashed",
+    mapX: number,
+    mapY: number,
+    mapW: number,
+    mapH: number
+  ) {
     let spriteCoords = this.spriteMap[`${menu}Graphic`];
 
     let spriteW = 75;
@@ -566,13 +577,63 @@ export class RenderMenus extends EntityComponentSystem.System {
       mapX,
       mapY,
       mapW,
-      mapH / 3,
+      mapH / 2.5,
       renderW,
       renderH,
       1,
       "vertical",
       "spaceEvenly"
     );
+
+    if (menu === "won") {
+      let { degOffset } = this.global.Global.game.ecs.getEntity(
+        "wonGraphic"
+      ).Animation;
+      let shineCoords = this.spriteMap.shine;
+      let shineW = renderW + renderW * 0.4;
+      let shineH = shineW;
+      let shineX = x.start - renderW * 0.2;
+      let shineY = y.start - renderH * 0.2;
+      let radians = (degOffset * Math.PI) / 180;
+      let transX = shineX + shineW / 2;
+      let transY = shineY + shineH / 2;
+
+      this.ctx.save();
+      this.ctx.translate(transX, transY);
+      this.ctx.rotate(radians);
+      this.ctx.translate(-transX, -transY);
+
+      this.ctx.drawImage(
+        this.spriteSheet,
+        shineCoords.X,
+        shineCoords.Y,
+        75,
+        75,
+        shineX,
+        shineY,
+        shineW,
+        shineH
+      );
+      this.ctx.restore();
+
+      // this.ctx.save();
+      // this.ctx.translate(transX, transY);
+      // this.ctx.rotate(-(radians));
+      // this.ctx.translate(-transX, -transY);
+
+      // this.ctx.drawImage(
+      //   this.spriteSheet,
+      //   shineCoords.X,
+      //   shineCoords.Y,
+      //   75,
+      //   75,
+      //   shineX,
+      //   shineY,
+      //   shineW,
+      //   shineH
+      // );
+      // this.ctx.restore();
+    }
 
     this.ctx.drawImage(
       this.spriteSheet,
@@ -589,61 +650,28 @@ export class RenderMenus extends EntityComponentSystem.System {
     return { graphicY: y.start, graphicH: renderH };
   }
 
-  renderPausedMenu(
+  renderGameplayMenu(
+    menu: "won" | "lost" | "paused" | "crashed",
     mapX: number,
     mapY: number,
     mapWidth: number,
     mapHeight: number
   ) {
-    this.positionButtons(
+    let { graphicY, graphicH } = this.drawGameplayMenuGraphic(
+      menu,
       mapX,
       mapY,
       mapWidth,
-      mapHeight,
-      200,
-      75,
-      "vertical",
-      this.buttonEntities,
-      "spaceEvenly"
+      mapHeight
     );
-    this.drawButtons(this.buttonEntities);
-  }
-
-  renderWonMenu(
-    mapX: number,
-    mapY: number,
-    mapWidth: number,
-    mapHeight: number
-  ) {
-    let { graphicY, graphicH } = this.drawGameplayMenuGraphic("win", mapX, mapY, mapWidth, mapHeight);
     let menuY = graphicY + graphicH;
-    let menuH = (mapHeight / 3) * 2 - mapHeight / 8;
+    let menuH = (mapHeight / 2.5) * 2 - mapHeight / 8;
 
     this.positionButtons(
       mapX,
       menuY,
       mapWidth,
       menuH,
-      200,
-      75,
-      "vertical",
-      this.buttonEntities,
-      "spaceEvenly"
-    );
-    this.drawButtons(this.buttonEntities);
-  }
-
-  renderLostMenu(
-    mapX: number,
-    mapY: number,
-    mapWidth: number,
-    mapHeight: number
-  ) {
-    this.positionButtons(
-      mapX,
-      mapY,
-      mapWidth,
-      mapHeight,
       200,
       75,
       "vertical",

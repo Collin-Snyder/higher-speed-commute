@@ -58,9 +58,10 @@ const spriteMap = {
   countdown2: { X: 275, Y: 275 },
   countdown1: { X: 350, Y: 275 },
   title: { X: 0, Y: 926 },
-  winGraphic: { X: 425, Y: 200 },
-  lossGraphic: { X: 425, Y: 275 },
+  wonGraphic: { X: 425, Y: 200 },
+  lostGraphic: { X: 425, Y: 275 },
   pausedGraphic: { X: 350, Y: 200 },
+  shine: { X: 201, Y: 351 },
 };
 
 export default spriteMap;
