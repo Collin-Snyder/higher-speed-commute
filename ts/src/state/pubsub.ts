@@ -154,7 +154,7 @@ class GameModeMachine {
           graphic = game.ecs.createEntity({
             id: "wonGraphic",
             Coordinates: {},
-            Animation: { startSprite: game.spriteMap.shine, degStep: 1 },
+            Animation: { startSprite: game.spriteMap.shiny, degStep: 1 },
             Renderable: {}
           });
         }

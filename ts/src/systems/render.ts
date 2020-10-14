@@ -559,6 +559,76 @@ export class RenderMenus extends EntityComponentSystem.System {
     this.drawButtons(this.buttonEntities);
   }
 
+  drawShine(
+    graphicX: number,
+    graphicY: number,
+    graphicW: number,
+    graphicH: number
+  ) {
+    let { degOffset } = this.global.Global.game.ecs.getEntity(
+      "wonGraphic"
+    ).Animation;
+    let shineCoords = this.spriteMap.shiny;
+    let spriteW = 75;
+    let spriteH = 75;
+    let radians = (degOffset * Math.PI) / 180;
+    let transX = graphicX + graphicW / 2;
+    let transY = graphicY + graphicH / 2;
+
+    this.ctx.save();
+    this.ctx.translate(transX, transY);
+    this.ctx.rotate(radians);
+    this.ctx.translate(-transX, -transY);
+
+    this.ctx.drawImage(
+      this.spriteSheet,
+      shineCoords.X,
+      shineCoords.Y,
+      spriteW,
+      spriteH,
+      graphicX,
+      graphicY,
+      graphicW,
+      graphicH
+    );
+    this.ctx.restore();
+
+    this.ctx.save();
+    this.ctx.translate(transX, transY);
+    this.ctx.rotate(-radians);
+    this.ctx.translate(-transX, -transY);
+
+    this.ctx.drawImage(
+      this.spriteSheet,
+      shineCoords.X,
+      shineCoords.Y,
+      spriteW,
+      spriteH,
+      graphicX,
+      graphicY,
+      graphicW,
+      graphicH
+    );
+    this.ctx.restore();
+
+    let trophyPosition = centerWithin(
+      graphicX,
+      graphicY,
+      graphicW,
+      graphicH,
+      (graphicW *= 0.7),
+      (graphicH *= 0.7),
+      1,
+      "vertical",
+      "spaceEvenly"
+    );
+
+    graphicX = trophyPosition.x.start;
+    graphicY = trophyPosition.y.start;
+
+    return { ix: graphicX, iy: graphicY, iw: graphicW, ih: graphicH };
+  }
+
   drawGameplayMenuGraphic(
     menu: "paused" | "won" | "lost" | "crashed",
     mapX: number,
@@ -567,72 +637,39 @@ export class RenderMenus extends EntityComponentSystem.System {
     mapH: number
   ) {
     let spriteCoords = this.spriteMap[`${menu}Graphic`];
-
     let spriteW = 75;
     let spriteH = 75;
-    let renderH = mapH / 4;
-    let renderW = renderH;
+    let graphicH = mapH / 3;
+    let graphicW = graphicH;
+    let graphicX, graphicY;
+    let containerH = mapH / 2.5;
 
     let { x, y } = centerWithin(
       mapX,
       mapY,
       mapW,
-      mapH / 2.5,
-      renderW,
-      renderH,
+      containerH,
+      graphicW,
+      graphicH,
       1,
       "vertical",
       "spaceEvenly"
     );
 
+    graphicX = x.start;
+    graphicY = y.start;
+
     if (menu === "won") {
-      let { degOffset } = this.global.Global.game.ecs.getEntity(
-        "wonGraphic"
-      ).Animation;
-      let shineCoords = this.spriteMap.shine;
-      let shineW = renderW + renderW * 0.4;
-      let shineH = shineW;
-      let shineX = x.start - renderW * 0.2;
-      let shineY = y.start - renderH * 0.2;
-      let radians = (degOffset * Math.PI) / 180;
-      let transX = shineX + shineW / 2;
-      let transY = shineY + shineH / 2;
-
-      this.ctx.save();
-      this.ctx.translate(transX, transY);
-      this.ctx.rotate(radians);
-      this.ctx.translate(-transX, -transY);
-
-      this.ctx.drawImage(
-        this.spriteSheet,
-        shineCoords.X,
-        shineCoords.Y,
-        75,
-        75,
-        shineX,
-        shineY,
-        shineW,
-        shineH
+      let { ix, iy, ih, iw } = this.drawShine(
+        graphicX,
+        graphicY,
+        graphicW,
+        graphicH
       );
-      this.ctx.restore();
-
-      // this.ctx.save();
-      // this.ctx.translate(transX, transY);
-      // this.ctx.rotate(-(radians));
-      // this.ctx.translate(-transX, -transY);
-
-      // this.ctx.drawImage(
-      //   this.spriteSheet,
-      //   shineCoords.X,
-      //   shineCoords.Y,
-      //   75,
-      //   75,
-      //   shineX,
-      //   shineY,
-      //   shineW,
-      //   shineH
-      // );
-      // this.ctx.restore();
+      graphicX = ix;
+      graphicY = iy;
+      graphicW = iw;
+      graphicH = ih;
     }
 
     this.ctx.drawImage(
@@ -641,13 +678,13 @@ export class RenderMenus extends EntityComponentSystem.System {
       spriteCoords.Y,
       spriteW,
       spriteH,
-      x.start,
-      y.start,
-      renderW,
-      renderH
+      graphicX,
+      graphicY,
+      graphicW,
+      graphicH
     );
 
-    return { graphicY: y.start, graphicH: renderH };
+    return containerH;
   }
 
   renderGameplayMenu(
@@ -657,15 +694,15 @@ export class RenderMenus extends EntityComponentSystem.System {
     mapWidth: number,
     mapHeight: number
   ) {
-    let { graphicY, graphicH } = this.drawGameplayMenuGraphic(
+    let containerH = this.drawGameplayMenuGraphic(
       menu,
       mapX,
       mapY,
       mapWidth,
       mapHeight
     );
-    let menuY = graphicY + graphicH;
-    let menuH = (mapHeight / 2.5) * 2 - mapHeight / 8;
+    let menuY = mapY + containerH;
+    let menuH = (mapHeight / 2.5) * 2 - mapHeight / 4;
 
     this.positionButtons(
       mapX,

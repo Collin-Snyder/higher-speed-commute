@@ -62,6 +62,7 @@ const spriteMap = {
   lostGraphic: { X: 425, Y: 275 },
   pausedGraphic: { X: 350, Y: 200 },
   shine: { X: 201, Y: 351 },
+  shiny: { X: 276, Y: 351 },
 };
 
 export default spriteMap;
