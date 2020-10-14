@@ -98,26 +98,19 @@ export class CollisionSystem extends ECS.System {
 
   handleMapCollisions(entity: Entity) {
     let mapCollision = this.detectMapCollision(entity);
-    let szStart, szEnd;
     switch (mapCollision) {
       case "boundary":
-        while (mapCollision === "boundary") {
-          this.stop(entity);
-          if (entity.Velocity.altVectors.length) {
-            entity.Velocity.vector = entity.Velocity.altVectors.shift();
-            this.move(entity);
-          } else {
-            break;
-          }
+        do {
+          this.revert(entity);
+          if (!entity.Velocity.altVectors.length) break;
+          entity.Velocity.vector = entity.Velocity.altVectors.shift();
+          this.move(entity);
           mapCollision = this.detectMapCollision(entity);
-        }
+        } while (mapCollision === "boundary");
         break;
       case "office":
-        if (entity.id === "player" && this.game.mode !== "won") {
-          this.game.publish("win");
-        } else if (entity.id === "boss" && this.game.mode !== "lost") {
-          this.game.publish("lose");
-        }
+        if (entity.id === "player") this.game.publish("win");
+        else if (entity.id === "boss") this.game.publish("lose");
         break;
       case "schoolZone":
         if (!entity.SchoolZone) {
@@ -183,7 +176,7 @@ export class CollisionSystem extends ECS.System {
         //if car is moving AND if car's pre-move location is NOT colliding with the light, then stop car
         if (this.checkForValidLightCollision(entity, c)) {
           this.game.publish("redLight", entity, c);
-          this.stop(entity);
+          this.revert(entity);
         }
       }
       if (c.has("Caffeine")) {
@@ -202,15 +195,19 @@ export class CollisionSystem extends ECS.System {
   }
 
   checkForValidLightCollision(entity: Entity, lightEntity: Entity) {
-    if (entity.Velocity.vector.X === 0 && entity.Velocity.vector.Y === 0) return false;
+    if (entity.Velocity.vector.X === 0 && entity.Velocity.vector.Y === 0)
+      return false;
     const speedConstant = calculateSpeedConstant(entity);
-    let prevEnt = {...entity, Coordinates: this.getPreviousCoordinate(
-      entity.Coordinates.X,
-      entity.Coordinates.Y,
-      entity.Velocity.vector.X,
-      entity.Velocity.vector.Y,
-      speedConstant
-    )};
+    let prevEnt = {
+      ...entity,
+      Coordinates: this.getPreviousCoordinate(
+        entity.Coordinates.X,
+        entity.Coordinates.Y,
+        entity.Velocity.vector.X,
+        entity.Velocity.vector.Y,
+        speedConstant
+      ),
+    };
     let prevCollision = this.checkEntityCollision(prevEnt, lightEntity);
     return !prevCollision;
   }
@@ -221,7 +218,7 @@ export class CollisionSystem extends ECS.System {
     entity.Coordinates.Y += entity.Velocity.vector.Y * speedConstant;
   }
 
-  stop(entity: Entity) {
+  revert(entity: Entity) {
     const speedConstant = calculateSpeedConstant(entity);
     let { X, Y } = this.getPreviousCoordinate(
       entity.Coordinates.X,
