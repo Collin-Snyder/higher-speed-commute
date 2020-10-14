@@ -575,11 +575,11 @@ export class RenderMenus extends EntityComponentSystem.System {
     let transX = graphicX + graphicW / 2;
     let transY = graphicY + graphicH / 2;
 
+    //rotate and draw clockwise shine
     this.ctx.save();
     this.ctx.translate(transX, transY);
     this.ctx.rotate(radians);
     this.ctx.translate(-transX, -transY);
-
     this.ctx.drawImage(
       this.spriteSheet,
       shineCoords.X,
@@ -593,11 +593,11 @@ export class RenderMenus extends EntityComponentSystem.System {
     );
     this.ctx.restore();
 
+    //rotate and draw counterclockwise shine
     this.ctx.save();
     this.ctx.translate(transX, transY);
     this.ctx.rotate(-radians);
     this.ctx.translate(-transX, -transY);
-
     this.ctx.drawImage(
       this.spriteSheet,
       shineCoords.X,
@@ -611,6 +611,7 @@ export class RenderMenus extends EntityComponentSystem.System {
     );
     this.ctx.restore();
 
+    //calculate position of trophy graphic within shine
     let trophyPosition = centerWithin(
       graphicX,
       graphicY,
@@ -626,6 +627,7 @@ export class RenderMenus extends EntityComponentSystem.System {
     graphicX = trophyPosition.x.start;
     graphicY = trophyPosition.y.start;
 
+    //return position/dimensions of inner trophy graphic
     return { ix: graphicX, iy: graphicY, iw: graphicW, ih: graphicH };
   }
 
@@ -637,6 +639,7 @@ export class RenderMenus extends EntityComponentSystem.System {
     mapH: number
   ) {
     let spriteCoords = this.spriteMap[`${menu}Graphic`];
+    let hasShine = menu === "won";
     let spriteW = 75;
     let spriteH = 75;
     let graphicH = mapH / 3;
@@ -659,7 +662,7 @@ export class RenderMenus extends EntityComponentSystem.System {
     graphicX = x.start;
     graphicY = y.start;
 
-    if (menu === "won") {
+    if (hasShine) {
       let { ix, iy, ih, iw } = this.drawShine(
         graphicX,
         graphicY,
