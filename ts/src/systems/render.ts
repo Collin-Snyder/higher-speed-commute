@@ -1,5 +1,5 @@
-import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
-import { centerWithin } from "../modules/gameMath";
+import EntityComponentSystem, { Entity, ECS, BaseComponent } from "@fritzy/ecs";
+import { centerWithin, getCenterPoint } from "../modules/gameMath";
 
 //systems must be added in this order
 
@@ -281,21 +281,20 @@ export class RenderMap extends EntityComponentSystem.System {
     }
     this.ctx.restore();
 
-    if (mode === "playing") {
-      let vb = mapEntity.ViewBox;
-      // console.log("View Box: ", vb)
-      this.ctx.drawImage(
-        <HTMLCanvasElement>document.getElementById("map-offscreen"),
-        vb.x,
-        vb.y,
-        vb.w,
-        vb.h,
-        coords.X,
-        coords.Y,
-        map.pixelWidth,
-        map.pixelHeight
-      );
-    }
+    // if (mode === "playing") {
+    //   let vb = mapEntity.ViewBox;
+    //   this.ctx.drawImage(
+    //     <HTMLCanvasElement>document.getElementById("map-offscreen"),
+    //     vb.x,
+    //     vb.y,
+    //     vb.w,
+    //     vb.h,
+    //     coords.X,
+    //     coords.Y,
+    //     map.pixelWidth,
+    //     map.pixelHeight
+    //   );
+    // }
 
     if (mode === "won" || mode === "lost") {
       this.ctx.save();
@@ -316,7 +315,8 @@ export class RenderGameplayEntities extends EntityComponentSystem.System {
 
   constructor(ecs: ECS, ctx: CanvasRenderingContext2D) {
     super(ecs);
-    this.ctx = ctx;
+    //@ts-ignore
+    this.ctx = document.getElementById("ents-offscreen").getContext("2d");
   }
 
   update(tick: number, entities: Set<Entity>) {
@@ -325,12 +325,6 @@ export class RenderGameplayEntities extends EntityComponentSystem.System {
     const mapCoords = global.map.Coordinates;
 
     if (mode === "playing") {
-      let bossEntity = this.ecs.getEntity("boss");
-      let playerEntity = this.ecs.getEntity("player");
-
-      entities.add(this.updateCarSprite(bossEntity, global.spriteMap));
-      entities.add(this.updateCarSprite(playerEntity, global.spriteMap));
-
       for (let entity of entities) {
         this.ctx.drawImage(
           global.spriteSheet,
@@ -338,13 +332,105 @@ export class RenderGameplayEntities extends EntityComponentSystem.System {
           entity.Renderable.spriteY,
           entity.Renderable.spriteWidth,
           entity.Renderable.spriteHeight,
-          entity.Coordinates.X + mapCoords.X,
-          entity.Coordinates.Y + mapCoords.Y,
+          entity.Coordinates.X,
+          entity.Coordinates.Y,
           entity.Renderable.renderWidth,
           entity.Renderable.renderHeight
         );
       }
     }
+  }
+}
+
+export class RenderViewBox extends EntityComponentSystem.System {
+  static query: { has?: string[]; hasnt?: string[] } = {
+    has: ["ViewBox"],
+  };
+  private ctx: CanvasRenderingContext2D;
+  private playerEntity: Entity;
+  private bossEntity: Entity;
+
+  constructor(ecs: ECS, ctx: CanvasRenderingContext2D) {
+    super(ecs);
+    this.ctx = ctx;
+    this.playerEntity = this.ecs.getEntity("player");
+    this.bossEntity = this.ecs.getEntity("boss");
+  }
+
+  update(tick: number, entities: Set<Entity>) {
+    const global = this.ecs.getEntity("global").Global;
+    let mode = global.game.mode;
+    let zoom = global.game.zoomFactor;
+    if (mode !== "playing") return;
+
+    let mapEntity = <Entity>entities.values().next().value;
+    this.updateViewbox(mapEntity, global);
+    let vb = mapEntity.ViewBox;
+    const coords = mapEntity.Coordinates;
+    const map = mapEntity.Map.map;
+    this.ctx.drawImage(
+      <HTMLCanvasElement>document.getElementById("map-offscreen"),
+      vb.x,
+      vb.y,
+      vb.w,
+      vb.h,
+      coords.X,
+      coords.Y,
+      map.pixelWidth,
+      map.pixelHeight
+    );
+    this.ctx.drawImage(
+      <HTMLCanvasElement>document.getElementById("ents-offscreen"),
+      vb.x,
+      vb.y,
+      vb.w,
+      vb.h,
+      coords.X,
+      coords.Y,
+      map.pixelWidth,
+      map.pixelHeight
+    );
+
+    this.renderCarSprite(
+      this.bossEntity,
+      global.spriteSheet,
+      global.spriteMap,
+      coords,
+      zoom,
+      mapEntity
+    );
+    this.renderCarSprite(
+      this.playerEntity,
+      global.spriteSheet,
+      global.spriteMap,
+      coords,
+      zoom,
+      mapEntity
+    );
+  }
+
+  updateViewbox(mapEntity: Entity, global: BaseComponent) {
+    let { ViewBox } = mapEntity;
+    let mapOffscreen = <HTMLCanvasElement>document.getElementById("map-offscreen");
+    let focusEnt = this.ecs.getEntity(global.game.focusView);
+    let { X, Y } = focusEnt.Coordinates;
+    let center = getCenterPoint(
+      X,
+      Y,
+      focusEnt.Renderable.renderWidth,
+      focusEnt.Renderable.renderHeight
+    );
+    let vbCenter = getCenterPoint(ViewBox.x, ViewBox.y, ViewBox.w, ViewBox.h);
+
+    ViewBox.x += (center.X - vbCenter.X) * (3 / 4);
+    ViewBox.y += (center.Y - vbCenter.Y) * (3 / 4);
+
+    if (ViewBox.x < 0) ViewBox.x = 0;
+    if (ViewBox.y < 0) ViewBox.y = 0;
+    if (ViewBox.x + ViewBox.w > mapOffscreen.width)
+      ViewBox.x = mapOffscreen.width - ViewBox.w;
+    if (ViewBox.y + ViewBox.h > mapOffscreen.height)
+      ViewBox.y = mapOffscreen.width - ViewBox.h;
   }
 
   updateCarSprite(entity: Entity, spriteMap: any) {
@@ -352,20 +438,10 @@ export class RenderGameplayEntities extends EntityComponentSystem.System {
     let { X, Y } = entity.Velocity.vector;
 
     if (!spriteName) spriteName = `${entity.Car.color}CarU`;
-    // else if (X > 0 && Y > 0) spriteName = `${entity.Car.color}CarDR`;
-    // else if (X < 0 && Y > 0) spriteName = `${entity.Car.color}CarDL`;
-    // else if (X < 0 && Y < 0) spriteName = `${entity.Car.color}CarUL`;
-    // else if (X > 0 && Y < 0) spriteName = `${entity.Car.color}CarUR`;
-    // else if (X > 0) spriteName = spriteName.replace("L", "R");
-    // else if (X < 0) spriteName = spriteName.replace("R", "L");
-    // else if (Y > 0) spriteName = spriteName.replace("U", "D");
-    // else if (Y < 0) spriteName = spriteName.replace("D", "U");
     else if (X > 0) spriteName = `${entity.Car.color}CarR`;
     else if (X < 0) spriteName = `${entity.Car.color}CarL`;
     else if (Y > 0) spriteName = `${entity.Car.color}CarD`;
     else if (Y < 0) spriteName = `${entity.Car.color}CarU`;
-    // else if (entity.Velocity.vector.X > 0) spriteName = `${entity.Car.color}CarR`;
-    // else if (entity.Velocity.vector.X < 0) spriteName = `${entity.Car.color}CarL`;
 
     if (spriteName) {
       let { X, Y } = spriteMap[spriteName];
@@ -375,6 +451,36 @@ export class RenderGameplayEntities extends EntityComponentSystem.System {
     }
 
     return entity;
+  }
+
+  renderCarSprite(
+    entity: Entity,
+    spriteSheet: any,
+    spriteMap: any,
+    mapCoords: any,
+    scaleFactor: number,
+    mapEntity: Entity
+  ) {
+    let { ViewBox } = mapEntity;
+
+    entity = this.updateCarSprite(entity, spriteMap);
+    //entity.Renderable.renderWidth = entity.Renderable.spriteWidth * scaleFactor;
+    //entity.Renderable.renderHeight = entity.Renderable.spriteHeight * scaleFactor;
+
+    let X = entity.Coordinates.X - ViewBox.x;
+    let Y = entity.Coordinates.Y - ViewBox.y;
+
+    this.ctx.drawImage(
+      spriteSheet,
+      entity.Renderable.spriteX,
+      entity.Renderable.spriteY,
+      entity.Renderable.spriteWidth,
+      entity.Renderable.spriteHeight,
+      mapCoords.X + (X * scaleFactor),
+      mapCoords.Y + (Y * scaleFactor),
+      entity.Renderable.renderWidth * scaleFactor,
+      entity.Renderable.renderHeight * scaleFactor
+    );
   }
 }
 

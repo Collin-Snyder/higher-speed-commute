@@ -103,6 +103,8 @@ export class InputSystem extends ECS.System {
     if (this.global.game.mode === "playing") {
       const playerEntity = entities.values().next().value;
       playerEntity.Velocity.altVectors = this.getPotentialVectors();
+      if (this.keyPressMap[keyCodes.B] && this.global.game.focusView !== "boss") this.global.game.focusView = "boss";
+      else if (!this.keyPressMap[keyCodes.B] && this.global.game.focusView !== "player") this.global.game.focusView = "player";
     }
   }
 

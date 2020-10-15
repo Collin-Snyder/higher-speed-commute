@@ -32,7 +32,8 @@ export class CollisionSystem extends ECS.System {
     this.collidables = [...entities];
     this.game = this.globalEntity.Global.game;
     this.map = this.globalEntity.Global.map.Map.map;
-    for (let change of this.changes) {
+    let changes = [...this.changes];
+    for (let change of changes) {
       let entity = change.component.entity;
       if (entity.has("Car")) {
         this.handleMapCollisions(entity);
@@ -100,13 +101,13 @@ export class CollisionSystem extends ECS.System {
     let mapCollision = this.detectMapCollision(entity);
     switch (mapCollision) {
       case "boundary":
-        do {
+        // do {
           this.revert(entity);
-          if (!entity.Velocity.altVectors.length) break;
-          entity.Velocity.vector = entity.Velocity.altVectors.shift();
-          this.move(entity);
-          mapCollision = this.detectMapCollision(entity);
-        } while (mapCollision === "boundary");
+        //   if (!entity.Velocity.altVectors.length) break;
+        //   entity.Velocity.vector = entity.Velocity.altVectors.shift();
+        //   this.move(entity);
+        //   mapCollision = this.detectMapCollision(entity);
+        // } while (mapCollision === "boundary");
         break;
       case "office":
         if (entity.id === "player") this.game.publish("win");

@@ -144,3 +144,7 @@ export function centerWithin(
 
   return { x, y };
 }
+
+export function getCenterPoint(x: number, y: number, w: number, h: number) {
+  return { X: x + w / 2, Y: y + h / 2 };
+}

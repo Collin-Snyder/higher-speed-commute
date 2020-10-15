@@ -56,7 +56,11 @@ export const Path = {
 
 export const Collision = {
   properties: {
-    fudgeFactor: 2
+    fudgeFactor: 2,
+    hbX: 0,
+    hbY: 0,
+    hbW: 0,
+    hbH: 0
   },
 };
 

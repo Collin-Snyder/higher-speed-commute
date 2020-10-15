@@ -21,11 +21,16 @@ import { MovementSystem } from "./systems/move";
 import { CollisionSystem } from "./systems/collision";
 import { CaffeineSystem } from "./systems/caffeine";
 import { RaceTimerSystem } from "./systems/timers";
-import { LevelStartAnimation, BackgroundAnimation, Animation } from "./systems/animations";
+import {
+  LevelStartAnimation,
+  BackgroundAnimation,
+  Animation,
+} from "./systems/animations";
 import {
   RenderBackground,
   RenderMap,
   RenderGameplayEntities,
+  RenderViewBox,
   RenderMenus,
   RenderButtonModifiers,
   RenderTopLevelGraphics,
@@ -79,6 +84,7 @@ export class Game {
   private map: MapGridInterface;
   public difficulty: "easy" | "medium" | "hard" | null;
   public focusView: "player" | "boss";
+  public zoomFactor: number;
   // public sounds: Sounds;
 
   constructor() {
@@ -100,6 +106,7 @@ export class Game {
     this.recordRaceData = true;
     this.difficulty = null;
     this.focusView = "player";
+    this.zoomFactor = 4;
     this.inputs = new InputEvents();
     // this.sounds = new Sounds(this);
     this.UICanvas = <HTMLCanvasElement>document.getElementById("ui");
@@ -146,7 +153,10 @@ export class Game {
         weight: 20,
         radius: 20,
       },
-      ViewBox: {}
+      ViewBox: {
+        w: 1000 / this.zoomFactor,
+        h: 625 / this.zoomFactor,
+      },
     });
 
     this.playerEntity = this.ecs.createEntity({
@@ -160,7 +170,10 @@ export class Game {
         color: "blue",
       },
       Velocity: {},
-      Renderable: {},
+      Renderable: {
+        renderWidth: 25 * (2 / 3),
+        renderHeight: 25 * (2 / 3),
+      },
       Collision: {},
     });
 
@@ -176,7 +189,10 @@ export class Game {
       Path: {
         driver: "boss",
       },
-      Renderable: {},
+      Renderable: {
+        renderWidth: 25 * (2 / 3),
+        renderHeight: 25 * (2 / 3),
+      },
       Collision: {},
     });
 
@@ -202,12 +218,12 @@ export class Game {
     this.ecs.addSystem("move", new MovementSystem(this.ecs));
     this.ecs.addSystem("collision", new CollisionSystem(this.ecs));
     this.ecs.addSystem("map", new MapSystem(this.ecs));
-    this.ecs.addSystem("viewbox", new ViewBoxSystem(this.ecs))
+    // this.ecs.addSystem("viewbox", new ViewBoxSystem(this.ecs));
     this.ecs.addSystem(
       "animations",
       new LevelStartAnimation(this.ecs, this.step, this.uictx)
     );
-    this.ecs.addSystem("animations", new Animation(this.ecs))
+    this.ecs.addSystem("animations", new Animation(this.ecs));
 
     this.loadMap = this.loadMap.bind(this);
   }
@@ -339,6 +355,7 @@ export class Game {
       "render",
       new RenderGameplayEntities(this.ecs, this.uictx)
     );
+    this.ecs.addSystem("render", new RenderViewBox(this.ecs, this.uictx));
     this.ecs.addSystem("render", new RenderMenus(this.ecs, this.uictx));
     this.ecs.addSystem(
       "render",
