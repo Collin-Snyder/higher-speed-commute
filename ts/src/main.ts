@@ -77,6 +77,7 @@ export class Game {
   private coffeeEntities: { [key: string]: Entity };
   private map: MapGridInterface;
   public difficulty: "easy" | "medium" | "hard" | null;
+  public focusView: "player" | "boss";
   // public sounds: Sounds;
 
   constructor() {
@@ -97,12 +98,9 @@ export class Game {
     this.currentRace = null;
     this.recordRaceData = true;
     this.difficulty = null;
-    // this.width = 1000;
-    // this.height = 625;
+    this.focusView = "player";
     this.inputs = new InputEvents();
     // this.sounds = new Sounds(this);
-    // this.gameCanvas = <HTMLCanvasElement>document.getElementById("game");
-    // this.gamectx = <CanvasRenderingContext2D>this.gameCanvas.getContext("2d");
     this.UICanvas = <HTMLCanvasElement>document.getElementById("ui");
     this.uictx = <CanvasRenderingContext2D>this.UICanvas.getContext("2d");
     this.subscribers = {};
