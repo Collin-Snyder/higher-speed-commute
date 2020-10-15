@@ -31,6 +31,7 @@ import {
   RenderTopLevelGraphics,
   RenderBorders,
 } from "./systems/render";
+import { ViewBoxSystem } from "./systems/viewbox";
 
 interface InputEventsInterface {
   mouseX: number;
@@ -145,6 +146,7 @@ export class Game {
         weight: 20,
         radius: 20,
       },
+      ViewBox: {}
     });
 
     this.playerEntity = this.ecs.createEntity({
@@ -200,6 +202,7 @@ export class Game {
     this.ecs.addSystem("move", new MovementSystem(this.ecs));
     this.ecs.addSystem("collision", new CollisionSystem(this.ecs));
     this.ecs.addSystem("map", new MapSystem(this.ecs));
+    this.ecs.addSystem("viewbox", new ViewBoxSystem(this.ecs))
     this.ecs.addSystem(
       "animations",
       new LevelStartAnimation(this.ecs, this.step, this.uictx)
@@ -428,6 +431,7 @@ export class Game {
       this.ecs.runSystemGroup("caffeine");
       this.ecs.runSystemGroup("move");
       this.ecs.runSystemGroup("collision");
+      this.ecs.runSystemGroup("viewbox");
       this.ecs.runSystemGroup("timers");
     }
 

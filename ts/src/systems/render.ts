@@ -227,7 +227,7 @@ export class RenderMap extends EntityComponentSystem.System {
     this.ctx.fillRect(coords.X, coords.Y, map.pixelWidth, map.pixelHeight);
 
     if (
-      mode === "playing" ||
+      // mode === "playing" ||
       mode === "designing" ||
       mode === "levelStartAnimation" ||
       mode === "won" ||
@@ -280,6 +280,22 @@ export class RenderMap extends EntityComponentSystem.System {
       }
     }
     this.ctx.restore();
+
+    if (mode === "playing") {
+      let vb = mapEntity.ViewBox;
+      // console.log("View Box: ", vb)
+      this.ctx.drawImage(
+        <HTMLCanvasElement>document.getElementById("map-offscreen"),
+        vb.x,
+        vb.y,
+        vb.w,
+        vb.h,
+        coords.X,
+        coords.Y,
+        map.pixelWidth,
+        map.pixelHeight
+      );
+    }
 
     if (mode === "won" || mode === "lost") {
       this.ctx.save();

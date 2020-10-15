@@ -16,6 +16,15 @@ export const TileMap = {
   },
 };
 
+export const ViewBox = {
+  properties: {
+    x: 0,
+    y: 0,
+    w: 0,
+    h: 0
+  }
+}
+
 export const Border = {
   properties: {
     weight: 0,

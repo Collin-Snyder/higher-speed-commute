@@ -2,6 +2,8 @@ export const Coordinates = {
   properties: {
     X: 0,
     Y: 0,
+    prevX: 0,
+    prevY: 0
   },
 };
 

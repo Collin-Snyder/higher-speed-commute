@@ -125,7 +125,8 @@ export class MapSystem extends EntityComponentSystem.System {
 
   drawOffscreenMap(mapEntity: any) {
     let newMap = mapEntity.Map.map;
-    let tileMap = newMap.generateTileMap();
+    let tileMap = mapEntity.TileMap;
+    let tiles = newMap.generateTileMap();
     let global = this.ecs.getEntity("global").Global;
 
     let x = 0;
@@ -139,7 +140,7 @@ export class MapSystem extends EntityComponentSystem.System {
       this.mapOffscreen.height
     );
 
-    for (let tile of tileMap.tiles) {
+    for (let tile of tiles) {
       if (tile) {
         if (typeof tile === "string") {
           let tileCoords = global.spriteMap[tile];
