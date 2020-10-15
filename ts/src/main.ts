@@ -338,12 +338,12 @@ export class Game {
     this.globalEntity.Global.spriteMap = this.spriteMap;
 
     let playerSpriteCoords = this.spriteMap[
-      `${this.playerEntity.Car.color}Car`
+      `${this.playerEntity.Car.color}CarU`
     ];
     this.playerEntity.Renderable.spriteX = playerSpriteCoords.X;
     this.playerEntity.Renderable.spriteY = playerSpriteCoords.Y;
 
-    let bossSpriteCoords = this.spriteMap[`${this.bossEntity.Car.color}Car`];
+    let bossSpriteCoords = this.spriteMap[`${this.bossEntity.Car.color}CarU`];
     this.bossEntity.Renderable.spriteX = bossSpriteCoords.X;
     this.bossEntity.Renderable.spriteY = bossSpriteCoords.Y;
 

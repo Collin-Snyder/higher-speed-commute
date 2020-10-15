@@ -12,8 +12,9 @@ export class MovementSystem extends ECS.System {
   }
 
   update(tick: number, entities: Set<Entity>) {
-    let mode = this.ecs.getEntity("global").Global.game.mode;
-    if (mode !== "playing") return;
+    let game = this.ecs.getEntity("global").Global.game;
+    let {mode, focusView} = game;
+    if (mode !== "playing" || focusView !== "player") return;
 
     const playerEntity = this.ecs
       .queryEntities({ has: ["Car", "Velocity"], hasnt: ["Path"] })

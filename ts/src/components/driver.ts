@@ -42,7 +42,8 @@ export const Renderable = {
     alpha: 1,
     bgColor: `rgba(0, 0, 0, 0)`,
     visible: true,
-    prevSpriteName: null
+    prevSpriteName: null,
+    radians: 0
   },
 };
 

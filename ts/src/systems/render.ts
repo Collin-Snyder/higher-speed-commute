@@ -1,5 +1,9 @@
 import EntityComponentSystem, { Entity, ECS, BaseComponent } from "@fritzy/ecs";
-import { centerWithin, getCenterPoint } from "../modules/gameMath";
+import {
+  centerWithin,
+  getCenterPoint,
+  degreesToRadians,
+} from "../modules/gameMath";
 
 //systems must be added in this order
 
@@ -411,7 +415,9 @@ export class RenderViewBox extends EntityComponentSystem.System {
 
   updateViewbox(mapEntity: Entity, global: BaseComponent) {
     let { ViewBox } = mapEntity;
-    let mapOffscreen = <HTMLCanvasElement>document.getElementById("map-offscreen");
+    let mapOffscreen = <HTMLCanvasElement>(
+      document.getElementById("map-offscreen")
+    );
     let focusEnt = this.ecs.getEntity(global.game.focusView);
     let { X, Y } = focusEnt.Coordinates;
     let center = getCenterPoint(
@@ -433,24 +439,20 @@ export class RenderViewBox extends EntityComponentSystem.System {
       ViewBox.y = mapOffscreen.width - ViewBox.h;
   }
 
-  updateCarSprite(entity: Entity, spriteMap: any) {
-    let spriteName = entity.Renderable.prevSpriteName;
+  getCarRotationRadians(entity: Entity) {
     let { X, Y } = entity.Velocity.vector;
 
-    if (!spriteName) spriteName = `${entity.Car.color}CarU`;
-    else if (X > 0) spriteName = `${entity.Car.color}CarR`;
-    else if (X < 0) spriteName = `${entity.Car.color}CarL`;
-    else if (Y > 0) spriteName = `${entity.Car.color}CarD`;
-    else if (Y < 0) spriteName = `${entity.Car.color}CarU`;
-
-    if (spriteName) {
-      let { X, Y } = spriteMap[spriteName];
-      entity.Renderable.spriteX = X;
-      entity.Renderable.spriteY = Y;
-      entity.Renderable.prevSpriteName = spriteName;
-    }
-
-    return entity;
+    if (X === 0 && Y === 0) return -1;
+    //will need to update vector/altVector calculation and collision handling to make this work
+    // if (X > 0 && Y < 0) return degreesToRadians(45);
+    // if (X > 0 && Y > 0) return degreesToRadians(135);
+    // if (X < 0 && Y > 0) return degreesToRadians(225);
+    // if (X < 0 && Y < 0) return degreesToRadians(315);
+    if (Y < 0) return 0;
+    if (X > 0) return degreesToRadians(90);
+    if (Y > 0) return degreesToRadians(180);
+    if (X < 0) return degreesToRadians(270);
+    return -1;
   }
 
   renderCarSprite(
@@ -463,24 +465,39 @@ export class RenderViewBox extends EntityComponentSystem.System {
   ) {
     let { ViewBox } = mapEntity;
 
-    entity = this.updateCarSprite(entity, spriteMap);
-    //entity.Renderable.renderWidth = entity.Renderable.spriteWidth * scaleFactor;
-    //entity.Renderable.renderHeight = entity.Renderable.spriteHeight * scaleFactor;
+    // entity = this.updateCarSprite(entity, spriteMap);
 
     let X = entity.Coordinates.X - ViewBox.x;
     let Y = entity.Coordinates.Y - ViewBox.y;
 
+    //rotate car sprite
+    let r = this.getCarRotationRadians(entity);
+    if (r >= 0) entity.Renderable.radians = r;
+
+    let dx = mapCoords.X + X * scaleFactor;
+    let dy = mapCoords.Y + Y * scaleFactor;
+    let dw = entity.Renderable.renderWidth * scaleFactor;
+    let dh = entity.Renderable.renderHeight * scaleFactor;
+    let trans = getCenterPoint(dx, dy, dw, dh);
+    
+    this.ctx.save();
+    this.ctx.translate(trans.X, trans.Y);
+    this.ctx.rotate(entity.Renderable.radians);
+    this.ctx.translate(-trans.X, -trans.Y);
     this.ctx.drawImage(
       spriteSheet,
       entity.Renderable.spriteX,
       entity.Renderable.spriteY,
       entity.Renderable.spriteWidth,
       entity.Renderable.spriteHeight,
-      mapCoords.X + (X * scaleFactor),
-      mapCoords.Y + (Y * scaleFactor),
-      entity.Renderable.renderWidth * scaleFactor,
-      entity.Renderable.renderHeight * scaleFactor
+      dx,
+      dy,
+      dw,
+      dh
     );
+    this.ctx.restore();
+
+    //update car's hitbox
   }
 }
 

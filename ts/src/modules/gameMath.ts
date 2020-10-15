@@ -148,3 +148,7 @@ export function centerWithin(
 export function getCenterPoint(x: number, y: number, w: number, h: number) {
   return { X: x + w / 2, Y: y + h / 2 };
 }
+
+export function degreesToRadians(deg: number) {
+  return deg * (Math.PI / 180);
+}

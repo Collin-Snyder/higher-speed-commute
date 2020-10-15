@@ -230,5 +230,7 @@ export class CollisionSystem extends ECS.System {
     );
     entity.Coordinates.X = X;
     entity.Coordinates.Y = Y;
+    // entity.Velocity.vector.X = 0;
+    // entity.Velocity.vector.Y = 0;
   }
 }
