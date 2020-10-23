@@ -385,6 +385,7 @@ export class RenderViewBox extends EntityComponentSystem.System {
   private ctx: CanvasRenderingContext2D;
   private playerEntity: Entity;
   private bossEntity: Entity;
+  private refColors: { [key: string]: string };
 
   constructor(ecs: ECS, ctx: CanvasRenderingContext2D) {
     super(ecs);
@@ -392,12 +393,21 @@ export class RenderViewBox extends EntityComponentSystem.System {
 
     this.playerEntity = this.ecs.getEntity("player");
     this.bossEntity = this.ecs.getEntity("boss");
+    this.refColors = {
+      playerHome: "#0058cf",
+      player: "#007eff",
+      bossHome: "#eb3626",
+      boss: "#ff3600",
+      office: "#f0d31a",
+      street: "#878787",
+    };
   }
 
   update(tick: number, entities: Set<Entity>) {
     const global = this.ecs.getEntity("global").Global;
     let mode = global.game.mode;
     let zoom = global.game.zoomFactor;
+    let mapView = global.game.mapView;
     if (mode !== "playing") return;
 
     let mapEntity = <Entity>entities.values().next().value;
@@ -405,57 +415,61 @@ export class RenderViewBox extends EntityComponentSystem.System {
     let vb = mapEntity.ViewBox;
     const coords = mapEntity.Coordinates;
     const map = mapEntity.Map.map;
-    this.ctx.drawImage(
-      <HTMLCanvasElement>document.getElementById("map-offscreen"),
-      vb.x,
-      vb.y,
-      vb.w,
-      vb.h,
-      coords.X,
-      coords.Y,
-      map.pixelWidth,
-      map.pixelHeight
-    );
-    this.ctx.drawImage(
-      <HTMLCanvasElement>document.getElementById("ents-offscreen"),
-      vb.x,
-      vb.y,
-      vb.w,
-      vb.h,
-      coords.X,
-      coords.Y,
-      map.pixelWidth,
-      map.pixelHeight
-    );
-
-    if (this.carInViewbox(this.bossEntity, vb)) {
-      this.renderCarSprite(
-        this.bossEntity,
-        global.spriteSheet,
-        global.spriteMap,
-        coords,
-        zoom,
-        mapEntity
-      );
-    }
-    if (this.carInViewbox(this.playerEntity, vb)) {
-      this.renderCarSprite(
-        this.playerEntity,
-        global.spriteSheet,
-        global.spriteMap,
-        coords,
-        zoom,
-        mapEntity
-      );
-    }
-
-    if (global.game.focusView === "boss") {
-      this.drawBossBorder(
+    if (mapView) {
+      this.renderReferenceMap(map, coords.X, coords.Y, vb);
+    } else {
+      this.ctx.drawImage(
+        <HTMLCanvasElement>document.getElementById("map-offscreen"),
+        vb.x,
+        vb.y,
+        vb.w,
+        vb.h,
         coords.X,
         coords.Y,
-        mapEntity.Renderable.renderWidth,
-        mapEntity.Renderable.renderHeight
+        map.pixelWidth,
+        map.pixelHeight
       );
+      this.ctx.drawImage(
+        <HTMLCanvasElement>document.getElementById("ents-offscreen"),
+        vb.x,
+        vb.y,
+        vb.w,
+        vb.h,
+        coords.X,
+        coords.Y,
+        map.pixelWidth,
+        map.pixelHeight
+      );
+
+      if (this.carInViewbox(this.bossEntity, vb)) {
+        this.renderCarSprite(
+          this.bossEntity,
+          global.spriteSheet,
+          global.spriteMap,
+          coords,
+          zoom,
+          mapEntity
+        );
+      }
+      if (this.carInViewbox(this.playerEntity, vb)) {
+        this.renderCarSprite(
+          this.playerEntity,
+          global.spriteSheet,
+          global.spriteMap,
+          coords,
+          zoom,
+          mapEntity
+        );
+      }
+
+      if (global.game.focusView === "boss") {
+        this.drawBossBorder(
+          coords.X,
+          coords.Y,
+          mapEntity.Renderable.renderWidth,
+          mapEntity.Renderable.renderHeight
+        );
+      }
     }
   }
 
@@ -583,7 +597,7 @@ export class RenderViewBox extends EntityComponentSystem.System {
     this.ctx.lineTo(mapx + mapw - weight, mapy + weight);
     this.ctx.lineTo(mapx + mapw - weight, mapy + maph - weight);
     this.ctx.lineTo(mapx + weight, mapy + maph - weight);
-    this.ctx.lineTo(mapx + weight / 2, mapy + weight /2);
+    this.ctx.lineTo(mapx + weight / 2, mapy + weight / 2);
     this.ctx.globalAlpha = 0.5;
     this.ctx.stroke();
     this.ctx.moveTo(mapx + weight, mapy + weight);
@@ -593,6 +607,76 @@ export class RenderViewBox extends EntityComponentSystem.System {
     this.ctx.lineTo(mapx + weight, mapy + weight);
     this.ctx.globalAlpha = 0.25;
     this.ctx.stroke();
+    this.ctx.restore();
+  }
+
+  renderReferenceMap(map: any, mapx: number, mapy: number, vb: any) {
+    //fill map with dark gray color
+    this.ctx.fillStyle = "#313131";
+    this.ctx.fillRect(mapx, mapy, map.pixelWidth, map.pixelHeight);
+    //draw tiles on top of it in lighter gray color
+    let tiles = map.generateReferenceTileMap();
+    let x = 0;
+    let y = 0;
+    let s = 25;
+    for (let tile of tiles) {
+      if (tile) {
+        this.drawSquare(x * s + mapx , y * s + mapy, s, this.refColors[tile]);
+        // this.ctx.drawImage(
+        //   global.spriteSheet,
+        //   tileCoords.X,
+        //   tileCoords.Y,
+        //   tileMap.tileWidth,
+        //   tileMap.tileHeight,
+        //   x * tileMap.tileWidth + coords.X,
+        //   y * tileMap.tileHeight + coords.Y,
+        //   tileMap.tileWidth,
+        //   tileMap.tileHeight
+        // );
+      }
+      if (++x >= map.width) {
+        x = 0;
+        y++;
+      }
+    }
+    //render viewbox with white lines
+    this.drawRefViewbox(vb, mapx, mapy);
+    //render boss car with pulsing red dot
+    this.drawRefCar(this.bossEntity, mapx, mapy);
+    //render player car with pulsing blue dot
+    this.drawRefCar(this.playerEntity, mapx, mapy);
+  }
+
+  drawSquare(x: number, y: number, s: number, color: string) {
+    this.ctx.save();
+    this.ctx.fillStyle = color;
+    this.ctx.fillRect(x, y, s, s);
+    this.ctx.restore();
+  }
+
+  drawRefViewbox(vb: any, mapx: number, mapy: number) {
+    let x = vb.x + mapx;
+    let y = vb.y + mapy;
+    this.ctx.save();
+    this.ctx.beginPath();
+    this.ctx.strokeStyle = "#fff";
+    this.ctx.lineWidth = 3;
+    this.ctx.moveTo(x, y);
+    this.ctx.lineTo(x + vb.w, y);
+    this.ctx.lineTo(x + vb.w, y + vb.h);
+    this.ctx.lineTo(x, y + vb.h);
+    this.ctx.lineTo(x, y);
+    this.ctx.stroke();
+    this.ctx.restore();
+  }
+
+  drawRefCar(entity: Entity, mapx: number, mapy: number) {
+    let { X, Y } = entity.Collision.currentCp();
+    this.ctx.save();
+    this.ctx.beginPath();
+    this.ctx.arc(X + mapx, Y + mapy, 9, 0, 2 * Math.PI);
+    this.ctx.fillStyle = this.refColors[entity.id];
+    this.ctx.fill();
     this.ctx.restore();
   }
 }

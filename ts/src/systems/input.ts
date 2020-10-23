@@ -10,6 +10,7 @@ export class InputSystem extends ECS.System {
   public spaceBarDebounce: number;
   public lastMousedown: boolean;
   public lastSpaceDown: boolean;
+  public lastMDown: boolean;
   public startMouseX: number;
   public startMouseY: number;
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -23,6 +24,7 @@ export class InputSystem extends ECS.System {
     this.spaceBarDebounce = 20;
     this.lastMousedown = false;
     this.lastSpaceDown = false;
+    this.lastMDown = false;
     this.startMouseX = 0;
     this.startMouseY = 0;
   }
@@ -35,7 +37,7 @@ export class InputSystem extends ECS.System {
     let dragging = this.global.inputs.dragging;
 
     //handle spacebar input
-    if (mode === "playing" || mode === "paused") this.handleSpacebar(mode);
+    if (mode === "playing" || mode === "paused") this.handlePauseResume(mode);
 
     //handle mouse inputs
     let clickable = this.ecs.queryEntities({
@@ -103,13 +105,18 @@ export class InputSystem extends ECS.System {
     if (this.global.game.mode === "playing") {
       const playerEntity = entities.values().next().value;
       playerEntity.Velocity.altVectors = this.getPotentialVectors();
-      if (this.keyPressMap[keyCodes.B] && this.global.game.focusView !== "boss")
+      this.handleMapView();
+      if (
+        this.keyPressMap[keyCodes.B] &&
+        this.global.game.focusView !== "boss"
+      ) {
         this.global.game.focusView = "boss";
-      else if (
+      } else if (
         !this.keyPressMap[keyCodes.B] &&
         this.global.game.focusView !== "player"
-      )
+      ) {
         this.global.game.focusView = "player";
+      }
     }
   }
 
@@ -143,11 +150,11 @@ export class InputSystem extends ECS.System {
     if (isDown) potentials.push(down);
 
     if (!potentials.length) potentials.push({ X: 0, Y: 0 });
-    
+
     return potentials;
   }
 
-  handleSpacebar(mode: string) {
+  handlePauseResume(mode: string) {
     let spaceDown = this.keyPressMap[keyCodes.SPACE];
     if (spaceDown && !this.lastSpaceDown) {
       mode === "paused"
@@ -156,6 +163,16 @@ export class InputSystem extends ECS.System {
       this.lastSpaceDown = spaceDown;
     } else if (!spaceDown && this.lastSpaceDown) {
       this.lastSpaceDown = spaceDown;
+    }
+  }
+
+  handleMapView() {
+    let mDown = this.keyPressMap[keyCodes.M];
+    if (mDown && !this.lastMDown) {
+      this.global.game.mapView = !this.global.game.mapView;
+      this.lastMDown = mDown;
+    } else if (!mDown && this.lastMDown) {
+      this.lastMDown = mDown;
     }
   }
 

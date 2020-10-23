@@ -14,7 +14,7 @@ export const ParallaxLayer = {
 export const Animation = {
   properties: {
     currentFrame: 0,
-    frames: [],
+    frameStep: 0,
     loop: false,
     startSprite: { X: 0, Y: 0 },
     xOffset: 0,
@@ -25,3 +25,19 @@ export const Animation = {
     degStep: 0
   },
 };
+
+//maybe have separate animation components - Animation vs AnimationFrame
+//all animating entities have an Animation component
+//some entities can have AnimationFrame components - discrete system for handling frame-based animation
+
+export const AnimationFrame = {
+  multiset: true,
+  properties: {
+    spriteX: 0,
+    spriteY: 0,
+    spriteW: 0,
+    spriteH: 0,
+    alpha: 1,
+    frameAction: null, //can pass function here to be run in lieu of subbing out sprites
+  }
+}

@@ -114,7 +114,7 @@ export class MapGrid implements MapGridInterface {
     newMap.office = office;
     newMap.lights = lights;
     newMap.coffees = coffees;
-    
+
     for (let i = 0; i < squares.length; i++) {
       newMap.squares[i].drivable = squares[i].drivable;
       newMap.squares[i].schoolZone = squares[i].schoolZone;
@@ -219,6 +219,16 @@ export class MapGrid implements MapGridInterface {
         }
         if (valid) return "house";
       }
+      return "";
+    });
+  }
+
+  generateReferenceTileMap(): Tile[] {
+    return this.squares.map((s: SquareInterface) => {
+      if (this.playerHome === s.id) return "playerHome";
+      if (this.bossHome === s.id) return "bossHome";
+      if (this.office === s.id) return "office";
+      if (s.drivable) return "street";
       return "";
     });
   }
@@ -502,15 +512,15 @@ export class DesignMapGrid extends MapGrid {
   ) {
     let id = square.id;
     let tileChanges = [];
-      if (square.drivable && square.schoolZone && !drawing) {
-        editor.execute("makeNotSchoolZone", id);
-        editor.execute("makeNotDrivable", id);
-      } else if (square.drivable && !square.schoolZone) {
-        editor.execute("makeSchoolZone", id);
-      } else if (!square.drivable && !square.schoolZone) {
-        editor.execute("makeDrivable", id);
-        editor.execute("makeSchoolZone", id);
-      }
+    if (square.drivable && square.schoolZone && !drawing) {
+      editor.execute("makeNotSchoolZone", id);
+      editor.execute("makeNotDrivable", id);
+    } else if (square.drivable && !square.schoolZone) {
+      editor.execute("makeSchoolZone", id);
+    } else if (!square.drivable && !square.schoolZone) {
+      editor.execute("makeDrivable", id);
+      editor.execute("makeSchoolZone", id);
+    }
     tileChanges.push(id);
     return tileChanges;
   }

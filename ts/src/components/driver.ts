@@ -61,7 +61,8 @@ export const Collision = {
     fudgeFactor: 2,
     hb: [],
     cp: {X: 0, Y: 0},
-    currentHb: () => {}
+    currentHb: () => {},
+    currentCp: () => {}
   },
 };
 

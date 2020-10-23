@@ -278,15 +278,6 @@ export class LevelStartAnimation extends StateAnimation {
   }
 }
 
-//gameboard fades in (500 ms/ 1/30s)
-//1s pause
-//key squares appear (add "pop" animations later) - 300ms gap?
-//1s pause
-//countdown 3...2...1...
-//whole map spirals in (3s during countdown)
-//go!
-//cars appear and boss starts
-
 export class BackgroundAnimation extends EntityComponentSystem.System {
   constructor(ecs: any) {
     super(ecs);

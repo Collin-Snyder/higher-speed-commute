@@ -91,6 +91,7 @@ export class Game {
   private map: MapGridInterface;
   public difficulty: "easy" | "medium" | "hard" | null;
   public focusView: "player" | "boss";
+  public mapView: boolean;
   public zoomFactor: number;
   // public sounds: Sounds;
 
@@ -113,6 +114,7 @@ export class Game {
     this.recordRaceData = true;
     this.difficulty = null;
     this.focusView = "player";
+    this.mapView = false;
     this.zoomFactor = 4;
     this.inputs = new InputEvents();
     // this.sounds = new Sounds(this);
@@ -195,6 +197,16 @@ export class Game {
       return hb.map(({ X, Y }) => findRotatedVertex(X, Y, cpx, cpy, deg));
     };
 
+    let getCurrentCp = function() {
+      //@ts-ignore
+      let entity = <Entity>(<unknown>this);
+      let { hb, cp } = entity.Collision;
+      let c = entity.Coordinates;
+      let cpx = cp.X + c.X;
+      let cpy = cp.Y + c.Y;
+      return { X: cpx, Y: cpy };
+    };
+
     this.playerEntity = this.ecs.createEntity({
       id: "player",
       Coordinates: {
@@ -235,7 +247,11 @@ export class Game {
     this.playerEntity.Collision.currentHb = getCurrentHb.bind(
       this.playerEntity
     );
+    this.playerEntity.Collision.currentCp = getCurrentCp.bind(
+      this.playerEntity
+    );
     this.bossEntity.Collision.currentHb = getCurrentHb.bind(this.bossEntity);
+    this.bossEntity.Collision.currentCp = getCurrentCp.bind(this.bossEntity);
 
     this.lightEntities = {};
     this.coffeeEntities = {};

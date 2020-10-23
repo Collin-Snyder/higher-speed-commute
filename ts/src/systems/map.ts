@@ -78,6 +78,10 @@ export class MapSystem extends EntityComponentSystem.System {
         //@ts-ignore
         return this.Collision.hb;
       }.bind(ent);
+      ent.Collision.currentCp = function() {
+        //@ts-ignore
+        return this.Collision.cp;
+      }.bind(ent);
     }
   }
 
@@ -119,6 +123,10 @@ export class MapSystem extends EntityComponentSystem.System {
       ent.Collision.currentHb = function() {
         //@ts-ignore
         return this.Collision.hb;
+      }.bind(ent);
+      ent.Collision.currentCp = function() {
+        //@ts-ignore
+        return this.Collision.cp;
       }.bind(ent);
     }
   }

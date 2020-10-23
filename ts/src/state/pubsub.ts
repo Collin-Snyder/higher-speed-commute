@@ -157,7 +157,7 @@ class GameModeMachine {
             id: "wonGraphic",
             Coordinates: {},
             Animation: { startSprite: game.spriteMap.shiny, degStep: 1 },
-            Renderable: {}
+            Renderable: {},
           });
         }
 
@@ -237,6 +237,11 @@ class GameModeMachine {
         mapEntity.Renderable.bgColor = "lightgray";
         game.mode = "paused";
       },
+      onviewMap: function() {
+        let game = <Game>(<unknown>this);
+        game.mapView = true;
+        game.mode = "paused";
+      },
       onresume: function() {
         //hide paused menu
         let game = <Game>(<unknown>this);
@@ -246,9 +251,10 @@ class GameModeMachine {
           has: ["menu", "gameplay", "paused"],
         });
         for (let entity of entities) {
-          entity.addTag("noninteractive");
+          if (!entity.has("noninteractive")) entity.addTag("noninteractive");
         }
         mapEntity.Renderable.bgColor = "#81c76d";
+        game.mapView = false;
         game.mode = "playing";
       },
       onrestart: function() {
@@ -452,6 +458,7 @@ class GameModeMachine {
         to: "playing",
       },
       { name: "pause", from: ["playing", "starting"], to: "paused" },
+      { name: "viewMap", from: "playing", to: "paused" },
       { name: "resume", from: "paused", to: "playing" },
       { name: "restart", from: ["paused", "won", "lost"], to: "playing" },
       { name: "win", from: "playing", to: "won" },

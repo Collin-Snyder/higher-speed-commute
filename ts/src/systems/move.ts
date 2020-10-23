@@ -18,12 +18,12 @@ export class MovementSystem extends ECS.System {
 
   update(tick: number, entities: Set<Entity>) {
     let game = this.ecs.getEntity("global").Global.game;
-    let { mode, focusView } = game;
+    let { mode, focusView, mapView } = game;
     if (mode !== "playing") return;
 
     for (let entity of entities) {
       if (entity.has("Path")) this.handleNPCMovement(entity);
-      else if (focusView === "player") this.handlePlayerMovement(entity);
+      else if (focusView === "player" && !mapView) this.handlePlayerMovement(entity);
     }
   }
 
