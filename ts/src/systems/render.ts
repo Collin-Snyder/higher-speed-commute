@@ -488,8 +488,10 @@ export class RenderViewBox extends EntityComponentSystem.System {
     );
     let vbCenter = getCenterPoint(ViewBox.x, ViewBox.y, ViewBox.w, ViewBox.h);
 
-    ViewBox.x += (center.X - vbCenter.X) * (3 / 4);
-    ViewBox.y += (center.Y - vbCenter.Y) * (3 / 4);
+    // ViewBox.x += (center.X - vbCenter.X) * (3 / 4);
+    // ViewBox.y += (center.Y - vbCenter.Y) * (3 / 4);
+    ViewBox.x += (center.X - vbCenter.X) * (1 / 8);
+    ViewBox.y += (center.Y - vbCenter.Y) * (1 / 8);
 
     if (ViewBox.x < 0) ViewBox.x = 0;
     if (ViewBox.y < 0) ViewBox.y = 0;
@@ -621,7 +623,7 @@ export class RenderViewBox extends EntityComponentSystem.System {
     let s = 25;
     for (let tile of tiles) {
       if (tile) {
-        this.drawSquare(x * s + mapx , y * s + mapy, s, this.refColors[tile]);
+        this.drawSquare(x * s + mapx, y * s + mapy, s, this.refColors[tile]);
         // this.ctx.drawImage(
         //   global.spriteSheet,
         //   tileCoords.X,

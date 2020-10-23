@@ -15,6 +15,7 @@ export const Animation = {
   properties: {
     currentFrame: 0,
     frameStep: 0,
+    frames: [],
     loop: false,
     startSprite: { X: 0, Y: 0 },
     xOffset: 0,

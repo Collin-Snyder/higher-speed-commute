@@ -251,7 +251,7 @@ export class MapGrid implements MapGridInterface {
     let toInclude: SquareInterface[] = [];
     let sqCount = calculateSurroundingSquareCount(layers);
     let count = 0;
-
+    
     queue.put(startSquare);
     visited[startSquare.id] = true;
     toInclude.push(startSquare);

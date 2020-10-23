@@ -126,7 +126,7 @@ class GameModeMachine {
         let game = <Game>(<unknown>this);
         game.startRace();
         const mapEntity = game.ecs.getEntity("map");
-        mapEntity.Renderable.bgColor = "#81c76d";
+        game.mapView = false;
         game.mode = "playing";
       },
       onwin: function() {
@@ -235,11 +235,6 @@ class GameModeMachine {
         }
 
         mapEntity.Renderable.bgColor = "lightgray";
-        game.mode = "paused";
-      },
-      onviewMap: function() {
-        let game = <Game>(<unknown>this);
-        game.mapView = true;
         game.mode = "paused";
       },
       onresume: function() {
@@ -458,7 +453,6 @@ class GameModeMachine {
         to: "playing",
       },
       { name: "pause", from: ["playing", "starting"], to: "paused" },
-      { name: "viewMap", from: "playing", to: "paused" },
       { name: "resume", from: "paused", to: "playing" },
       { name: "restart", from: ["paused", "won", "lost"], to: "playing" },
       { name: "win", from: "playing", to: "won" },

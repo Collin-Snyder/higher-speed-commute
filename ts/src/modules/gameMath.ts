@@ -1,6 +1,6 @@
 import { Entity } from "@fritzy/ecs";
 import { couldStartTrivia } from "../../../node_modules/typescript/lib/typescript";
-const {abs, cos, sin} = Math;
+const { abs, cos, sin } = Math;
 
 export interface VectorInterface {
   X: number;
@@ -156,11 +156,11 @@ export function getCenterPoint(x: number, y: number, w: number, h: number) {
 }
 
 export function degreesToRadians(deg: number): number {
-  return deg * Math.PI / 180;
+  return (deg * Math.PI) / 180;
 }
 
 export function radiansToDegrees(rad: number): number {
-  return rad * 180 / Math.PI;
+  return (rad * 180) / Math.PI;
 }
 
 export function scaleVector(v: VectorInterface, s: number): VectorInterface {
@@ -231,7 +231,7 @@ export function findDegFromVector(v: VectorInterface): number {
 //   return { X, Y };
 // }
 
-export function findRotatedVertex(  
+export function findRotatedVertex(
   vx: number,
   vy: number,
   cx: number,
@@ -252,7 +252,7 @@ export function findRotatedVertex(
   let X = nx + cx;
   let Y = ny + cy;
   //return new vertex
-  return {X, Y};
+  return { X, Y };
 }
 
 export function getTileHitbox(
@@ -279,8 +279,10 @@ export function checkCollision(
     if (next === hb1.length) next = 0;
     let vc = hb1[curr];
     let vn = hb1[next];
-    let hit = checkSideCollision(hb2, vc.X, vc.Y, vn.X, vn.Y);
-    if (hit) return hit;
+    let collision = checkSideCollision(hb2, vc.X, vc.Y, vn.X, vn.Y);
+    if (collision) return true;
+    collision = checkInteriorCollision(hb2, hb1[0].X, hb1[0].Y);
+    if (collision) return true;
   }
   return false;
 }
@@ -327,6 +329,24 @@ function checkLineCollision(
   let Y = y1 + ua * (y2 - y1);
 
   return { X, Y };
+}
+
+function checkInteriorCollision(hb: VectorInterface[], px: number, py: number) {
+  let collision = false;
+  let next = 0;
+  for (let curr = 0; curr < hb.length; curr++) {
+    next = curr + 1;
+    if (next === hb.length) next = 0;
+    let vc = hb[curr];
+    let vn = hb[next];
+    if (
+      ((vc.Y > py && vn.Y < py) || (vc.Y < py && vn.Y > py)) &&
+      px < ((vn.X - vc.X) * (py - vc.Y)) / (vn.Y - vc.Y) + vc.X
+    ) {
+      collision = !collision;
+    }
+  }
+  return collision;
 }
 
 //@ts-ignore
