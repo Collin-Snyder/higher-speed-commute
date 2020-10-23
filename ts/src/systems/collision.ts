@@ -70,7 +70,12 @@ export class CollisionSystem extends ECS.System {
       case "schoolZone":
         if (!entity.SchoolZone) {
           if (entity.id === "boss") {
-            let sq = this.game.ecs.getEntity("map").Map.map.getSquareByCoords(entity.Coordinates.X, entity.Coordinates.Y).id;
+            let sq = this.game.ecs
+              .getEntity("map")
+              .Map.map.getSquareByCoords(
+                entity.Coordinates.X,
+                entity.Coordinates.Y
+              ).id;
             console.log(`adding boss school zone at square ${sq}`);
           }
           entity.addComponent("SchoolZone", { multiplier: 0.34 });
@@ -79,11 +84,24 @@ export class CollisionSystem extends ECS.System {
       default:
         if (entity.SchoolZone) {
           if (entity.id === "boss") {
-            let sq = this.game.ecs.getEntity("map").Map.map.getSquareByCoords(entity.Coordinates.X, entity.Coordinates.Y).id;
+            let sq = this.game.ecs
+              .getEntity("map")
+              .Map.map.getSquareByCoords(
+                entity.Coordinates.X,
+                entity.Coordinates.Y
+              ).id;
             console.log(`removing boss school zone at square ${sq}`);
           }
           entity.removeComponentByType("SchoolZone");
         }
+    }
+    if (entity.id === "boss" && mapCollision) {
+      this.game.logTimers.addTimer("bossCollision", "ms", 300);
+      this.game.logTimers.log(
+        "bossCollision",
+        "Boss collision: ",
+        mapCollision
+      );
     }
   }
 

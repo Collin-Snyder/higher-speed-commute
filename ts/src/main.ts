@@ -13,6 +13,7 @@ import spriteMap from "./spriteMap";
 import bgMap from "./bgMap";
 import keyCodes from "./keyCodes";
 import DesignModule from "./modules/designModule";
+import LogTimers from "./modules/logger";
 import { MapGrid, MapGridInterface } from "./state/map";
 import GameModeMachine, { Mode } from "./state/pubsub";
 import Race from "./modules/raceData";
@@ -93,6 +94,7 @@ export class Game {
   public focusView: "player" | "boss";
   public mapView: boolean;
   public zoomFactor: number;
+  public logTimers: LogTimers;
   // public sounds: Sounds;
 
   constructor() {
@@ -121,6 +123,7 @@ export class Game {
     this.UICanvas = <HTMLCanvasElement>document.getElementById("ui");
     this.uictx = <CanvasRenderingContext2D>this.UICanvas.getContext("2d");
     this.subscribers = {};
+    this.logTimers = new LogTimers(this);
     this.map = new MapGrid(40, 25);
     this.designModule = new DesignModule(this);
     this.spritesheet = new Image();
@@ -499,6 +502,7 @@ export class Game {
   }
 
   update(step: number) {
+    this.logTimers.update();
     this.ecs.runSystemGroup("input");
     if (this.mode === "playing") {
       this.ecs.runSystemGroup("lights");

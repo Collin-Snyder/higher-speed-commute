@@ -549,7 +549,7 @@ export class RenderViewBox extends EntityComponentSystem.System {
       dh
     );
     this.ctx.restore();
-    // this.renderHitbox(entity, scaleFactor, mapCoords, ViewBox);
+    this.renderHitbox(entity, scaleFactor, mapCoords, ViewBox);
   }
 
   renderHitbox(
