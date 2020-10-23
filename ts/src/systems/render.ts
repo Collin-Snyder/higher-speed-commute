@@ -448,6 +448,15 @@ export class RenderViewBox extends EntityComponentSystem.System {
         mapEntity
       );
     }
+
+    if (global.game.focusView === "boss") {
+      this.drawBossBorder(
+        coords.X,
+        coords.Y,
+        mapEntity.Renderable.renderWidth,
+        mapEntity.Renderable.renderHeight
+      );
+    }
   }
 
   updateViewbox(mapEntity: Entity, global: BaseComponent) {
@@ -555,6 +564,36 @@ export class RenderViewBox extends EntityComponentSystem.System {
         return false;
     }
     return true;
+  }
+
+  drawBossBorder(mapx: number, mapy: number, mapw: number, maph: number) {
+    let weight = maph / 80;
+    this.ctx.save();
+    this.ctx.beginPath();
+    this.ctx.lineWidth = weight;
+    this.ctx.strokeStyle = "#d83b39";
+    this.ctx.moveTo(mapx, mapy);
+    this.ctx.lineTo(mapx + mapw, mapy);
+    this.ctx.lineTo(mapx + mapw, mapy + maph);
+    this.ctx.lineTo(mapx, mapy + maph);
+    this.ctx.lineTo(mapx, mapy);
+    this.ctx.globalAlpha = 0.75;
+    this.ctx.stroke();
+    this.ctx.moveTo(mapx + weight / 2, mapy + weight / 2);
+    this.ctx.lineTo(mapx + mapw - weight, mapy + weight);
+    this.ctx.lineTo(mapx + mapw - weight, mapy + maph - weight);
+    this.ctx.lineTo(mapx + weight, mapy + maph - weight);
+    this.ctx.lineTo(mapx + weight / 2, mapy + weight /2);
+    this.ctx.globalAlpha = 0.5;
+    this.ctx.stroke();
+    this.ctx.moveTo(mapx + weight, mapy + weight);
+    this.ctx.lineTo(mapx + mapw - 2 * weight, mapy + 2 * weight);
+    this.ctx.lineTo(mapx + mapw - 2 * weight, mapy + maph - 2 * weight);
+    this.ctx.lineTo(mapx + 2 * weight, mapy + maph - 2 * weight);
+    this.ctx.lineTo(mapx + weight, mapy + weight);
+    this.ctx.globalAlpha = 0.25;
+    this.ctx.stroke();
+    this.ctx.restore();
   }
 }
 
