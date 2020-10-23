@@ -5,6 +5,9 @@ import {
   normalize,
   checkVelocityZero,
   findDegFromVector,
+  VectorInterface,
+  checkPointCollision,
+  getTileHitbox,
 } from "../modules/gameMath";
 
 export class MovementSystem extends ECS.System {
@@ -23,7 +26,8 @@ export class MovementSystem extends ECS.System {
 
     for (let entity of entities) {
       if (entity.has("Path")) this.handleNPCMovement(entity);
-      else if (focusView === "player" && !mapView) this.handlePlayerMovement(entity);
+      else if (focusView === "player" && !mapView)
+        this.handlePlayerMovement(entity);
     }
   }
 
@@ -42,6 +46,7 @@ export class MovementSystem extends ECS.System {
     //   entity.Velocity.vector = vectors[0];
     //   entity.Velocity.altVectors.pop();
     // }
+    entity.Velocity.prevVector = entity.Velocity.vector;
     entity.Velocity.vector = entity.Velocity.altVectors.shift();
     entity.Coordinates.X += entity.Velocity.vector.X * playerSpeedConstant;
     entity.Coordinates.Y += entity.Velocity.vector.Y * playerSpeedConstant;
@@ -54,13 +59,16 @@ export class MovementSystem extends ECS.System {
     let { X, Y } = entity.Coordinates;
     let [X2, Y2] = path[path.length - 1];
     if (
-      (canHasFudge(X, Y, X2, Y2, entity.Collision.fudgeFactor) ||
-        checkVelocityZero(entity.Velocity.vector)) &&
+      this.carInSquare(
+        entity.Collision.currentHb(),
+        getTileHitbox(X2, Y2, 25, 25)
+      ) &&
       path.length > 1
     ) {
       let [newX, newY] = path[path.length - 2];
       let Xdiff = newX - X;
       let Ydiff = newY - Y;
+      entity.Velocity.prevVector = entity.Velocity.vector;
       if (Math.abs(Xdiff) > Math.abs(Ydiff)) {
         entity.Velocity.vector = { X: Math.sign(Xdiff), Y: 0 };
       } else {
@@ -73,5 +81,12 @@ export class MovementSystem extends ECS.System {
     entity.Coordinates.Y += entity.Velocity.vector.Y * entitySpeedConstant;
     let deg = findDegFromVector(entity.Velocity.vector);
     if (deg >= 0) entity.Renderable.degrees = deg;
+  }
+
+  carInSquare(chb: VectorInterface[], shb: VectorInterface[]) {
+    for (let { X, Y } of chb) {
+      if (!checkPointCollision(shb, X, Y)) return false;
+    }
+    return true;
   }
 }

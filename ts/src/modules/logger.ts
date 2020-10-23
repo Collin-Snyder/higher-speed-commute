@@ -2,6 +2,7 @@ import Game from "../main";
 type Unit = "ms" | "ticks";
 class LogTimer {
   public ready: boolean;
+  public running: boolean;
   public msRemaining: number;
   public ticksRemaining: number;
 
@@ -12,6 +13,7 @@ class LogTimer {
   ) {
     // this.game = game;
     this.ready = false;
+    this.running = true;
     this.unit = unit;
     this.unitsPerStep = unitsPerStep;
     if (this.unit === "ms") {
@@ -29,6 +31,7 @@ class LogTimer {
   }
 
   update(et: number) {
+    if (!this.running) return;
     if (this.unit === "ms") this.msRemaining -= et;
     else this.ticksRemaining--;
 
@@ -38,6 +41,18 @@ class LogTimer {
       //@ts-ignore
       this[`${this.unit}Remaining`] = this.unitsPerStep;
     }
+  }
+
+  stop() {
+    if (!this.running) return false;
+    this.running = false;
+    return true;
+  }
+
+  start() {
+    if (this.running) return false;
+    this.running = true;
+    return true;
   }
 }
 
@@ -90,8 +105,32 @@ class LogTimers {
   }
 
   has(name: string) {
-      if (this.timers.hasOwnProperty(name)) return true;
-      return false;
+    if (this.timers.hasOwnProperty(name)) return true;
+    return false;
+  }
+
+  stop(name: string) {
+    if (!this.timers.hasOwnProperty(name)) return false;
+    return this.timers[name].stop();
+  }
+
+  stopAll() {
+    for (let name in this.timers) {
+        this.timers[name].stop();
+    }
+    return true;
+  }
+
+  start(name: string) {
+    if (!this.timers.hasOwnProperty(name)) return false;
+    return this.timers[name].start();
+  }
+
+  startAll() {
+    for (let name in this.timers) {
+        this.timers[name].start();
+    }
+    return true;
   }
 }
 

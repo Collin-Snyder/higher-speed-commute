@@ -281,7 +281,7 @@ export function checkCollision(
     let vn = hb1[next];
     let collision = checkSideCollision(hb2, vc.X, vc.Y, vn.X, vn.Y);
     if (collision) return true;
-    collision = checkInteriorCollision(hb2, hb1[0].X, hb1[0].Y);
+    collision = checkPointCollision(hb2, hb1[0].X, hb1[0].Y);
     if (collision) return true;
   }
   return false;
@@ -331,7 +331,7 @@ function checkLineCollision(
   return { X, Y };
 }
 
-function checkInteriorCollision(hb: VectorInterface[], px: number, py: number) {
+export function checkPointCollision(hb: VectorInterface[], px: number, py: number) {
   let collision = false;
   let next = 0;
   for (let curr = 0; curr < hb.length; curr++) {

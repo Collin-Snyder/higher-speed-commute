@@ -9,6 +9,7 @@
 //Will need to ensure that NPCs are on paths that do not collide head-on
 
 import ECS, { Entity } from "@fritzy/ecs";
+import { isExpressionWithTypeArguments } from "../../../node_modules/typescript/lib/typescript";
 import Game from "../main";
 import {
   calculateSpeedConstant,
@@ -59,7 +60,8 @@ export class CollisionSystem extends ECS.System {
         do {
           // if (entity.id === "player") console.log(entity.Velocity.vector);
           this.revert(entity);
-          if (!entity.Velocity.altVectors.length) return;
+          if (!entity.Velocity.altVectors.length) break;
+          // entity.Velocity.prevVector = entity.Velocity.vector;
           entity.Velocity.vector = entity.Velocity.altVectors.shift();
           this.move(entity);
           mapCollision = this.detectMapCollision(entity);
@@ -97,14 +99,35 @@ export class CollisionSystem extends ECS.System {
           entity.removeComponentByType("SchoolZone");
         }
     }
-    if (entity.id === "boss" && mapCollision) {
-      this.game.logTimers.addTimerIfNotExisting("bossCollision", "ms", 300);
-      this.game.logTimers.logIfReady(
-        "bossCollision",
-        "Boss collision: ",
-        mapCollision
-      );
-    }
+    // if (entity.id === "boss" && mapCollision) {
+    //   this.game.logTimers.addTimerIfNotExisting("bossCollision", "ms", 300);
+    //   this.game.logTimers.logIfReady(
+    //     "bossCollision",
+    //     "Boss collision: ",
+    //     mapCollision,
+    //     window.performance.now()
+    //   );
+    // }
+
+    // if (entity.id === "boss") {
+    //   this.game.logTimers.addTimerIfNotExisting("bossXY", "ms", 300);
+    //   this.game.logTimers.logIfReady(
+    //     "bossXY",
+    //     "Boss coords: ",
+    //     {X: entity.Coordinates.X, Y: entity.Coordinates.Y},
+    //     window.performance.now()
+    //   );
+    // }
+
+    // if (entity.id === "boss" && entity.has("SchoolZone") && !mapCollision) {
+    //   this.game.logTimers.addTimerIfNotExisting("bossSZ", "ms", 300);
+    //   this.game.logTimers.logIfReady(
+    //     "bossSZ",
+    //     "Boss has schoolzone with no collision ",
+    //     // entity.SchoolZone,
+    //     window.performance.now()
+    //   );
+    // }
   }
 
   detectMapCollision(
@@ -281,8 +304,10 @@ export class CollisionSystem extends ECS.System {
     );
     entity.Coordinates.X = X;
     entity.Coordinates.Y = Y;
-    // let deg = findDegFromVector(entity.Velocity.vector);
-    // if (deg >= 0) entity.Renderable.degrees = deg;
+    if (entity.Velocity.prevVector) entity.Velocity.vector = entity.Velocity.prevVector;
+    // entity.Velocity.prevVector = null;
+    let deg = findDegFromVector(entity.Velocity.vector);
+    if (deg >= 0) entity.Renderable.degrees = deg;
     // entity.Velocity.vector.X = 0;
     // entity.Velocity.vector.Y = 0;
   }
