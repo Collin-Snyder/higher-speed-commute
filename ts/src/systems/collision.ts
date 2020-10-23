@@ -9,6 +9,7 @@
 //Will need to ensure that NPCs are on paths that do not collide head-on
 
 import ECS, { Entity } from "@fritzy/ecs";
+import Game from "../main";
 import {
   calculateSpeedConstant,
   findRotatedVertex,
@@ -24,7 +25,7 @@ export class CollisionSystem extends ECS.System {
   };
   public collidables: Entity[];
   public map: any;
-  public game: any;
+  public game: Game;
   public globalEntity: Entity;
 
   static subscriptions: string[] = ["Coordinates"];
@@ -33,11 +34,12 @@ export class CollisionSystem extends ECS.System {
     super(ecs);
     this.collidables = [];
     this.globalEntity = this.ecs.getEntity("global");
+    this.game = this.globalEntity.Global.game;
   }
 
   update(tick: number, entities: Set<Entity>) {
     this.collidables = [...entities];
-    this.game = this.globalEntity.Global.game;
+    // this.game = this.globalEntity.Global.game;
     this.map = this.globalEntity.Global.map.Map.map;
     let changes = [...this.changes];
     for (let change of changes) {
@@ -96,8 +98,8 @@ export class CollisionSystem extends ECS.System {
         }
     }
     if (entity.id === "boss" && mapCollision) {
-      this.game.logTimers.addTimer("bossCollision", "ms", 300);
-      this.game.logTimers.log(
+      this.game.logTimers.addTimerIfNotExisting("bossCollision", "ms", 300);
+      this.game.logTimers.logIfReady(
         "bossCollision",
         "Boss collision: ",
         mapCollision

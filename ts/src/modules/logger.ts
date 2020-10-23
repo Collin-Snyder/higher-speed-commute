@@ -50,9 +50,13 @@ class LogTimers {
   }
 
   addTimer(name: string, unit: Unit, unitsPerStep: number) {
-    if (this.timers.hasOwnProperty(name)) return false;
-    console.log("adding timer: ", name);
     this.timers[name] = new LogTimer(unitsPerStep, unit);
+    return true;
+  }
+
+  addTimerIfNotExisting(name: string, unit: Unit, unitsPerStep: number) {
+    if (this.timers.hasOwnProperty(name)) return false;
+    return this.addTimer(name, unit, unitsPerStep);
   }
 
   update() {
@@ -75,10 +79,14 @@ class LogTimers {
     return this.timers[name]?.ready;
   }
 
-  log(name: string, ...thingsToLog: any[]) {
+  logIfReady(name: string, ...thingsToLog: any[]) {
     if (this.timers[name] && this.timers[name].ready) {
       this.timers[name].log(...thingsToLog);
     }
+  }
+
+  forceLog(name: string, ...thingsToLog: any[]) {
+    this.timers[name].log(...thingsToLog);
   }
 
   has(name: string) {
