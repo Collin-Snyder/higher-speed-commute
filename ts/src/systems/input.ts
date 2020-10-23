@@ -1,6 +1,6 @@
 import ECS, { Entity, BaseComponent } from "@fritzy/ecs";
 import keyCodes from "../keyCodes";
-import { checkForMouseCollision } from "../modules/gameMath";
+import { checkForMouseCollision, normalize } from "../modules/gameMath";
 import e from "@fritzy/ecs";
 import { isConstructSignatureDeclaration } from "../../../node_modules/typescript/lib/typescript";
 
@@ -103,24 +103,47 @@ export class InputSystem extends ECS.System {
     if (this.global.game.mode === "playing") {
       const playerEntity = entities.values().next().value;
       playerEntity.Velocity.altVectors = this.getPotentialVectors();
-      if (this.keyPressMap[keyCodes.B] && this.global.game.focusView !== "boss") this.global.game.focusView = "boss";
-      else if (!this.keyPressMap[keyCodes.B] && this.global.game.focusView !== "player") this.global.game.focusView = "player";
+      if (this.keyPressMap[keyCodes.B] && this.global.game.focusView !== "boss")
+        this.global.game.focusView = "boss";
+      else if (
+        !this.keyPressMap[keyCodes.B] &&
+        this.global.game.focusView !== "player"
+      )
+        this.global.game.focusView = "player";
     }
   }
 
   getPotentialVectors() {
     const potentials = [];
-    const [isLeft, isRight, isUp, isDown] = [
+    let [isLeft, isRight, isUp, isDown] = [
       this.isLeft(),
       this.isRight(),
       this.isUp(),
       this.isDown(),
     ];
-    if (isLeft && !isRight) potentials.push({ X: -1, Y: 0 });
-    if (isRight && !isLeft) potentials.push({ X: 1, Y: 0 });
-    if (isUp && !isDown) potentials.push({ X: 0, Y: -1 });
-    if (isDown && !isUp) potentials.push({ X: 0, Y: 1 });
+
+    const [up, down, left, right] = [
+      { X: 0, Y: -1 },
+      { X: 0, Y: 1 },
+      { X: -1, Y: 0 },
+      { X: 1, Y: 0 },
+    ];
+
+    if (isLeft && isRight) isLeft = isRight = false;
+    if (isUp && isDown) isUp = isDown = false;
+
+    if (isLeft && isUp) potentials.push(normalize([left, up]));
+    if (isLeft && isDown) potentials.push(normalize([left, down]));
+    if (isRight && isUp) potentials.push(normalize([right, up]));
+    if (isRight && isDown) potentials.push(normalize([right, down]));
+
+    if (isLeft) potentials.push(left);
+    if (isRight) potentials.push(right);
+    if (isUp) potentials.push(up);
+    if (isDown) potentials.push(down);
+
     if (!potentials.length) potentials.push({ X: 0, Y: 0 });
+    
     return potentials;
   }
 

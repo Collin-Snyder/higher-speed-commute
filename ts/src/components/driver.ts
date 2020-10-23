@@ -43,6 +43,7 @@ export const Renderable = {
     bgColor: `rgba(0, 0, 0, 0)`,
     visible: true,
     prevSpriteName: null,
+    degrees: 0,
     radians: 0
   },
 };
@@ -58,10 +59,9 @@ export const Path = {
 export const Collision = {
   properties: {
     fudgeFactor: 2,
-    hbX: 0,
-    hbY: 0,
-    hbW: 0,
-    hbH: 0
+    hb: [],
+    cp: {X: 0, Y: 0},
+    currentHb: () => {}
   },
 };
 

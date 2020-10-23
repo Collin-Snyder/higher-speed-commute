@@ -125,6 +125,8 @@ class GameModeMachine {
       onplay: function() {
         let game = <Game>(<unknown>this);
         game.startRace();
+        const mapEntity = game.ecs.getEntity("map");
+        mapEntity.Renderable.bgColor = "#81c76d";
         game.mode = "playing";
       },
       onwin: function() {
@@ -420,6 +422,7 @@ class GameModeMachine {
       onCaffeinate: function(driver: Entity, coffee: Entity) {
         let game = <Game>(<unknown>this);
         coffee.removeComponentByType("Renderable");
+        coffee.removeComponentByType("Collision");
         driver.addComponent("CaffeineBoost", coffee.Caffeine);
 
         if (driver.id === "player") {

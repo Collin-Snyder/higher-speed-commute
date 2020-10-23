@@ -1,5 +1,12 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
-import { average, findCenteredElementSpread } from "./modules/gameMath";
+import {
+  average,
+  findCenteredElementSpread,
+  getCenterPoint,
+  scaleVector,
+  VectorInterface,
+  findRotatedVertex,
+} from "./modules/gameMath";
 //@ts-ignore
 import axios from "axios";
 import spriteMap from "./spriteMap";
@@ -159,6 +166,35 @@ export class Game {
       },
     });
 
+    let hb = [];
+    hb.push(scaleVector({ X: 6, Y: 2 }, 2 / 3));
+    hb.push(scaleVector({ X: 19, Y: 2 }, 2 / 3));
+    hb.push(scaleVector({ X: 19, Y: 23 }, 2 / 3));
+    hb.push(scaleVector({ X: 6, Y: 23 }, 2 / 3));
+    let cp = getCenterPoint(
+      hb[0].X,
+      hb[0].Y,
+      hb[1].X - hb[0].X,
+      hb[3].Y - hb[0].Y
+    );
+
+    let getCurrentHb = function() {
+      //@ts-ignore
+      let entity = <Entity>(<unknown>this);
+      let { hb, cp } = entity.Collision;
+      let c = entity.Coordinates;
+
+      hb = hb.map((v: VectorInterface) => ({ X: v.X + c.X, Y: v.Y + c.Y }));
+      let cpx = cp.X + c.X;
+      let cpy = cp.Y + c.Y;
+
+      let deg = entity.Renderable.degrees;
+      if (deg === 0) return hb;
+      // entity.Renderable.degrees = degrees;
+      //@ts-ignore
+      return hb.map(({ X, Y }) => findRotatedVertex(X, Y, cpx, cpy, deg));
+    };
+
     this.playerEntity = this.ecs.createEntity({
       id: "player",
       Coordinates: {
@@ -174,7 +210,7 @@ export class Game {
         renderWidth: 25 * (2 / 3),
         renderHeight: 25 * (2 / 3),
       },
-      Collision: {},
+      Collision: { hb, cp },
     });
 
     this.bossEntity = this.ecs.createEntity({
@@ -193,8 +229,13 @@ export class Game {
         renderWidth: 25 * (2 / 3),
         renderHeight: 25 * (2 / 3),
       },
-      Collision: {},
+      Collision: { hb, cp },
     });
+
+    this.playerEntity.Collision.currentHb = getCurrentHb.bind(
+      this.playerEntity
+    );
+    this.bossEntity.Collision.currentHb = getCurrentHb.bind(this.bossEntity);
 
     this.lightEntities = {};
     this.coffeeEntities = {};
@@ -338,12 +379,12 @@ export class Game {
     this.globalEntity.Global.spriteMap = this.spriteMap;
 
     let playerSpriteCoords = this.spriteMap[
-      `${this.playerEntity.Car.color}CarU`
+      `${this.playerEntity.Car.color}Car`
     ];
     this.playerEntity.Renderable.spriteX = playerSpriteCoords.X;
     this.playerEntity.Renderable.spriteY = playerSpriteCoords.Y;
 
-    let bossSpriteCoords = this.spriteMap[`${this.bossEntity.Car.color}CarU`];
+    let bossSpriteCoords = this.spriteMap[`${this.bossEntity.Car.color}Car`];
     this.bossEntity.Renderable.spriteX = bossSpriteCoords.X;
     this.bossEntity.Renderable.spriteY = bossSpriteCoords.Y;
 
@@ -526,6 +567,24 @@ export class Game {
         this.endRace();
       })
       .catch((err: any) => console.error(err));
+  }
+
+  getPlayerHB() {
+    let player = this.ecs.getEntity("player");
+    let { hb, cp } = player.Collision;
+    let c = player.Coordinates;
+
+    hb = hb.map((v: VectorInterface) => ({ X: v.X + c.X, Y: v.Y + c.Y }));
+    let cpx = cp.X + c.X;
+    let cpy = cp.Y + c.Y;
+
+    let deg = player.Renderable.degrees;
+    if (deg === 0) return hb;
+    // entity.Renderable.degrees = degrees;
+    console.log("Degrees: ", deg);
+    console.log("HB before rotation: ", hb);
+    //@ts-ignore
+    return hb.map(({ X, Y }) => findRotatedVertex(X, Y, cpx, cpy, deg));
   }
 }
 

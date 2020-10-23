@@ -319,7 +319,6 @@ export class Animation extends EntityComponentSystem.System {
 
   update(tick: number, entities: Set<Entity>) {
     for (let entity of entities) {
-      console.log(entity)
       let anim = entity.Animation;
       if (anim.frames.length > 0) {
         //if not at end, update entity based on next frame
@@ -332,7 +331,6 @@ export class Animation extends EntityComponentSystem.System {
           anim.yOffset += anim.yStep;
         }
         if (anim.degStep) {
-          console.log("Updating degOffset to ", anim.degOffset + anim.degStep)
           anim.degOffset += anim.degStep;
         }
       }

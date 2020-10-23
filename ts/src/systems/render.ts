@@ -3,6 +3,8 @@ import {
   centerWithin,
   getCenterPoint,
   degreesToRadians,
+  radiansToDegrees,
+  VectorInterface,
 } from "../modules/gameMath";
 
 //systems must be added in this order
@@ -285,20 +287,7 @@ export class RenderMap extends EntityComponentSystem.System {
     }
     this.ctx.restore();
 
-    // if (mode === "playing") {
-    //   let vb = mapEntity.ViewBox;
-    //   this.ctx.drawImage(
-    //     <HTMLCanvasElement>document.getElementById("map-offscreen"),
-    //     vb.x,
-    //     vb.y,
-    //     vb.w,
-    //     vb.h,
-    //     coords.X,
-    //     coords.Y,
-    //     map.pixelWidth,
-    //     map.pixelHeight
-    //   );
-    // }
+    // this.renderMiniCars(global.spriteSheet);
 
     if (mode === "won" || mode === "lost") {
       this.ctx.save();
@@ -306,6 +295,47 @@ export class RenderMap extends EntityComponentSystem.System {
       this.ctx.fillStyle = "#000";
       this.ctx.fillRect(coords.X, coords.Y, map.pixelWidth, map.pixelHeight);
       this.ctx.restore();
+    }
+  }
+
+  renderMiniCars(spriteSheet: any) {
+    let map = <HTMLCanvasElement>document.getElementById("map-offscreen");
+    let ctx = <CanvasRenderingContext2D>map.getContext("2d");
+    map.style.zIndex = "100";
+    map.style.position = "absolute";
+    map.style.display = "block";
+    let [player, boss] = [
+      this.ecs.getEntity("player"),
+      this.ecs.getEntity("boss"),
+    ];
+    for (let entity of [player, boss]) {
+      let { X, Y } = entity.Coordinates;
+      let dx = X;
+      let dy = Y;
+      let dw = entity.Renderable.renderWidth;
+      let dh = entity.Renderable.renderHeight;
+      let trans = getCenterPoint(dx, dy, dw, dh);
+      // if (entity.id === "player") {
+      //   console.log(entity.Velocity.vector);
+      //   console.log(entity.Renderable.degrees);
+      // }
+      ctx.save();
+      ctx.translate(trans.X, trans.Y);
+      // this.ctx.rotate(entity.Renderable.radians);
+      ctx.rotate(degreesToRadians(entity.Renderable.degrees));
+      ctx.translate(-trans.X, -trans.Y);
+      ctx.drawImage(
+        spriteSheet,
+        entity.Renderable.spriteX,
+        entity.Renderable.spriteY,
+        entity.Renderable.spriteWidth,
+        entity.Renderable.spriteHeight,
+        dx,
+        dy,
+        dw,
+        dh
+      );
+      ctx.restore();
     }
   }
 }
@@ -316,19 +346,21 @@ export class RenderGameplayEntities extends EntityComponentSystem.System {
     hasnt: ["Button", "Car", "Map"],
   };
   private ctx: CanvasRenderingContext2D;
+  private canvas: HTMLCanvasElement;
 
   constructor(ecs: ECS, ctx: CanvasRenderingContext2D) {
     super(ecs);
     //@ts-ignore
-    this.ctx = document.getElementById("ents-offscreen").getContext("2d");
+    this.canvas = document.getElementById("ents-offscreen");
+    this.ctx = <CanvasRenderingContext2D>this.canvas.getContext("2d");
   }
 
   update(tick: number, entities: Set<Entity>) {
     const global = this.ecs.getEntity("global").Global;
     const mode = global.game.mode;
-    const mapCoords = global.map.Coordinates;
 
     if (mode === "playing") {
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       for (let entity of entities) {
         this.ctx.drawImage(
           global.spriteSheet,
@@ -357,6 +389,7 @@ export class RenderViewBox extends EntityComponentSystem.System {
   constructor(ecs: ECS, ctx: CanvasRenderingContext2D) {
     super(ecs);
     this.ctx = ctx;
+
     this.playerEntity = this.ecs.getEntity("player");
     this.bossEntity = this.ecs.getEntity("boss");
   }
@@ -395,22 +428,26 @@ export class RenderViewBox extends EntityComponentSystem.System {
       map.pixelHeight
     );
 
-    this.renderCarSprite(
-      this.bossEntity,
-      global.spriteSheet,
-      global.spriteMap,
-      coords,
-      zoom,
-      mapEntity
-    );
-    this.renderCarSprite(
-      this.playerEntity,
-      global.spriteSheet,
-      global.spriteMap,
-      coords,
-      zoom,
-      mapEntity
-    );
+    if (this.carInViewbox(this.bossEntity, vb)) {
+      this.renderCarSprite(
+        this.bossEntity,
+        global.spriteSheet,
+        global.spriteMap,
+        coords,
+        zoom,
+        mapEntity
+      );
+    }
+    if (this.carInViewbox(this.playerEntity, vb)) {
+      this.renderCarSprite(
+        this.playerEntity,
+        global.spriteSheet,
+        global.spriteMap,
+        coords,
+        zoom,
+        mapEntity
+      );
+    }
   }
 
   updateViewbox(mapEntity: Entity, global: BaseComponent) {
@@ -436,7 +473,7 @@ export class RenderViewBox extends EntityComponentSystem.System {
     if (ViewBox.x + ViewBox.w > mapOffscreen.width)
       ViewBox.x = mapOffscreen.width - ViewBox.w;
     if (ViewBox.y + ViewBox.h > mapOffscreen.height)
-      ViewBox.y = mapOffscreen.width - ViewBox.h;
+      ViewBox.y = mapOffscreen.height - ViewBox.h;
   }
 
   getCarRotationRadians(entity: Entity) {
@@ -444,10 +481,10 @@ export class RenderViewBox extends EntityComponentSystem.System {
 
     if (X === 0 && Y === 0) return -1;
     //will need to update vector/altVector calculation and collision handling to make this work
-    // if (X > 0 && Y < 0) return degreesToRadians(45);
-    // if (X > 0 && Y > 0) return degreesToRadians(135);
-    // if (X < 0 && Y > 0) return degreesToRadians(225);
-    // if (X < 0 && Y < 0) return degreesToRadians(315);
+    if (X > 0 && Y < 0) return degreesToRadians(45);
+    if (X > 0 && Y > 0) return degreesToRadians(135);
+    if (X < 0 && Y > 0) return degreesToRadians(225);
+    if (X < 0 && Y < 0) return degreesToRadians(315);
     if (Y < 0) return 0;
     if (X > 0) return degreesToRadians(90);
     if (Y > 0) return degreesToRadians(180);
@@ -464,25 +501,16 @@ export class RenderViewBox extends EntityComponentSystem.System {
     mapEntity: Entity
   ) {
     let { ViewBox } = mapEntity;
-
-    // entity = this.updateCarSprite(entity, spriteMap);
-
     let X = entity.Coordinates.X - ViewBox.x;
     let Y = entity.Coordinates.Y - ViewBox.y;
-
-    //rotate car sprite
-    let r = this.getCarRotationRadians(entity);
-    if (r >= 0) entity.Renderable.radians = r;
-
     let dx = mapCoords.X + X * scaleFactor;
     let dy = mapCoords.Y + Y * scaleFactor;
     let dw = entity.Renderable.renderWidth * scaleFactor;
     let dh = entity.Renderable.renderHeight * scaleFactor;
     let trans = getCenterPoint(dx, dy, dw, dh);
-    
     this.ctx.save();
     this.ctx.translate(trans.X, trans.Y);
-    this.ctx.rotate(entity.Renderable.radians);
+    this.ctx.rotate(degreesToRadians(entity.Renderable.degrees));
     this.ctx.translate(-trans.X, -trans.Y);
     this.ctx.drawImage(
       spriteSheet,
@@ -496,8 +524,37 @@ export class RenderViewBox extends EntityComponentSystem.System {
       dh
     );
     this.ctx.restore();
+    // this.renderHitbox(entity, scaleFactor, mapCoords, ViewBox);
+  }
 
-    //update car's hitbox
+  renderHitbox(
+    entity: Entity,
+    scaleFactor: number,
+    mapCoords: any,
+    viewbox: any
+  ) {
+    let scaledHb = entity.Collision.currentHb().map((v: VectorInterface) => ({
+      X: mapCoords.X + (v.X - viewbox.x) * scaleFactor,
+      Y: mapCoords.Y + (v.Y - viewbox.y) * scaleFactor,
+    }));
+
+    this.ctx.beginPath();
+    this.ctx.moveTo(scaledHb[0].X, scaledHb[0].Y);
+    for (let i = 0; i < scaledHb.length; i++) {
+      let next = i + 1 === scaledHb.length ? scaledHb[0] : scaledHb[i + 1];
+      this.ctx.lineTo(next.X, next.Y);
+    }
+    this.ctx.lineWidth = 3;
+    this.ctx.strokeStyle = "#ff0000";
+    this.ctx.stroke();
+  }
+
+  carInViewbox(entity: Entity, vb: any) {
+    for (let v of entity.Collision.currentHb()) {
+      if (v.X < vb.x || v.Y < vb.y || v.X > vb.x + vb.w || v.Y > vb.y + vb.h)
+        return false;
+    }
+    return true;
   }
 }
 

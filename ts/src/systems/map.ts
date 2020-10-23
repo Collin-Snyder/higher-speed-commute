@@ -1,5 +1,9 @@
 import EntityComponentSystem, { ECS, Entity } from "@fritzy/ecs";
-import { findCenteredElementSpread } from "../modules/gameMath";
+import {
+  findCenteredElementSpread,
+  getCenterPoint,
+  getTileHitbox,
+} from "../modules/gameMath";
 
 export class MapSystem extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -49,18 +53,31 @@ export class MapSystem extends EntityComponentSystem.System {
     }
     for (let id in newMap.coffees) {
       const square = newMap.get(id);
-      this.ecs.createEntity({
+      const { X, Y } = square ? square.coordinates() : { X: 0, Y: 0 };
+      const rw = 12;
+      const rh = 12;
+      let ent = this.ecs.createEntity({
         id: `coffee${id}`,
         Coordinates: {
-          ...(square ? square.coordinates() : { X: 0, Y: 0 }),
+          X,
+          Y,
         },
         Renderable: {
           spriteX: 250,
           spriteY: 0,
+          renderWidth: rw,
+          renderHeight: rh,
         },
-        Collision: {},
+        Collision: {
+          hb: getTileHitbox(X, Y, rw, rh),
+          cp: getCenterPoint(X, Y, rw, rh),
+        },
         Caffeine: {},
       });
+      ent.Collision.currentHb = function() {
+        //@ts-ignore
+        return this.Collision.hb;
+      }.bind(ent);
     }
   }
 
@@ -73,11 +90,15 @@ export class MapSystem extends EntityComponentSystem.System {
 
     for (let id in newMap.lights) {
       const square = newMap.get(id);
+      const { X, Y } = square ? square.coordinates() : { X: 0, Y: 0 };
+      const rw = 25;
+      const rh = 25;
 
-      this.ecs.createEntity({
+      let ent = this.ecs.createEntity({
         id: `light${id}`,
         Coordinates: {
-          ...(square ? square.coordinates() : { X: 0, Y: 0 }),
+          X,
+          Y,
         },
         Timer: {
           interval: newMap.lights[id],
@@ -87,9 +108,18 @@ export class MapSystem extends EntityComponentSystem.System {
         Renderable: {
           spriteX: 200,
           spriteY: 0,
+          renderWidth: rw,
+          renderHeight: rh,
         },
-        Collision: {},
+        Collision: {
+          hb: getTileHitbox(X, Y, rw, rh),
+          cp: getCenterPoint(X, Y, rw, rh),
+        },
       });
+      ent.Collision.currentHb = function() {
+        //@ts-ignore
+        return this.Collision.hb;
+      }.bind(ent);
     }
   }
 
@@ -132,7 +162,7 @@ export class MapSystem extends EntityComponentSystem.System {
     let x = 0;
     let y = 0;
 
-    this.mapCtx.fillStyle = mapEntity.Renderable.bgColor;
+    this.mapCtx.fillStyle = "#81c76d";
     this.mapCtx.fillRect(
       0,
       0,
