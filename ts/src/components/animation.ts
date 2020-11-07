@@ -1,3 +1,12 @@
+interface AnimationFrameInterface {
+  spriteX: number;
+  spriteY: number;
+  spriteW: number;
+  spriteH: number;
+  alpha: number;
+  frameAction: Function;
+}
+
 export const ParallaxLayer = {
   properties: {
     name: null,
@@ -23,7 +32,7 @@ export const Animation = {
     degOffset: 0,
     xStep: 0,
     yStep: 0,
-    degStep: 0
+    degStep: 0,
   },
 };
 
@@ -40,5 +49,5 @@ export const AnimationFrame = {
     spriteH: 0,
     alpha: 1,
     frameAction: null, //can pass function here to be run in lieu of subbing out sprites
-  }
-}
+  },
+};

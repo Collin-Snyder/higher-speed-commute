@@ -382,14 +382,13 @@ export class RenderViewBox extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
     has: ["ViewBox"],
   };
-  private ctx: CanvasRenderingContext2D;
   private playerEntity: Entity;
   private bossEntity: Entity;
   private refColors: { [key: string]: string };
 
-  constructor(ecs: ECS, ctx: CanvasRenderingContext2D) {
+  constructor(ecs: ECS, private ctx: CanvasRenderingContext2D, private step: number) {
     super(ecs);
-    this.ctx = ctx;
+    // this.ctx = ctx;
 
     this.playerEntity = this.ecs.getEntity("player");
     this.bossEntity = this.ecs.getEntity("boss");
@@ -416,7 +415,7 @@ export class RenderViewBox extends EntityComponentSystem.System {
     const coords = mapEntity.Coordinates;
     const map = mapEntity.Map.map;
     if (mapView) {
-      this.renderReferenceMap(map, coords.X, coords.Y, vb);
+      this.renderReferenceMap(map, coords.X, coords.Y, vb, tick);
     } else {
       this.ctx.drawImage(
         <HTMLCanvasElement>document.getElementById("map-offscreen"),
@@ -612,11 +611,15 @@ export class RenderViewBox extends EntityComponentSystem.System {
     this.ctx.restore();
   }
 
-  renderReferenceMap(map: any, mapx: number, mapy: number, vb: any) {
-    //fill map with dark gray color
+  renderReferenceMap(
+    map: any,
+    mapx: number,
+    mapy: number,
+    vb: any,
+    tick: number
+  ) {
     this.ctx.fillStyle = "#313131";
     this.ctx.fillRect(mapx, mapy, map.pixelWidth, map.pixelHeight);
-    //draw tiles on top of it in lighter gray color
     let tiles = map.generateReferenceTileMap();
     let x = 0;
     let y = 0;
@@ -624,29 +627,15 @@ export class RenderViewBox extends EntityComponentSystem.System {
     for (let tile of tiles) {
       if (tile) {
         this.drawSquare(x * s + mapx, y * s + mapy, s, this.refColors[tile]);
-        // this.ctx.drawImage(
-        //   global.spriteSheet,
-        //   tileCoords.X,
-        //   tileCoords.Y,
-        //   tileMap.tileWidth,
-        //   tileMap.tileHeight,
-        //   x * tileMap.tileWidth + coords.X,
-        //   y * tileMap.tileHeight + coords.Y,
-        //   tileMap.tileWidth,
-        //   tileMap.tileHeight
-        // );
       }
       if (++x >= map.width) {
         x = 0;
         y++;
       }
     }
-    //render viewbox with white lines
     this.drawRefViewbox(vb, mapx, mapy);
-    //render boss car with pulsing red dot
-    this.drawRefCar(this.bossEntity, mapx, mapy);
-    //render player car with pulsing blue dot
-    this.drawRefCar(this.playerEntity, mapx, mapy);
+    this.drawRefCar(this.bossEntity, mapx, mapy, tick);
+    this.drawRefCar(this.playerEntity, mapx, mapy, tick);
   }
 
   drawSquare(x: number, y: number, s: number, color: string) {
@@ -672,14 +661,37 @@ export class RenderViewBox extends EntityComponentSystem.System {
     this.ctx.restore();
   }
 
-  drawRefCar(entity: Entity, mapx: number, mapy: number) {
+  drawRefCar(entity: Entity, mapx: number, mapy: number, tick: number) {
     let { X, Y } = entity.Collision.currentCp();
+    let dotr = 9;
+    let { pulser, pulsea } = this.calculateDotPulse(tick, dotr);
     this.ctx.save();
     this.ctx.beginPath();
-    this.ctx.arc(X + mapx, Y + mapy, 9, 0, 2 * Math.PI);
+    this.ctx.arc(X + mapx, Y + mapy, dotr, 0, 2 * Math.PI);
     this.ctx.fillStyle = this.refColors[entity.id];
     this.ctx.fill();
+    this.ctx.beginPath();
+    this.ctx.globalAlpha = pulsea;
+    this.ctx.arc(X + mapx, Y + mapy, pulser, 0, 2 * Math.PI);
+    this.ctx.strokeStyle = this.refColors[entity.id];
+    this.ctx.lineWidth = 2;
+    this.ctx.stroke();
     this.ctx.restore();
+  }
+
+  calculateDotPulse(tick: number, dotr: number) {
+    let pulsea = 1,
+      pulser = 0,
+      maxr = 2 * dotr,
+      dur = 750,
+      int = 2000,
+      progress = (tick * this.step) % int;
+    if (progress < dur) {
+      let pulseProgress = progress / dur;
+      pulsea = 1 - pulseProgress;
+      pulser = (maxr - dotr) * pulseProgress + dotr;
+    }
+    return { pulsea, pulser };
   }
 }
 

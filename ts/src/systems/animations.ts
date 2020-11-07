@@ -300,6 +300,7 @@ export class BackgroundAnimation extends EntityComponentSystem.System {
   }
 }
 
+//maybe have Animation system contain list of animation frames/pacing/etc, and Animation component just holds which type of animation
 export class Animation extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
     has: ["Animation"],
@@ -310,21 +311,57 @@ export class Animation extends EntityComponentSystem.System {
 
   update(tick: number, entities: Set<Entity>) {
     for (let entity of entities) {
-      let anim = entity.Animation;
-      if (anim.frames.length > 0) {
+      let a = entity.Animation;
+      if (a.frames.length > 0) {
         //if not at end, update entity based on next frame
         //if at end, return to start if looping or else remove animation component
       } else {
-        if (anim.xStep) {
-          anim.xOffset += anim.xStep;
+        if (a.xStep) {
+          a.xOffset += a.xStep;
         }
-        if (anim.yStep) {
-          anim.yOffset += anim.yStep;
+        if (a.yStep) {
+          a.yOffset += a.yStep;
         }
-        if (anim.degStep) {
-          anim.degOffset += anim.degStep;
+        if (a.degStep) {
+          a.degOffset += a.degStep;
         }
       }
     }
+  }
+}
+
+export const enum Animations {
+  DOT_PULSE = "DotPulse",
+  ROTATE = "Rotate",
+  SCALE = "Scale",
+  TRANSLATE = "Translate",
+}
+
+export class AnimationSystem extends EntityComponentSystem.System {
+  static query: { has?: string[]; hasnt?: string[] } = {
+    has: ["Animation"],
+  };
+  public dotPulseData: any;
+  constructor(ecs: any) {
+    super(ecs);
+    this.dotPulseData = {
+      maxRadius: 2,
+      currentRadius: 1,
+      radiusStep: 3 / 4,
+    };
+  }
+
+  update(tick: number, entities: Set<Entity>) {
+    for (let entity of entities) {
+      let animation: Animations = entity.Animation.name;
+      // @ts-ignore
+      this[`run${animation}`](entity, animation);
+    }
+  }
+
+  runDotPulse(entity: Entity) {
+    let { maxRadius, currentRadius } = this.dotPulseData;
+    //every run, the radius expands by the step amount until it reaches (or is very close to) the max radius
+    //every run, the 
   }
 }

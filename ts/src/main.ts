@@ -415,7 +415,7 @@ export class Game {
       "render",
       new RenderGameplayEntities(this.ecs, this.uictx)
     );
-    this.ecs.addSystem("render", new RenderViewBox(this.ecs, this.uictx));
+    this.ecs.addSystem("render", new RenderViewBox(this.ecs, this.uictx, this.step));
     this.ecs.addSystem("render", new RenderMenus(this.ecs, this.uictx));
     this.ecs.addSystem(
       "render",
