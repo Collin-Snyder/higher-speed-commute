@@ -214,7 +214,7 @@ export class Game {
       id: "player",
       Coordinates: {
         ...(this.map.get(this.map.playerHome)
-          ? this.map.get(this.map.playerHome).coordinates()
+          ? this.map.get(this.map.playerHome).coordinates
           : { X: 0, Y: 0 }),
       },
       Car: {

@@ -63,7 +63,7 @@ export class LevelStartAnimation extends StateAnimation {
   private ctx: CanvasRenderingContext2D;
   private gameboardAlpha: number;
   private gameboardAlphaStep: number;
-  private tiles: Array<string | Array<string>>;
+  private tiles: any;
   private keySquaresVisible: { [key: string]: boolean };
   private countdownNum: number;
   private countdownAlpha: number;
@@ -128,7 +128,7 @@ export class LevelStartAnimation extends StateAnimation {
         Math.floor(this.states.gameboard.duration / this.states.gameboard.step)
       ).toFixed(3)
     );
-    this.tiles = new Array(1000).fill("");
+    this.tiles = new Array(1000).fill({ type: "", a: 1, w: 25, h: 25, deg: 0 });
     this.keySquaresVisible = {
       playerHome: false,
       bossHome: false,
@@ -166,16 +166,16 @@ export class LevelStartAnimation extends StateAnimation {
     let mapEntity = this.ecs.getEntity("map");
     let index;
     if (!this.keySquaresVisible.playerHome) {
-      index = mapEntity.Map.map.getKeySquare("playerHome").tileIndex();
-      this.tiles[index] = "playerHome";
+      index = mapEntity.Map.map.getKeySquare("playerHome").tileIndex;
+      this.tiles[index] = { type: "playerHome", a: 1, w: 25, h: 25, deg: 0 }
       this.keySquaresVisible.playerHome = true;
     } else if (!this.keySquaresVisible.bossHome) {
-      index = mapEntity.Map.map.getKeySquare("bossHome").tileIndex();
-      this.tiles[index] = "bossHome";
+      index = mapEntity.Map.map.getKeySquare("bossHome").tileIndex;
+      this.tiles[index] = { type: "bossHome", a: 1, w: 25, h: 25, deg: 0 }
       this.keySquaresVisible.bossHome = true;
     } else if (!this.keySquaresVisible.office) {
-      index = mapEntity.Map.map.getKeySquare("office").tileIndex();
-      this.tiles[index] = "office";
+      index = mapEntity.Map.map.getKeySquare("office").tileIndex;
+      this.tiles[index] = { type: "office", a: 1, w: 25, h: 25, deg: 0 }
       this.keySquaresVisible.office = true;
     }
     mapEntity.TileMap.tiles = this.tiles;
@@ -362,6 +362,6 @@ export class AnimationSystem extends EntityComponentSystem.System {
   runDotPulse(entity: Entity) {
     let { maxRadius, currentRadius } = this.dotPulseData;
     //every run, the radius expands by the step amount until it reaches (or is very close to) the max radius
-    //every run, the 
+    //every run, the
   }
 }

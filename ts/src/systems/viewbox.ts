@@ -21,8 +21,8 @@ export class ViewBoxSystem extends EntityComponentSystem.System {
 
     ViewBox.w = this.mapOffscreen.width / 4;
     ViewBox.h = this.mapOffscreen.height / 4;
-    ViewBox.x = map.get(map.playerHome).coordinates().X - ViewBox.w / 2;
-    ViewBox.y = map.get(map.playerHome).coordinates().Y - ViewBox.h / 2;
+    ViewBox.x = map.get(map.playerHome).coordinates.X - ViewBox.w / 2;
+    ViewBox.y = map.get(map.playerHome).coordinates.Y - ViewBox.h / 2;
 
     if (ViewBox.x < 0) ViewBox.x = 0;
     if (ViewBox.y < 0) ViewBox.y = 0;

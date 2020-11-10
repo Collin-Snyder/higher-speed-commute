@@ -16,6 +16,15 @@ export const TileMap = {
   },
 };
 
+export const Tile = {
+  multiset: true,
+  properties: {
+    type: "",
+    alpha: 1,
+    
+  }
+}
+
 export const ViewBox = {
   properties: {
     x: 0,

@@ -6,6 +6,7 @@ import {
   radiansToDegrees,
   VectorInterface,
 } from "../modules/gameMath";
+import { drawTileMap } from "../modules/tileDrawer";
 
 //systems must be added in this order
 
@@ -224,8 +225,6 @@ export class RenderMap extends EntityComponentSystem.System {
     const coords = mapEntity.Coordinates;
     const tileMap = mapEntity.TileMap;
     const map = mapEntity.Map.map;
-    let x = 0;
-    let y = 0;
 
     this.ctx.save();
     this.ctx.globalAlpha = mapEntity.Renderable.alpha;
@@ -233,50 +232,26 @@ export class RenderMap extends EntityComponentSystem.System {
     this.ctx.fillRect(coords.X, coords.Y, map.pixelWidth, map.pixelHeight);
 
     if (
-      // mode === "playing" ||
       mode === "designing" ||
       mode === "levelStartAnimation" ||
       mode === "won" ||
       mode === "lost"
     ) {
-      for (let tile of tileMap.tiles) {
-        if (tile) {
-          if (typeof tile === "string") {
-            let tileCoords = global.spriteMap[tile];
-            this.ctx.drawImage(
-              global.spriteSheet,
-              tileCoords.X,
-              tileCoords.Y,
-              tileMap.tileWidth,
-              tileMap.tileHeight,
-              x * tileMap.tileWidth + coords.X,
-              y * tileMap.tileHeight + coords.Y,
-              tileMap.tileWidth,
-              tileMap.tileHeight
-            );
-          } else if (Array.isArray(tile)) {
-            for (let t of tile) {
-              let tileCoords = global.spriteMap[t];
-              this.ctx.drawImage(
-                global.spriteSheet,
-                tileCoords.X,
-                tileCoords.Y,
-                tileMap.tileWidth,
-                tileMap.tileHeight,
-                x * tileMap.tileWidth + coords.X,
-                y * tileMap.tileHeight + coords.Y,
-                tileMap.tileWidth,
-                tileMap.tileHeight
-              );
-            }
-          }
-        }
-        if (++x >= map.width) {
-          x = 0;
-          y++;
-        }
-      }
-
+      drawTileMap(tileMap.tiles, map.width, (type: string, x: number, y: number) => {
+        let tileCoords = global.spriteMap[type];
+        this.ctx.drawImage(
+          global.spriteSheet,
+          tileCoords.X,
+          tileCoords.Y,
+          tileMap.tileWidth,
+          tileMap.tileHeight,
+          x * tileMap.tileWidth + coords.X,
+          y * tileMap.tileHeight + coords.Y,
+          tileMap.tileWidth,
+          tileMap.tileHeight
+        );
+      });
+      
       if (mode === "designing" && global.game.designModule.gridLoaded) {
         this.ctx.drawImage(
           global.game.designModule.gridOverlay,
@@ -386,7 +361,11 @@ export class RenderViewBox extends EntityComponentSystem.System {
   private bossEntity: Entity;
   private refColors: { [key: string]: string };
 
-  constructor(ecs: ECS, private ctx: CanvasRenderingContext2D, private step: number) {
+  constructor(
+    ecs: ECS,
+    private ctx: CanvasRenderingContext2D,
+    private step: number
+  ) {
     super(ecs);
     // this.ctx = ctx;
 

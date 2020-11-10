@@ -144,7 +144,7 @@ export class CollisionSystem extends ECS.System {
       let surrounding = this.map.getSurroundingSquares(x, y, 2);
       for (let square of surrounding) {
         if (!square) continue;
-        let sqCoords = square.coordinates();
+        let sqCoords = square.coordinates;
         let thb = getTileHitbox(sqCoords.X, sqCoords.Y, 25, 25);
         let col = checkCollision(hb, thb);
         if (col) {

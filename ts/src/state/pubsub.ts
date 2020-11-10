@@ -286,7 +286,7 @@ class GameModeMachine {
         let designMap = new DesignMapGrid(40, 25);
 
         mapEntity.Map.map = designMap;
-        mapEntity.TileMap.tiles = designMap.generateTileMap();
+        mapEntity.TileMap.tiles = designMap.generateDesignTileMap();
         mapEntity.Renderable.bgColor = "lightgray";
         mapEntity.addComponent("Clickable", {
           onClick: function() {

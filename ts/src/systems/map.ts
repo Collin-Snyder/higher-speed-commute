@@ -4,6 +4,7 @@ import {
   getCenterPoint,
   getTileHitbox,
 } from "../modules/gameMath";
+import { drawTileMap } from "../modules/tileDrawer";
 
 export class MapSystem extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -53,7 +54,7 @@ export class MapSystem extends EntityComponentSystem.System {
     }
     for (let id in newMap.coffees) {
       const square = newMap.get(id);
-      const { X, Y } = square ? square.coordinates() : { X: 0, Y: 0 };
+      const { X, Y } = square ? square.coordinates : { X: 0, Y: 0 };
       const rw = 12;
       const rh = 12;
       let ent = this.ecs.createEntity({
@@ -94,7 +95,7 @@ export class MapSystem extends EntityComponentSystem.System {
 
     for (let id in newMap.lights) {
       const square = newMap.get(id);
-      const { X, Y } = square ? square.coordinates() : { X: 0, Y: 0 };
+      const { X, Y } = square ? square.coordinates : { X: 0, Y: 0 };
       const rw = 25;
       const rh = 25;
 
@@ -136,14 +137,14 @@ export class MapSystem extends EntityComponentSystem.System {
     let bossEntity = this.ecs.getEntity("boss");
 
     let playerCoords = newMap.get(newMap.playerHome)
-      ? newMap.get(newMap.playerHome).coordinates()
+      ? newMap.get(newMap.playerHome).coordinates
       : { X: 0, Y: 0 };
 
     playerEntity.Coordinates.X = playerCoords.X;
     playerEntity.Coordinates.Y = playerCoords.Y;
 
     let bossCoords = newMap.get(newMap.bossHome)
-      ? newMap.get(newMap.bossHome).coordinates()
+      ? newMap.get(newMap.bossHome).coordinates
       : { X: 0, Y: 0 };
 
     bossEntity.Coordinates.X = bossCoords.X;
@@ -154,10 +155,10 @@ export class MapSystem extends EntityComponentSystem.System {
 
   findBossPath(bossEntity: Entity, newMap: any) {
     bossEntity.Path.path = newMap.findPath(
-      newMap.get(newMap.bossHome).coordinates().X,
-      newMap.get(newMap.bossHome).coordinates().Y,
-      newMap.get(newMap.office).coordinates().X,
-      newMap.get(newMap.office).coordinates().Y
+      newMap.get(newMap.bossHome).coordinates.X,
+      newMap.get(newMap.bossHome).coordinates.Y,
+      newMap.get(newMap.office).coordinates.X,
+      newMap.get(newMap.office).coordinates.Y
     );
   }
 
@@ -167,9 +168,6 @@ export class MapSystem extends EntityComponentSystem.System {
     let tiles = newMap.generateTileMap();
     let global = this.ecs.getEntity("global").Global;
 
-    let x = 0;
-    let y = 0;
-
     this.mapCtx.fillStyle = "#81c76d";
     this.mapCtx.fillRect(
       0,
@@ -178,42 +176,19 @@ export class MapSystem extends EntityComponentSystem.System {
       this.mapOffscreen.height
     );
 
-    for (let tile of tiles) {
-      if (tile) {
-        if (typeof tile === "string") {
-          let tileCoords = global.spriteMap[tile];
-          this.mapCtx.drawImage(
-            global.spriteSheet,
-            tileCoords.X,
-            tileCoords.Y,
-            tileMap.tileWidth,
-            tileMap.tileHeight,
-            x * tileMap.tileWidth,
-            y * tileMap.tileHeight,
-            tileMap.tileWidth,
-            tileMap.tileHeight
-          );
-        } else if (Array.isArray(tile)) {
-          for (let t of tile) {
-            let tileCoords = global.spriteMap[t];
-            this.mapCtx.drawImage(
-              global.spriteSheet,
-              tileCoords.X,
-              tileCoords.Y,
-              tileMap.tileWidth,
-              tileMap.tileHeight,
-              x * tileMap.tileWidth,
-              y * tileMap.tileHeight,
-              tileMap.tileWidth,
-              tileMap.tileHeight
-            );
-          }
-        }
-      }
-      if (++x >= newMap.width) {
-        x = 0;
-        y++;
-      }
-    }
+    drawTileMap(tiles, newMap.width, (type: string, x: number, y: number) => {
+      let tileCoords = global.spriteMap[type];
+      this.mapCtx.drawImage(
+        global.spriteSheet,
+        tileCoords.X,
+        tileCoords.Y,
+        tileMap.tileWidth,
+        tileMap.tileHeight,
+        x * tileMap.tileWidth,
+        y * tileMap.tileHeight,
+        tileMap.tileWidth,
+        tileMap.tileHeight
+      );
+    });
   }
 }
