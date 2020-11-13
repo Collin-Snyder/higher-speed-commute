@@ -7,6 +7,7 @@ import {
   VectorInterface,
 } from "../modules/gameMath";
 import { drawTileMap } from "../modules/tileDrawer";
+import { TileInterface, Tile } from "../state/map";
 
 //systems must be added in this order
 
@@ -237,21 +238,39 @@ export class RenderMap extends EntityComponentSystem.System {
       mode === "won" ||
       mode === "lost"
     ) {
-      drawTileMap(tileMap.tiles, map.width, (type: string, x: number, y: number) => {
-        let tileCoords = global.spriteMap[type];
-        this.ctx.drawImage(
-          global.spriteSheet,
-          tileCoords.X,
-          tileCoords.Y,
-          tileMap.tileWidth,
-          tileMap.tileHeight,
-          x * tileMap.tileWidth + coords.X,
-          y * tileMap.tileHeight + coords.Y,
-          tileMap.tileWidth,
-          tileMap.tileHeight
-        );
-      });
-      
+      drawTileMap(
+        tileMap.tiles,
+        map.width,
+        (
+          type: Tile,
+          x: number,
+          y: number,
+          w: number,
+          h: number,
+          a: number,
+          deg: number
+        ) => {
+          let tileCoords = global.spriteMap[type];
+          let hasAlpha = a < 1;
+          let hasRotation = deg !== 0;
+          if (hasAlpha || hasRotation) this.ctx.save();
+          if (hasAlpha) this.ctx.globalAlpha = a;
+          if (hasRotation) this.ctx.rotate(degreesToRadians(deg));
+          this.ctx.drawImage(
+            global.spriteSheet,
+            tileCoords.X,
+            tileCoords.Y,
+            tileMap.tileWidth,
+            tileMap.tileHeight,
+            x * tileMap.tileWidth + coords.X,
+            y * tileMap.tileHeight + coords.Y,
+            w,
+            h
+          );
+          if (hasAlpha || hasRotation) this.ctx.restore()
+        }
+      );
+
       if (mode === "designing" && global.game.designModule.gridLoaded) {
         this.ctx.drawImage(
           global.game.designModule.gridOverlay,
@@ -483,7 +502,6 @@ export class RenderViewBox extends EntityComponentSystem.System {
     let { X, Y } = entity.Velocity.vector;
 
     if (X === 0 && Y === 0) return -1;
-    //will need to update vector/altVector calculation and collision handling to make this work
     if (X > 0 && Y < 0) return degreesToRadians(45);
     if (X > 0 && Y > 0) return degreesToRadians(135);
     if (X < 0 && Y > 0) return degreesToRadians(225);

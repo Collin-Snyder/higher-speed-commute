@@ -5,6 +5,7 @@ import {
   getTileHitbox,
 } from "../modules/gameMath";
 import { drawTileMap } from "../modules/tileDrawer";
+import { Tile } from "../state/map";
 
 export class MapSystem extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -165,7 +166,7 @@ export class MapSystem extends EntityComponentSystem.System {
   drawOffscreenMap(mapEntity: any) {
     let newMap = mapEntity.Map.map;
     let tileMap = mapEntity.TileMap;
-    let tiles = newMap.generateTileMap();
+    tileMap.tiles = newMap.generateTileMap();
     let global = this.ecs.getEntity("global").Global;
 
     this.mapCtx.fillStyle = "#81c76d";
@@ -176,19 +177,31 @@ export class MapSystem extends EntityComponentSystem.System {
       this.mapOffscreen.height
     );
 
-    drawTileMap(tiles, newMap.width, (type: string, x: number, y: number) => {
-      let tileCoords = global.spriteMap[type];
-      this.mapCtx.drawImage(
-        global.spriteSheet,
-        tileCoords.X,
-        tileCoords.Y,
-        tileMap.tileWidth,
-        tileMap.tileHeight,
-        x * tileMap.tileWidth,
-        y * tileMap.tileHeight,
-        tileMap.tileWidth,
-        tileMap.tileHeight
-      );
-    });
+    drawTileMap(
+      tileMap.tiles,
+      newMap.width,
+      (
+        type: Tile,
+        x: number,
+        y: number,
+        w: number,
+        h: number,
+        a: number,
+        deg: number
+      ) => {
+        let tileCoords = global.spriteMap[type];
+        this.mapCtx.drawImage(
+          global.spriteSheet,
+          tileCoords.X,
+          tileCoords.Y,
+          tileMap.tileWidth,
+          tileMap.tileHeight,
+          x * tileMap.tileWidth,
+          y * tileMap.tileHeight,
+          tileMap.tileWidth,
+          tileMap.tileHeight
+        );
+      }
+    );
   }
 }

@@ -1,18 +1,20 @@
+import { TileInterface, Tile } from "../state/map";
+
 export const drawTileMap = (
-  tiles: any,
+  tiles: TileInterface[],
   widthInSquares: number,
   drawFunc: Function
 ) => {
   let x = 0,
     y = 0;
   for (let tile of tiles) {
-    let { type } = tile;
-    if (type) {
+    let { type, w, h, a, deg, display } = tile;
+    if (display && type) {
       if (typeof type === "string") {
-        drawFunc(type, x, y);
+        drawFunc(type, x, y, w, h, a, deg);
       } else if (Array.isArray(type)) {
-        type.forEach((t: string) => {
-          drawFunc(t, x, y);
+        type.forEach((t: Tile) => {
+          drawFunc(t, x, y, w, h, a, deg);
         });
       }
     }

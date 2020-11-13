@@ -43,6 +43,16 @@ export interface SquareInterface {
   [key: string]: any;
 }
 
+export interface TileInterface {
+  type: Tile | Tile[],
+  a: number,
+  w: number,
+  h: number,
+  deg: number,
+  display: boolean,
+  [key: string]: any
+}
+
 type BordersInterface = {
   [key in Direction]: SquareInterface | null;
 };
@@ -53,7 +63,7 @@ type BordersCompressedInterface = {
 
 type Direction = "up" | "down" | "left" | "right";
 
-type Tile =
+export type Tile =
   | "street"
   | "tree"
   | "house"
@@ -188,9 +198,9 @@ export class MapGrid implements MapGridInterface {
     return this.squares[s - 1];
   }
 
-  generateTileMap(isRefMap: boolean = false) {
+  generateTileMap(isRefMap: boolean = false): TileInterface[] {
     return this.squares.map((s: SquareInterface) => {
-      let type = "";
+      let type = <Tile>"";
 
       if (s.drivable) {
         if (s.schoolZone && !isRefMap) type = "schoolZone";
@@ -210,7 +220,10 @@ export class MapGrid implements MapGridInterface {
         a: 1,
         h: 25,
         w: 25,
+        row: s.row,
+        col: s.column, 
         deg: 0,
+        display: true
       };
     });
   }
@@ -439,6 +452,8 @@ export class DesignMapGrid extends MapGrid {
         w: 25,
         h: 25,
         deg: 0,
+        xoffset: 0,
+        yoffset: 0
       };
     });
   }

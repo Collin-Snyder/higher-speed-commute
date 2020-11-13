@@ -1,5 +1,6 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { centerWithin } from "../modules/gameMath";
+import { Tile, TileInterface } from "../state/map";
 
 interface AnimationStateInterface {
   duration: number;
@@ -63,11 +64,15 @@ export class LevelStartAnimation extends StateAnimation {
   private ctx: CanvasRenderingContext2D;
   private gameboardAlpha: number;
   private gameboardAlphaStep: number;
-  private tiles: any;
+  private tileMap: any;
   private keySquaresVisible: { [key: string]: boolean };
   private countdownNum: number;
   private countdownAlpha: number;
   private countdownAlphaStep: number;
+  private map: any;
+  private revealCol: number;
+  private shrinkDuration: number;
+  private revealElapsedTime: number;
 
   constructor(ecs: any, step: number, ctx: CanvasRenderingContext2D) {
     super(ecs, step);
@@ -117,6 +122,18 @@ export class LevelStartAnimation extends StateAnimation {
         step: this.gameStep,
         stepStart: 0,
       },
+      reveal: {
+        onDone: this.onRevealDone.bind(this),
+        onStep: this.onRevealStep.bind(this),
+        duration: 2000,
+        step: this.gameStep,
+      },
+      zoom: {
+        onDone: this.onZoomDone.bind(this),
+        onStep: this.onZoomStep.bind(this),
+        duration: 1000,
+        step: this.gameStep,
+      },
     };
     this.currentState = "start";
     this.currentStep = this.states[this.currentState].step;
@@ -128,7 +145,8 @@ export class LevelStartAnimation extends StateAnimation {
         Math.floor(this.states.gameboard.duration / this.states.gameboard.step)
       ).toFixed(3)
     );
-    this.tiles = new Array(1000).fill({ type: "", a: 1, w: 25, h: 25, deg: 0 });
+    this.map = this.ecs.getEntity("map").Map;
+    this.tileMap = this.ecs.getEntity("map").TileMap;
     this.keySquaresVisible = {
       playerHome: false,
       bossHome: false,
@@ -139,6 +157,9 @@ export class LevelStartAnimation extends StateAnimation {
     this.countdownAlphaStep = Number(
       (1 / Math.floor(1000 / this.states.countdown.step)).toFixed(3)
     );
+    this.shrinkDuration = this.states.reveal.duration / this.map.width;
+    this.revealElapsedTime = 0;
+    this.revealCol = 1;
   }
 
   isAnimationRunning(): boolean {
@@ -163,22 +184,18 @@ export class LevelStartAnimation extends StateAnimation {
   }
 
   onKeySquareStep(): void {
-    let mapEntity = this.ecs.getEntity("map");
     let index;
     if (!this.keySquaresVisible.playerHome) {
-      index = mapEntity.Map.map.getKeySquare("playerHome").tileIndex;
-      this.tiles[index] = { type: "playerHome", a: 1, w: 25, h: 25, deg: 0 }
+      index = this.map.map.getKeySquare("playerHome").tileIndex;
       this.keySquaresVisible.playerHome = true;
     } else if (!this.keySquaresVisible.bossHome) {
-      index = mapEntity.Map.map.getKeySquare("bossHome").tileIndex;
-      this.tiles[index] = { type: "bossHome", a: 1, w: 25, h: 25, deg: 0 }
+      index = this.map.map.getKeySquare("bossHome").tileIndex;
       this.keySquaresVisible.bossHome = true;
     } else if (!this.keySquaresVisible.office) {
-      index = mapEntity.Map.map.getKeySquare("office").tileIndex;
-      this.tiles[index] = { type: "office", a: 1, w: 25, h: 25, deg: 0 }
+      index = this.map.map.getKeySquare("office").tileIndex;
       this.keySquaresVisible.office = true;
     }
-    mapEntity.TileMap.tiles = this.tiles;
+    this.tileMap.tiles[index].display = true;
   }
 
   onCountdownStep(): void {
@@ -233,9 +250,51 @@ export class LevelStartAnimation extends StateAnimation {
   }
 
   onCountdownDone(): string {
+    // let mapEntity = this.ecs.getEntity("map");
+    // mapEntity.TileMap.tiles = mapEntity.Map.map.generateTileMap();
+    
+    return "reveal";
+  }
+
+  onRevealDone(): string {
     console.log("GO!");
-    let mapEntity = this.ecs.getEntity("map");
-    mapEntity.TileMap.tiles = mapEntity.Map.map.generateTileMap();
+    return "zoom";
+  }
+
+  onRevealStep(): void {
+    let newCol = false;
+    this.tileMap.tiles.forEach((t: TileInterface, i: number) => {
+      if (
+        t.col > this.revealCol ||
+        t.type === "playerHome" ||
+        t.type === "bossHome" ||
+        t.type === "office"
+      )
+        return;
+      if (t.col < this.revealCol) {
+        if (t.w === this.tileMap.tileWidth) return;
+        t.w--;
+        t.h--;
+        t.a + 0.04 > 1 ? (t.a = 1) : (t.a += 0.04);
+        return;
+      }
+      if (this.revealElapsedTime > this.revealCol * (this.shrinkDuration / 1.5)) {
+        t.display = true;
+        t.w = 50;
+        t.h = 50;
+        // t.a = 0.5;
+        newCol = true;
+      }
+    });
+    // console.log("Incrementing elapsed time by current step (", this.gameStep, ") from ", this.revealElapsedTime, "...")
+    if (newCol) this.revealCol++;
+    this.revealElapsedTime += this.gameStep;
+    // console.log("...to ", this.revealElapsedTime);
+  }
+
+  onZoomStep(): void {}
+
+  onZoomDone(): string {
     return "done";
   }
 
@@ -250,7 +309,6 @@ export class LevelStartAnimation extends StateAnimation {
         Math.floor(this.states.gameboard.duration / this.states.gameboard.step)
       ).toFixed(3)
     );
-    this.tiles = new Array(1000).fill("");
     this.keySquaresVisible = {
       playerHome: false,
       bossHome: false,
@@ -259,11 +317,13 @@ export class LevelStartAnimation extends StateAnimation {
   }
 
   onStart(): string {
-    let mapEntity = this.ecs.getEntity("map");
+    let tiles = this.ecs.getEntity("map").TileMap.tiles;
     let spriteMap = this.ecs.getEntity("global").Global.spriteMap;
 
-    console.log("resetting tilemap");
-    mapEntity.TileMap.tiles = this.tiles;
+    // console.log("resetting tilemap");
+    tiles.forEach((t: TileInterface) => {
+      t.display = false;
+    });
 
     return "gameboard";
   }
