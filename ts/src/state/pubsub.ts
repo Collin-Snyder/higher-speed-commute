@@ -111,7 +111,9 @@ class GameModeMachine {
         //play starting animations
         let game = <Game>(<unknown>this);
         const mapEntity = game.ecs.getEntity("map");
+        const wonGraphic = game.ecs.getEntity("wonGraphic");
         mapEntity.Renderable.alpha = 0;
+        if (wonGraphic) wonGraphic.Renderable.visible = false;
         game.currentZoom = 1;
         game.mode = "starting";
         game.loadLevel(level);
@@ -153,12 +155,18 @@ class GameModeMachine {
         let graphic = game.ecs.getEntity("wonGraphic");
 
         if (!graphic) {
+          let { X, Y } = game.spriteMap.wonGraphic;
           graphic = game.ecs.createEntity({
             id: "wonGraphic",
             Coordinates: {},
             Animation: { startSprite: game.spriteMap.shiny, degStep: 1 },
-            Renderable: {},
+            Renderable: {
+              spriteX: X,
+              spriteY: Y,
+            },
           });
+        } else {
+          graphic.Renderable.visible = true;
         }
 
         if (game.recordRaceData) game.saveRaceData("win");

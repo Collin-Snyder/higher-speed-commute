@@ -753,19 +753,12 @@ export class RenderMenus extends EntityComponentSystem.System {
       switch (mode) {
         case "menu":
           this.renderMainMenu();
-          break;
+          return;
         case "paused":
-          // this.renderPausedMenu(X, Y, pixelWidth, pixelHeight);
-          this.renderGameplayMenu("paused", X, Y, pixelWidth, pixelHeight);
-          break;
         case "won":
-          // this.renderWonMenu(X, Y, pixelWidth, pixelHeight);
-          this.renderGameplayMenu("won", X, Y, pixelWidth, pixelHeight);
-          break;
         case "lost":
-          // this.renderLostMenu(X, Y, pixelWidth, pixelHeight);
-          this.renderGameplayMenu("lost", X, Y, pixelWidth, pixelHeight);
-          break;
+          this.renderGameplayMenu(mode, X, Y, pixelWidth, pixelHeight);
+          return;
         case "designing":
           this.renderDesignMenus(X, Y, pixelWidth, pixelHeight);
           return;
