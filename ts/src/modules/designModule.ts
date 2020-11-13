@@ -179,7 +179,7 @@ class DesignModule {
           console.log(data.data);
           global.map.Map.mapId = id;
           global.map.Map.map = DesignMapGrid.fromMapObject(data.data);
-          global.map.TileMap.tiles = global.map.Map.map.generateTileMap();
+          global.map.TileMap.tiles = global.map.Map.map.generateDesignTileMap();
           this._editor.restart();
         })
         .catch((err: any) => console.error(err));
@@ -190,13 +190,13 @@ class DesignModule {
   undo() {
     this._editor.undo();
     let global = this._game.ecs.getEntity("global").Global;
-    global.map.TileMap.tiles = global.map.Map.map.generateTileMap();
+    global.map.TileMap.tiles = global.map.Map.map.generateDesignTileMap();
   }
 
   redo() {
     this._editor.redo();
     let global = this._game.ecs.getEntity("global").Global;
-    global.map.TileMap.tiles = global.map.Map.map.generateTileMap();
+    global.map.TileMap.tiles = global.map.Map.map.generateDesignTileMap();
   }
 
   startDrawing() {
@@ -229,7 +229,7 @@ class DesignModule {
     let mapEntity = this._game.ecs.getEntity("map");
 
     mapEntity.Map.map.clear(this._editor);
-    mapEntity.TileMap.tiles = mapEntity.Map.map.generateTileMap();
+    mapEntity.TileMap.tiles = mapEntity.Map.map.generateDesignTileMap();
 
     if (confirmOverwrite) this.save();
     else mapEntity.Map.mapId = null;

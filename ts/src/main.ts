@@ -1,11 +1,19 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
-import { average, findCenteredElementSpread } from "./modules/gameMath";
+import {
+  average,
+  findCenteredElementSpread,
+  getCenterPoint,
+  scaleVector,
+  VectorInterface,
+  findRotatedVertex,
+} from "./modules/gameMath";
 //@ts-ignore
 import axios from "axios";
 import spriteMap from "./spriteMap";
 import bgMap from "./bgMap";
 import keyCodes from "./keyCodes";
 import DesignModule from "./modules/designModule";
+import LogTimers from "./modules/logger";
 import { MapGrid, MapGridInterface } from "./state/map";
 import GameModeMachine, { Mode } from "./state/pubsub";
 import Race from "./modules/raceData";
@@ -21,16 +29,22 @@ import { MovementSystem } from "./systems/move";
 import { CollisionSystem } from "./systems/collision";
 import { CaffeineSystem } from "./systems/caffeine";
 import { RaceTimerSystem } from "./systems/timers";
-import { LevelStartAnimation, BackgroundAnimation, Animation } from "./systems/animations";
+import {
+  LevelStartAnimation,
+  BackgroundAnimation,
+  Animation,
+} from "./systems/animations";
 import {
   RenderBackground,
   RenderMap,
   RenderGameplayEntities,
+  RenderViewBox,
   RenderMenus,
   RenderButtonModifiers,
   RenderTopLevelGraphics,
   RenderBorders,
 } from "./systems/render";
+import { ViewBoxSystem } from "./systems/viewbox";
 
 interface InputEventsInterface {
   mouseX: number;
@@ -59,6 +73,10 @@ export class Game {
   public backgroundIsLoaded: boolean;
   private UICanvas: HTMLCanvasElement;
   private uictx: CanvasRenderingContext2D;
+  private OSMapCanvas: HTMLCanvasElement;
+  private osmctx: CanvasRenderingContext2D;
+  private OSEntCanvas: HTMLCanvasElement;
+  private osectx: CanvasRenderingContext2D;
   public ecs: ECS;
   public currentLevel: {
     id: number | null;
@@ -77,6 +95,12 @@ export class Game {
   private coffeeEntities: { [key: string]: Entity };
   private map: MapGridInterface;
   public difficulty: "easy" | "medium" | "hard" | null;
+  public focusView: "player" | "boss";
+  public mapView: boolean;
+  public zoomFactor: number;
+  public currentZoom: number;
+  public defaultGameZoom: number;
+  public logTimers: LogTimers;
   // public sounds: Sounds;
 
   constructor() {
@@ -97,15 +121,21 @@ export class Game {
     this.currentRace = null;
     this.recordRaceData = true;
     this.difficulty = null;
-    // this.width = 1000;
-    // this.height = 625;
+    this.focusView = "player";
+    this.mapView = false;
+    this.zoomFactor = 4;
+    this.currentZoom = 1;
+    this.defaultGameZoom = 4;
     this.inputs = new InputEvents();
     // this.sounds = new Sounds(this);
-    // this.gameCanvas = <HTMLCanvasElement>document.getElementById("game");
-    // this.gamectx = <CanvasRenderingContext2D>this.gameCanvas.getContext("2d");
     this.UICanvas = <HTMLCanvasElement>document.getElementById("ui");
     this.uictx = <CanvasRenderingContext2D>this.UICanvas.getContext("2d");
+    this.OSMapCanvas = <HTMLCanvasElement>document.getElementById("map-offscreen");
+    this.osmctx = <CanvasRenderingContext2D>this.OSMapCanvas.getContext("2d");
+    this.OSEntCanvas = <HTMLCanvasElement>document.getElementById("ents-offscreen");
+    this.osectx = <CanvasRenderingContext2D>this.OSEntCanvas.getContext("2d");
     this.subscribers = {};
+    this.logTimers = new LogTimers(this);
     this.map = new MapGrid(40, 25);
     this.designModule = new DesignModule(this);
     this.spritesheet = new Image();
@@ -147,21 +177,67 @@ export class Game {
         weight: 20,
         radius: 20,
       },
+      ViewBox: {
+        w: 1000 / this.currentZoom,
+        h: 625 / this.currentZoom,
+      },
     });
+    
+    let hb = [];
+    hb.push(scaleVector({ X: 6, Y: 2 }, 2 / 3));
+    hb.push(scaleVector({ X: 19, Y: 2 }, 2 / 3));
+    hb.push(scaleVector({ X: 19, Y: 23 }, 2 / 3));
+    hb.push(scaleVector({ X: 6, Y: 23 }, 2 / 3));
+    let cp = getCenterPoint(
+      hb[0].X,
+      hb[0].Y,
+      hb[1].X - hb[0].X,
+      hb[3].Y - hb[0].Y
+    );
+
+    let getCurrentHb = function() {
+      //@ts-ignore
+      let entity = <Entity>(<unknown>this);
+      let { hb, cp } = entity.Collision;
+      let c = entity.Coordinates;
+
+      hb = hb.map((v: VectorInterface) => ({ X: v.X + c.X, Y: v.Y + c.Y }));
+      let cpx = cp.X + c.X;
+      let cpy = cp.Y + c.Y;
+
+      let deg = entity.Renderable.degrees;
+      if (deg === 0) return hb;
+      // entity.Renderable.degrees = degrees;
+      //@ts-ignore
+      return hb.map(({ X, Y }) => findRotatedVertex(X, Y, cpx, cpy, deg));
+    };
+
+    let getCurrentCp = function() {
+      //@ts-ignore
+      let entity = <Entity>(<unknown>this);
+      let { hb, cp } = entity.Collision;
+      let c = entity.Coordinates;
+      let cpx = cp.X + c.X;
+      let cpy = cp.Y + c.Y;
+      return { X: cpx, Y: cpy };
+    };
 
     this.playerEntity = this.ecs.createEntity({
       id: "player",
       Coordinates: {
         ...(this.map.get(this.map.playerHome)
-          ? this.map.get(this.map.playerHome).coordinates()
+          ? this.map.get(this.map.playerHome).coordinates
           : { X: 0, Y: 0 }),
       },
       Car: {
         color: "blue",
       },
       Velocity: {},
-      Renderable: {},
-      Collision: {},
+      Renderable: {
+        renderWidth: 25 * (2 / 3),
+        renderHeight: 25 * (2 / 3),
+      },
+      Collision: { hb, cp },
     });
 
     this.bossEntity = this.ecs.createEntity({
@@ -176,9 +252,21 @@ export class Game {
       Path: {
         driver: "boss",
       },
-      Renderable: {},
-      Collision: {},
+      Renderable: {
+        renderWidth: 25 * (2 / 3),
+        renderHeight: 25 * (2 / 3),
+      },
+      Collision: { hb, cp },
     });
+
+    this.playerEntity.Collision.currentHb = getCurrentHb.bind(
+      this.playerEntity
+    );
+    this.playerEntity.Collision.currentCp = getCurrentCp.bind(
+      this.playerEntity
+    );
+    this.bossEntity.Collision.currentHb = getCurrentHb.bind(this.bossEntity);
+    this.bossEntity.Collision.currentCp = getCurrentCp.bind(this.bossEntity);
 
     this.lightEntities = {};
     this.coffeeEntities = {};
@@ -202,11 +290,12 @@ export class Game {
     this.ecs.addSystem("move", new MovementSystem(this.ecs));
     this.ecs.addSystem("collision", new CollisionSystem(this.ecs));
     this.ecs.addSystem("map", new MapSystem(this.ecs));
+    // this.ecs.addSystem("viewbox", new ViewBoxSystem(this.ecs));
     this.ecs.addSystem(
       "animations",
       new LevelStartAnimation(this.ecs, this.step, this.uictx)
     );
-    this.ecs.addSystem("animations", new Animation(this.ecs))
+    this.ecs.addSystem("animations", new Animation(this.ecs));
 
     this.loadMap = this.loadMap.bind(this);
   }
@@ -333,11 +422,12 @@ export class Game {
     MenuButtons.createEntities(this);
 
     this.ecs.addSystem("render", new RenderBorders(this.ecs, this.uictx));
-    this.ecs.addSystem("render", new RenderMap(this.ecs, this.uictx));
+    this.ecs.addSystem("render", new RenderMap(this.ecs, this.osmctx));
     this.ecs.addSystem(
       "render",
-      new RenderGameplayEntities(this.ecs, this.uictx)
+      new RenderGameplayEntities(this.ecs, this.osectx, this.OSEntCanvas)
     );
+    this.ecs.addSystem("render", new RenderViewBox(this.ecs, this.uictx, this.step));
     this.ecs.addSystem("render", new RenderMenus(this.ecs, this.uictx));
     this.ecs.addSystem(
       "render",
@@ -424,12 +514,14 @@ export class Game {
   }
 
   update(step: number) {
+    this.logTimers.update();
     this.ecs.runSystemGroup("input");
     if (this.mode === "playing") {
       this.ecs.runSystemGroup("lights");
       this.ecs.runSystemGroup("caffeine");
       this.ecs.runSystemGroup("move");
       this.ecs.runSystemGroup("collision");
+      this.ecs.runSystemGroup("viewbox");
       this.ecs.runSystemGroup("timers");
     }
 
@@ -507,6 +599,24 @@ export class Game {
         this.endRace();
       })
       .catch((err: any) => console.error(err));
+  }
+
+  getPlayerHB() {
+    let player = this.ecs.getEntity("player");
+    let { hb, cp } = player.Collision;
+    let c = player.Coordinates;
+
+    hb = hb.map((v: VectorInterface) => ({ X: v.X + c.X, Y: v.Y + c.Y }));
+    let cpx = cp.X + c.X;
+    let cpy = cp.Y + c.Y;
+
+    let deg = player.Renderable.degrees;
+    if (deg === 0) return hb;
+    // entity.Renderable.degrees = degrees;
+    console.log("Degrees: ", deg);
+    console.log("HB before rotation: ", hb);
+    //@ts-ignore
+    return hb.map(({ X, Y }) => findRotatedVertex(X, Y, cpx, cpy, deg));
   }
 }
 

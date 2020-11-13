@@ -1,5 +1,7 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
-import { centerWithin } from "../modules/gameMath";
+import { centerWithin, getCenterPoint } from "../modules/gameMath";
+import { Tile, TileInterface } from "../state/map";
+const { floor } = Math;
 
 interface AnimationStateInterface {
   duration: number;
@@ -63,11 +65,16 @@ export class LevelStartAnimation extends StateAnimation {
   private ctx: CanvasRenderingContext2D;
   private gameboardAlpha: number;
   private gameboardAlphaStep: number;
-  private tiles: Array<string | Array<string>>;
+  private tileMap: any;
   private keySquaresVisible: { [key: string]: boolean };
   private countdownNum: number;
   private countdownAlpha: number;
   private countdownAlphaStep: number;
+  private map: any;
+  private revealCol: number;
+  private shrinkDuration: number;
+  private revealElapsedTime: number;
+  private zoomStep: number;
 
   constructor(ecs: any, step: number, ctx: CanvasRenderingContext2D) {
     super(ecs, step);
@@ -117,9 +124,20 @@ export class LevelStartAnimation extends StateAnimation {
         step: this.gameStep,
         stepStart: 0,
       },
+      reveal: {
+        onDone: this.onRevealDone.bind(this),
+        onStep: this.onRevealStep.bind(this),
+        duration: 1000,
+        step: this.gameStep,
+      },
+      zoom: {
+        onDone: this.onZoomDone.bind(this),
+        onStep: this.onZoomStep.bind(this),
+        duration: 1000,
+        step: this.gameStep,
+      },
     };
     this.currentState = "start";
-    this.currentStep = this.states[this.currentState].step;
     this.currentTimeRemaining = this.states[this.currentState].duration;
     this.gameboardAlpha = 0;
     this.gameboardAlphaStep = Number(
@@ -128,7 +146,8 @@ export class LevelStartAnimation extends StateAnimation {
         Math.floor(this.states.gameboard.duration / this.states.gameboard.step)
       ).toFixed(3)
     );
-    this.tiles = new Array(1000).fill("");
+    this.map = this.ecs.getEntity("map").Map;
+    this.tileMap = this.ecs.getEntity("map").TileMap;
     this.keySquaresVisible = {
       playerHome: false,
       bossHome: false,
@@ -139,6 +158,10 @@ export class LevelStartAnimation extends StateAnimation {
     this.countdownAlphaStep = Number(
       (1 / Math.floor(1000 / this.states.countdown.step)).toFixed(3)
     );
+    this.shrinkDuration = (this.states.reveal.duration * 2) / this.map.width;
+    this.revealElapsedTime = 0;
+    this.revealCol = 1;
+    this.zoomStep = 0.075;
   }
 
   isAnimationRunning(): boolean {
@@ -163,22 +186,18 @@ export class LevelStartAnimation extends StateAnimation {
   }
 
   onKeySquareStep(): void {
-    let mapEntity = this.ecs.getEntity("map");
     let index;
     if (!this.keySquaresVisible.playerHome) {
-      index = mapEntity.Map.map.getKeySquare("playerHome").tileIndex();
-      this.tiles[index] = "playerHome";
+      index = this.map.map.getKeySquare("playerHome").tileIndex;
       this.keySquaresVisible.playerHome = true;
     } else if (!this.keySquaresVisible.bossHome) {
-      index = mapEntity.Map.map.getKeySquare("bossHome").tileIndex();
-      this.tiles[index] = "bossHome";
+      index = this.map.map.getKeySquare("bossHome").tileIndex;
       this.keySquaresVisible.bossHome = true;
     } else if (!this.keySquaresVisible.office) {
-      index = mapEntity.Map.map.getKeySquare("office").tileIndex();
-      this.tiles[index] = "office";
+      index = this.map.map.getKeySquare("office").tileIndex;
       this.keySquaresVisible.office = true;
     }
-    mapEntity.TileMap.tiles = this.tiles;
+    this.tileMap.tiles[index].display = true;
   }
 
   onCountdownStep(): void {
@@ -230,12 +249,94 @@ export class LevelStartAnimation extends StateAnimation {
 
     let cd = this.ecs.getEntity("countdown");
     cd.Renderable.alpha = this.countdownAlpha;
+    if (this.countdownNum === 1) this.onRevealStep();
   }
 
   onCountdownDone(): string {
+    // let mapEntity = this.ecs.getEntity("map");
+    // mapEntity.TileMap.tiles = mapEntity.Map.map.generateTileMap();
+    this.onRevealStep();
+    return "reveal";
+  }
+
+  onRevealDone(): string {
     console.log("GO!");
-    let mapEntity = this.ecs.getEntity("map");
-    mapEntity.TileMap.tiles = mapEntity.Map.map.generateTileMap();
+    this.revealElapsedTime = 0;
+    this.revealCol = 1;
+    return "zoom";
+  }
+
+  onRevealStep(): void {
+    let newCol = false;
+    this.tileMap.tiles.forEach((t: TileInterface) => {
+      let light = this.ecs.getEntity(`light${t.id}`);
+      let coffee = this.ecs.getEntity(`coffee${t.id}`);
+      if (
+        t.col > this.revealCol ||
+        t.type === "playerHome" ||
+        t.type === "bossHome" ||
+        t.type === "office"
+      ) {
+        return;
+      }
+      if (t.col < this.revealCol) {
+        if (t.w === this.tileMap.tileWidth) return;
+        t.w--;
+        t.h--;
+        if (light) {
+          light.Renderable.renderWidth = t.w;
+          light.Renderable.renderHeight = t.h;
+        }
+        if (coffee) {
+          coffee.Renderable.renderWidth = floor(t.w / 2);
+          coffee.Renderable.renderHeight = floor(t.h / 2);
+        }
+        return;
+      }
+      if (
+        this.revealElapsedTime >
+        this.revealCol * (this.shrinkDuration / 1.5)
+      ) {
+        t.display = true;
+        t.w = 50;
+        t.h = 50;
+        newCol = true;
+        if (light) {
+          light.Renderable.visible = true;
+          light.Renderable.renderWidth = t.w;
+          light.Renderable.renderHeight = t.h;
+        }
+        if (coffee) {
+          coffee.Renderable.visible = true;
+          coffee.Renderable.renderWidth = floor(t.w / 2);
+          coffee.Renderable.renderHeight = floor(t.h / 2);
+        }
+      }
+    });
+    if (newCol) this.revealCol++;
+    this.revealElapsedTime += this.gameStep;
+  }
+
+  onZoomStep(): void {
+    let game = this.ecs.getEntity("global").Global.game;
+    game.currentZoom +=
+      (game.defaultGameZoom - game.currentZoom) * this.zoomStep;
+  }
+
+  onZoomDone(): string {
+    let game = this.ecs.getEntity("global").Global.game;
+    if (game.currentZoom !== game.defaultGameZoom)
+      game.currentZoom = game.defaultGameZoom;
+    const vb = this.ecs.getEntity("map").ViewBox;
+    const { Coordinates, Renderable } = this.ecs.getEntity("player");
+    const center = getCenterPoint(
+      Coordinates.X,
+      Coordinates.Y,
+      Renderable.renderWidth,
+      Renderable.renderHeight
+    );
+    vb.x = center.X - vb.w / 2;
+    vb.y = center.Y - vb.h / 2;
     return "done";
   }
 
@@ -250,7 +351,6 @@ export class LevelStartAnimation extends StateAnimation {
         Math.floor(this.states.gameboard.duration / this.states.gameboard.step)
       ).toFixed(3)
     );
-    this.tiles = new Array(1000).fill("");
     this.keySquaresVisible = {
       playerHome: false,
       bossHome: false,
@@ -259,11 +359,13 @@ export class LevelStartAnimation extends StateAnimation {
   }
 
   onStart(): string {
-    let mapEntity = this.ecs.getEntity("map");
+    let tiles = this.ecs.getEntity("map").TileMap.tiles;
     let spriteMap = this.ecs.getEntity("global").Global.spriteMap;
 
-    console.log("resetting tilemap");
-    mapEntity.TileMap.tiles = this.tiles;
+    // console.log("resetting tilemap");
+    tiles.forEach((t: TileInterface) => {
+      t.display = false;
+    });
 
     return "gameboard";
   }
@@ -277,15 +379,6 @@ export class LevelStartAnimation extends StateAnimation {
     this.reset();
   }
 }
-
-//gameboard fades in (500 ms/ 1/30s)
-//1s pause
-//key squares appear (add "pop" animations later) - 300ms gap?
-//1s pause
-//countdown 3...2...1...
-//whole map spirals in (3s during countdown)
-//go!
-//cars appear and boss starts
 
 export class BackgroundAnimation extends EntityComponentSystem.System {
   constructor(ecs: any) {
@@ -309,6 +402,7 @@ export class BackgroundAnimation extends EntityComponentSystem.System {
   }
 }
 
+//maybe have Animation system contain list of animation frames/pacing/etc, and Animation component just holds which type of animation
 export class Animation extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
     has: ["Animation"],
@@ -319,23 +413,57 @@ export class Animation extends EntityComponentSystem.System {
 
   update(tick: number, entities: Set<Entity>) {
     for (let entity of entities) {
-      console.log(entity)
-      let anim = entity.Animation;
-      if (anim.frames.length > 0) {
+      let a = entity.Animation;
+      if (a.frames.length > 0) {
         //if not at end, update entity based on next frame
         //if at end, return to start if looping or else remove animation component
       } else {
-        if (anim.xStep) {
-          anim.xOffset += anim.xStep;
+        if (a.xStep) {
+          a.xOffset += a.xStep;
         }
-        if (anim.yStep) {
-          anim.yOffset += anim.yStep;
+        if (a.yStep) {
+          a.yOffset += a.yStep;
         }
-        if (anim.degStep) {
-          console.log("Updating degOffset to ", anim.degOffset + anim.degStep)
-          anim.degOffset += anim.degStep;
+        if (a.degStep) {
+          a.degOffset += a.degStep;
         }
       }
     }
+  }
+}
+
+export const enum Animations {
+  DOT_PULSE = "DotPulse",
+  ROTATE = "Rotate",
+  SCALE = "Scale",
+  TRANSLATE = "Translate",
+}
+
+export class AnimationSystem extends EntityComponentSystem.System {
+  static query: { has?: string[]; hasnt?: string[] } = {
+    has: ["Animation"],
+  };
+  public dotPulseData: any;
+  constructor(ecs: any) {
+    super(ecs);
+    this.dotPulseData = {
+      maxRadius: 2,
+      currentRadius: 1,
+      radiusStep: 3 / 4,
+    };
+  }
+
+  update(tick: number, entities: Set<Entity>) {
+    for (let entity of entities) {
+      let animation: Animations = entity.Animation.name;
+      // @ts-ignore
+      this[`run${animation}`](entity, animation);
+    }
+  }
+
+  runDotPulse(entity: Entity) {
+    let { maxRadius, currentRadius } = this.dotPulseData;
+    //every run, the radius expands by the step amount until it reaches (or is very close to) the max radius
+    //every run, the
   }
 }

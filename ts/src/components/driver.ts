@@ -2,6 +2,8 @@ export const Coordinates = {
   properties: {
     X: 0,
     Y: 0,
+    prevX: 0,
+    prevY: 0,
   },
 };
 
@@ -25,7 +27,8 @@ export const Velocity = {
       X: 0,
       Y: 0,
     },
-    altVectors: []
+    prevVector: null,
+    altVectors: [],
   },
 };
 
@@ -40,7 +43,9 @@ export const Renderable = {
     alpha: 1,
     bgColor: `rgba(0, 0, 0, 0)`,
     visible: true,
-    prevSpriteName: null
+    prevSpriteName: null,
+    degrees: 0,
+    radians: 0,
   },
 };
 
@@ -48,13 +53,17 @@ export const Path = {
   properties: {
     driver: "",
     path: [],
-    nextTarget: ""
+    nextTarget: "",
   },
 };
 
 export const Collision = {
   properties: {
-    fudgeFactor: 2
+    fudgeFactor: 2,
+    hb: [],
+    cp: { X: 0, Y: 0 },
+    currentHb: () => {},
+    currentCp: () => {},
   },
 };
 
@@ -67,7 +76,7 @@ export const SchoolZone = {
 export const CaffeineBoost = {
   properties: {
     wearOff: 5000,
-    multiplier: 1.5
+    multiplier: 1.5,
   },
-  multiset: true
-}
+  multiset: true,
+};

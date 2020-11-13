@@ -65,9 +65,6 @@ app.get("/levels/:levelNum", async (req, res) => {
     console.log("Error in GET levels/:levelNum handler")
     console.error(err);
     res.send(err);
-    // res.send(
-    //   `You asked for level number ${req.params.levelNum} but there was an error: ${err}`
-    // );
   }
 });
 
@@ -174,7 +171,6 @@ app.post("/races", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(400).send(err);
-    // res.send(`${err.name}: ${err.message}`);
   }
 });
 //@ts-ignore
@@ -223,7 +219,7 @@ app.post("/convert_legacy_levels", async (req, res) => {
 
 //@ts-ignore
 app.get("/", (req, res) => {
-  res.send("Hello World!");
+  res.send("<h2>Hello World!</h2><p>If you're looking for High Speed Commute, click <a href='http://localhost:8080'>here</a></p>")
 });
 
 app.listen(app.get("port"), () => {

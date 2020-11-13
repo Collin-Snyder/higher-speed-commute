@@ -9,7 +9,16 @@
 //Will need to ensure that NPCs are on paths that do not collide head-on
 
 import ECS, { Entity } from "@fritzy/ecs";
-import { calculateSpeedConstant } from "../modules/gameMath";
+import { isExpressionWithTypeArguments } from "../../../node_modules/typescript/lib/typescript";
+import Game from "../main";
+import {
+  calculateSpeedConstant,
+  findRotatedVertex,
+  findDegFromVector,
+  checkCollision,
+  VectorInterface,
+  getTileHitbox,
+} from "../modules/gameMath";
 
 export class CollisionSystem extends ECS.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -17,7 +26,7 @@ export class CollisionSystem extends ECS.System {
   };
   public collidables: Entity[];
   public map: any;
-  public game: any;
+  public game: Game;
   public globalEntity: Entity;
 
   static subscriptions: string[] = ["Coordinates"];
@@ -26,13 +35,15 @@ export class CollisionSystem extends ECS.System {
     super(ecs);
     this.collidables = [];
     this.globalEntity = this.ecs.getEntity("global");
+    this.game = this.globalEntity.Global.game;
   }
 
   update(tick: number, entities: Set<Entity>) {
     this.collidables = [...entities];
-    this.game = this.globalEntity.Global.game;
+    // this.game = this.globalEntity.Global.game;
     this.map = this.globalEntity.Global.map.Map.map;
-    for (let change of this.changes) {
+    let changes = [...this.changes];
+    for (let change of changes) {
       let entity = change.component.entity;
       if (entity.has("Car")) {
         this.handleMapCollisions(entity);
@@ -41,14 +52,117 @@ export class CollisionSystem extends ECS.System {
     }
   }
 
-  checkEdgeCollision(x: number, y: number, w: number = 25, h: number = 25) {
-    if (
-      x < 0 ||
-      y < 0 ||
-      x + w > this.map.pixelWidth ||
-      y + h > this.map.pixelHeight
-    ) {
-      return true;
+  handleMapCollisions(entity: Entity) {
+    let mapCollision = this.detectMapCollision(entity);
+    switch (mapCollision) {
+      case "boundary":
+        // console.log("NEW COLLISION")
+        do {
+          // if (entity.id === "player") console.log(entity.Velocity.vector);
+          this.revert(entity);
+          if (!entity.Velocity.altVectors.length) break;
+          // entity.Velocity.prevVector = entity.Velocity.vector;
+          entity.Velocity.vector = entity.Velocity.altVectors.shift();
+          this.move(entity);
+          mapCollision = this.detectMapCollision(entity);
+        } while (mapCollision === "boundary");
+        break;
+      case "office":
+        if (entity.id === "player") this.game.publish("win");
+        else if (entity.id === "boss") this.game.publish("lose");
+        break;
+      case "schoolZone":
+        if (!entity.SchoolZone) {
+          if (entity.id === "boss") {
+            let sq = this.game.ecs
+              .getEntity("map")
+              .Map.map.getSquareByCoords(
+                entity.Coordinates.X,
+                entity.Coordinates.Y
+              ).id;
+            console.log(`adding boss school zone at square ${sq}`);
+          }
+          entity.addComponent("SchoolZone", { multiplier: 0.34 });
+        }
+        break;
+      default:
+        if (entity.SchoolZone) {
+          if (entity.id === "boss") {
+            let sq = this.game.ecs
+              .getEntity("map")
+              .Map.map.getSquareByCoords(
+                entity.Coordinates.X,
+                entity.Coordinates.Y
+              ).id;
+            console.log(`removing boss school zone at square ${sq}`);
+          }
+          entity.removeComponentByType("SchoolZone");
+        }
+    }
+    // if (entity.id === "boss" && mapCollision) {
+    //   this.game.logTimers.addTimerIfNotExisting("bossCollision", "ms", 300);
+    //   this.game.logTimers.logIfReady(
+    //     "bossCollision",
+    //     "Boss collision: ",
+    //     mapCollision,
+    //     window.performance.now()
+    //   );
+    // }
+
+    // if (entity.id === "boss") {
+    //   this.game.logTimers.addTimerIfNotExisting("bossXY", "ms", 300);
+    //   this.game.logTimers.logIfReady(
+    //     "bossXY",
+    //     "Boss coords: ",
+    //     {X: entity.Coordinates.X, Y: entity.Coordinates.Y},
+    //     window.performance.now()
+    //   );
+    // }
+
+    // if (entity.id === "boss" && entity.has("SchoolZone") && !mapCollision) {
+    //   this.game.logTimers.addTimerIfNotExisting("bossSZ", "ms", 300);
+    //   this.game.logTimers.logIfReady(
+    //     "bossSZ",
+    //     "Boss has schoolzone with no collision ",
+    //     // entity.SchoolZone,
+    //     window.performance.now()
+    //   );
+    // }
+  }
+
+  detectMapCollision(
+    entity: Entity
+  ): "boundary" | "office" | "schoolZone" | "" {
+    let x = entity.Coordinates.X;
+    let y = entity.Coordinates.Y;
+    let hb = entity.Collision.currentHb();
+
+    if (this.checkEdgeCollision(hb)) {
+      return "boundary";
+    } else {
+      let schoolZone = false;
+      let surrounding = this.map.getSurroundingSquares(x, y, 2);
+      for (let square of surrounding) {
+        if (!square) continue;
+        let sqCoords = square.coordinates;
+        let thb = getTileHitbox(sqCoords.X, sqCoords.Y, 25, 25);
+        let col = checkCollision(hb, thb);
+        if (col) {
+          if (!square.drivable) return "boundary";
+          if (square.id == this.map.office) return "office";
+          if (square.schoolZone) schoolZone = true;
+        }
+      }
+      if (schoolZone) return "schoolZone";
+    }
+    return "";
+  }
+
+  checkEdgeCollision(hb: VectorInterface[]) {
+    let mw = this.map.pixelWidth;
+    let mh = this.map.pixelHeight;
+    for (let { X, Y } of hb) {
+      if (X < 0 || Y < 0 || X > mw || Y > mh) return true;
     }
     return false;
   }
@@ -69,6 +183,45 @@ export class CollisionSystem extends ECS.System {
     return false;
   }
 
+  handleEntityCollisions(entity: Entity) {
+    let collisions = this.detectEntityCollisions(entity);
+    for (let c of collisions) {
+      if (c.has("Car") && this.game.mode !== "lost") {
+        // console.log(entity.id);
+        // console.log(entity.Coordinates);
+        // console.log(entity.Collision.hb);
+        // console.log(collisions[0].id);
+        // console.log(collisions[0].Coordinates);
+        // console.log(collisions[0].Collision.hb);
+        this.game.publish("crash");
+      }
+      if (c.has("Timer") && c.has("Color") && c.Color.color === "red") {
+        //if car is moving AND if car's pre-move location is NOT colliding with the light, then stop car
+        if (this.checkForValidLightCollision(entity, c)) {
+          this.game.publish("redLight", entity, c);
+          this.revert(entity);
+        }
+      }
+      if (c.has("Caffeine")) {
+        this.game.publish("caffeinate", entity, c);
+        // c.removeComponentByType("Renderable");
+        this.collidables = this.collidables.filter((e) => e !== c);
+        // entity.addComponent("CaffeineBoost", c.Caffeine);
+      }
+    }
+  }
+
+  detectEntityCollisions(entity: Entity) {
+    // return this.collidables.filter(
+    //   (c: Entity) => entity !== c && this.checkEntityCollision(entity, c)
+    // );
+    return this.collidables.filter(
+      (c: Entity) =>
+        entity !== c &&
+        checkCollision(entity.Collision.currentHb(), c.Collision.currentHb())
+    );
+  }
+
   checkEntityCollision(entity1: any, entity2: any) {
     let fudge1 = entity1.Collision.fudgeFactor;
     let fudge2 = entity2.Collision.fudgeFactor;
@@ -81,6 +234,24 @@ export class CollisionSystem extends ECS.System {
     let w2 = entity2.Renderable.renderWidth - fudge2 * 2;
     let h2 = entity2.Renderable.renderHeight - fudge2 * 2;
     return this.checkTileCollision(x1, y1, x2, y2, w1, h1, w2, h2);
+  }
+
+  checkForValidLightCollision(entity: Entity, lightEntity: Entity) {
+    if (entity.Velocity.vector.X === 0 && entity.Velocity.vector.Y === 0)
+      return false;
+    const speedConstant = calculateSpeedConstant(entity);
+    let prevEnt = {
+      ...entity,
+      Coordinates: this.getPreviousCoordinate(
+        entity.Coordinates.X,
+        entity.Coordinates.Y,
+        entity.Velocity.vector.X,
+        entity.Velocity.vector.Y,
+        speedConstant
+      ),
+    };
+    let prevCollision = this.checkEntityCollision(prevEnt, lightEntity);
+    return !prevCollision;
   }
 
   getPreviousCoordinate(
@@ -96,132 +267,33 @@ export class CollisionSystem extends ECS.System {
     };
   }
 
-  handleMapCollisions(entity: Entity) {
-    let mapCollision = this.detectMapCollision(entity);
-    let szStart, szEnd;
-    switch (mapCollision) {
-      case "boundary":
-        while (mapCollision === "boundary") {
-          this.stop(entity);
-          if (entity.Velocity.altVectors.length) {
-            entity.Velocity.vector = entity.Velocity.altVectors.shift();
-            this.move(entity);
-          } else {
-            break;
-          }
-          mapCollision = this.detectMapCollision(entity);
-        }
-        break;
-      case "office":
-        if (entity.id === "player" && this.game.mode !== "won") {
-          this.game.publish("win");
-        } else if (entity.id === "boss" && this.game.mode !== "lost") {
-          this.game.publish("lose");
-        }
-        break;
-      case "schoolZone":
-        if (!entity.SchoolZone) {
-          entity.addComponent("SchoolZone", { multiplier: 0.34 });
-        }
-        break;
-      default:
-        if (entity.SchoolZone) {
-          entity.removeComponentByType("SchoolZone");
-        }
-    }
-  }
+  updateHitbox(entity: Entity) {
+    // let { degrees } = entity.Renderable;
+    // let degrees = findDegFromVector(entity.Velocity.vector);
+    let { hb, cp } = entity.Collision;
+    let c = entity.Coordinates;
 
-  detectMapCollision(
-    entity: Entity
-  ): "boundary" | "office" | "schoolZone" | "" {
-    let x = entity.Coordinates.X;
-    let y = entity.Coordinates.Y;
+    hb = hb.map((v: VectorInterface) => ({ X: v.X + c.X, Y: v.Y + c.Y }));
+    let cpx = cp.X + c.X;
+    let cpy = cp.Y + c.Y;
 
-    if (
-      this.checkEdgeCollision(
-        x + entity.Collision.fudgeFactor,
-        y + entity.Collision.fudgeFactor,
-        entity.Renderable.renderWidth - entity.Collision.fudgeFactor * 2,
-        entity.Renderable.renderHeight - entity.Collision.fudgeFactor * 2
-      )
-    ) {
-      return "boundary";
-    } else {
-      let schoolZone = false;
-      for (let square of this.map.getSurroundingSquares(x, y, 2)) {
-        if (!square) continue;
-        let sqCoords = square.coordinates();
-        if (
-          this.checkTileCollision(
-            entity.Coordinates.X + entity.Collision.fudgeFactor,
-            entity.Coordinates.Y + entity.Collision.fudgeFactor,
-            sqCoords.X,
-            sqCoords.Y,
-            entity.Renderable.renderWidth - entity.Collision.fudgeFactor * 2,
-            entity.Renderable.renderHeight - entity.Collision.fudgeFactor * 2,
-            25,
-            25
-          )
-        ) {
-          if (!square.drivable) return "boundary";
-          if (square.id == this.map.office) return "office";
-          if (square.schoolZone) schoolZone = true;
-        }
-      }
-      if (schoolZone) return "schoolZone";
-    }
-    return "";
-  }
-
-  handleEntityCollisions(entity: Entity) {
-    let collisions = this.detectEntityCollisions(entity);
-    for (let c of collisions) {
-      if (c.has("Car") && this.game.mode !== "lost") {
-        this.game.publish("crash");
-      }
-      if (c.has("Timer") && c.has("Color") && c.Color.color === "red") {
-        //if car is moving AND if car's pre-move location is NOT colliding with the light, then stop car
-        if (this.checkForValidLightCollision(entity, c)) {
-          this.game.publish("redLight", entity, c);
-          this.stop(entity);
-        }
-      }
-      if (c.has("Caffeine")) {
-        this.game.publish("caffeinate", entity, c);
-        // c.removeComponentByType("Renderable");
-        this.collidables = this.collidables.filter((e) => e !== c);
-        // entity.addComponent("CaffeineBoost", c.Caffeine);
-      }
-    }
-  }
-
-  detectEntityCollisions(entity: Entity) {
-    return this.collidables.filter(
-      (c: Entity) => entity !== c && this.checkEntityCollision(entity, c)
-    );
-  }
-
-  checkForValidLightCollision(entity: Entity, lightEntity: Entity) {
-    if (entity.Velocity.vector.X === 0 && entity.Velocity.vector.Y === 0) return false;
-    const speedConstant = calculateSpeedConstant(entity);
-    let prevEnt = {...entity, Coordinates: this.getPreviousCoordinate(
-      entity.Coordinates.X,
-      entity.Coordinates.Y,
-      entity.Velocity.vector.X,
-      entity.Velocity.vector.Y,
-      speedConstant
-    )};
-    let prevCollision = this.checkEntityCollision(prevEnt, lightEntity);
-    return !prevCollision;
+    let deg = entity.Renderable.degrees;
+    if (deg === 0) return hb;
+    // entity.Renderable.degrees = degrees;
+    //@ts-ignore
+    return hb.map(({ X, Y }) => findRotatedVertex(X, Y, cpx, cpy, deg));
+    //figure out if cp is already at origin, thereby not needing translation
   }
 
   move(entity: Entity) {
     const speedConstant = calculateSpeedConstant(entity);
     entity.Coordinates.X += entity.Velocity.vector.X * speedConstant;
     entity.Coordinates.Y += entity.Velocity.vector.Y * speedConstant;
+    let deg = findDegFromVector(entity.Velocity.vector);
+    if (deg >= 0) entity.Renderable.degrees = deg;
   }
 
-  stop(entity: Entity) {
+  revert(entity: Entity) {
     const speedConstant = calculateSpeedConstant(entity);
     let { X, Y } = this.getPreviousCoordinate(
       entity.Coordinates.X,
@@ -232,5 +304,11 @@ export class CollisionSystem extends ECS.System {
     );
     entity.Coordinates.X = X;
     entity.Coordinates.Y = Y;
+    if (entity.Velocity.prevVector) entity.Velocity.vector = entity.Velocity.prevVector;
+    // entity.Velocity.prevVector = null;
+    let deg = findDegFromVector(entity.Velocity.vector);
+    if (deg >= 0) entity.Renderable.degrees = deg;
+    // entity.Velocity.vector.X = 0;
+    // entity.Velocity.vector.Y = 0;
   }
 }
