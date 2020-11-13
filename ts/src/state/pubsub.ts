@@ -112,6 +112,7 @@ class GameModeMachine {
         let game = <Game>(<unknown>this);
         const mapEntity = game.ecs.getEntity("map");
         mapEntity.Renderable.alpha = 0;
+        game.currentZoom = 1;
         game.mode = "starting";
         game.loadLevel(level);
       },
@@ -262,6 +263,7 @@ class GameModeMachine {
           if (!entity.has("noninteractive")) entity.addTag("noninteractive");
         }
         mapEntity.Renderable.alpha = 0;
+        game.currentZoom = 1;
         game.mode = "starting";
         game.ecs.runSystemGroup("map");
         game.publish("startingAnimation");
