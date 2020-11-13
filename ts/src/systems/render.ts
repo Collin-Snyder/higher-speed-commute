@@ -696,7 +696,7 @@ export class RenderViewBox extends EntityComponentSystem.System {
       pulser = 0,
       maxr = 2 * dotr,
       dur = 750,
-      int = 2000,
+      int = 1000,
       progress = (tick * this.step) % int;
     if (progress < dur) {
       let pulseProgress = progress / dur;
