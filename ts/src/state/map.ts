@@ -216,6 +216,7 @@ export class MapGrid implements MapGridInterface {
       }
 
       return {
+        id: s.id,
         type,
         a: 1,
         h: 25,

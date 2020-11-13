@@ -25,6 +25,7 @@ export class MapSystem extends EntityComponentSystem.System {
   update(tick: number, entities: Set<Entity>) {
     let mapEntity = <Entity>entities.values().next().value;
     let newMap = mapEntity.Map.map;
+    mapEntity.TileMap.tiles = newMap.generateTileMap();
 
     this.positionMap(mapEntity);
     this.updateDriverEntities(newMap);
@@ -48,43 +49,25 @@ export class MapSystem extends EntityComponentSystem.System {
     ).start;
   }
 
-  createCoffeeEntities(newMap: any) {
-    let coffees = this.ecs.queryEntities({ has: ["Caffeine"] });
-    for (let coffee of coffees) {
-      coffee.destroy();
-    }
-    for (let id in newMap.coffees) {
-      const square = newMap.get(id);
-      const { X, Y } = square ? square.coordinates : { X: 0, Y: 0 };
-      const rw = 12;
-      const rh = 12;
-      let ent = this.ecs.createEntity({
-        id: `coffee${id}`,
-        Coordinates: {
-          X,
-          Y,
-        },
-        Renderable: {
-          spriteX: 250,
-          spriteY: 0,
-          renderWidth: rw,
-          renderHeight: rh,
-        },
-        Collision: {
-          hb: getTileHitbox(X, Y, rw, rh),
-          cp: getCenterPoint(X, Y, rw, rh),
-        },
-        Caffeine: {},
-      });
-      ent.Collision.currentHb = function() {
-        //@ts-ignore
-        return this.Collision.hb;
-      }.bind(ent);
-      ent.Collision.currentCp = function() {
-        //@ts-ignore
-        return this.Collision.cp;
-      }.bind(ent);
-    }
+  updateDriverEntities(newMap: any) {
+    let playerEntity = this.ecs.getEntity("player");
+    let bossEntity = this.ecs.getEntity("boss");
+
+    let playerCoords = newMap.get(newMap.playerHome)
+      ? newMap.get(newMap.playerHome).coordinates
+      : { X: 0, Y: 0 };
+
+    playerEntity.Coordinates.X = playerCoords.X;
+    playerEntity.Coordinates.Y = playerCoords.Y;
+
+    let bossCoords = newMap.get(newMap.bossHome)
+      ? newMap.get(newMap.bossHome).coordinates
+      : { X: 0, Y: 0 };
+
+    bossEntity.Coordinates.X = bossCoords.X;
+    bossEntity.Coordinates.Y = bossCoords.Y;
+
+    this.findBossPath(bossEntity, newMap);
   }
 
   createLightEntities(newMap: any) {
@@ -116,6 +99,7 @@ export class MapSystem extends EntityComponentSystem.System {
           spriteY: 0,
           renderWidth: rw,
           renderHeight: rh,
+          visible: false
         },
         Collision: {
           hb: getTileHitbox(X, Y, rw, rh),
@@ -133,25 +117,44 @@ export class MapSystem extends EntityComponentSystem.System {
     }
   }
 
-  updateDriverEntities(newMap: any) {
-    let playerEntity = this.ecs.getEntity("player");
-    let bossEntity = this.ecs.getEntity("boss");
-
-    let playerCoords = newMap.get(newMap.playerHome)
-      ? newMap.get(newMap.playerHome).coordinates
-      : { X: 0, Y: 0 };
-
-    playerEntity.Coordinates.X = playerCoords.X;
-    playerEntity.Coordinates.Y = playerCoords.Y;
-
-    let bossCoords = newMap.get(newMap.bossHome)
-      ? newMap.get(newMap.bossHome).coordinates
-      : { X: 0, Y: 0 };
-
-    bossEntity.Coordinates.X = bossCoords.X;
-    bossEntity.Coordinates.Y = bossCoords.Y;
-
-    this.findBossPath(bossEntity, newMap);
+  createCoffeeEntities(newMap: any) {
+    let coffees = this.ecs.queryEntities({ has: ["Caffeine"] });
+    for (let coffee of coffees) {
+      coffee.destroy();
+    }
+    for (let id in newMap.coffees) {
+      const square = newMap.get(id);
+      const { X, Y } = square ? square.coordinates : { X: 0, Y: 0 };
+      const rw = 12;
+      const rh = 12;
+      let ent = this.ecs.createEntity({
+        id: `coffee${id}`,
+        Coordinates: {
+          X,
+          Y,
+        },
+        Renderable: {
+          spriteX: 250,
+          spriteY: 0,
+          renderWidth: rw,
+          renderHeight: rh,
+          visible: false
+        },
+        Collision: {
+          hb: getTileHitbox(X, Y, rw, rh),
+          cp: getCenterPoint(X, Y, rw, rh),
+        },
+        Caffeine: {},
+      });
+      ent.Collision.currentHb = function() {
+        //@ts-ignore
+        return this.Collision.hb;
+      }.bind(ent);
+      ent.Collision.currentCp = function() {
+        //@ts-ignore
+        return this.Collision.cp;
+      }.bind(ent);
+    }
   }
 
   findBossPath(bossEntity: Entity, newMap: any) {
@@ -164,9 +167,6 @@ export class MapSystem extends EntityComponentSystem.System {
   }
 
   drawOffscreenMap(mapEntity: any) {
-    let newMap = mapEntity.Map.map;
-    let tileMap = mapEntity.TileMap;
-    tileMap.tiles = newMap.generateTileMap();
     let global = this.ecs.getEntity("global").Global;
 
     this.mapCtx.fillStyle = "#81c76d";
@@ -177,31 +177,31 @@ export class MapSystem extends EntityComponentSystem.System {
       this.mapOffscreen.height
     );
 
-    drawTileMap(
-      tileMap.tiles,
-      newMap.width,
-      (
-        type: Tile,
-        x: number,
-        y: number,
-        w: number,
-        h: number,
-        a: number,
-        deg: number
-      ) => {
-        let tileCoords = global.spriteMap[type];
-        this.mapCtx.drawImage(
-          global.spriteSheet,
-          tileCoords.X,
-          tileCoords.Y,
-          tileMap.tileWidth,
-          tileMap.tileHeight,
-          x * tileMap.tileWidth,
-          y * tileMap.tileHeight,
-          tileMap.tileWidth,
-          tileMap.tileHeight
-        );
-      }
-    );
+    // drawTileMap(
+    //   tileMap.tiles,
+    //   newMap.width,
+    //   (
+    //     type: Tile,
+    //     x: number,
+    //     y: number,
+    //     w: number,
+    //     h: number,
+    //     a: number,
+    //     deg: number
+    //   ) => {
+    //     let tileCoords = global.spriteMap[type];
+    //     this.mapCtx.drawImage(
+    //       global.spriteSheet,
+    //       tileCoords.X,
+    //       tileCoords.Y,
+    //       tileMap.tileWidth,
+    //       tileMap.tileHeight,
+    //       x * tileMap.tileWidth,
+    //       y * tileMap.tileHeight,
+    //       tileMap.tileWidth,
+    //       tileMap.tileHeight
+    //     );
+    //   }
+    // );
   }
 }

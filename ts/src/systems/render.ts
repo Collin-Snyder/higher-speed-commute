@@ -201,12 +201,11 @@ export class RenderMap extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
     has: ["TileMap", "Map"],
   };
-  private ctx: CanvasRenderingContext2D;
+
   private modeNames: string[];
 
-  constructor(ecs: ECS, ctx: CanvasRenderingContext2D) {
+  constructor(ecs: ECS, private ctx: CanvasRenderingContext2D) {
     super(ecs);
-    this.ctx = ctx;
     this.modeNames = [
       "playing",
       "paused",
@@ -227,10 +226,11 @@ export class RenderMap extends EntityComponentSystem.System {
     const tileMap = mapEntity.TileMap;
     const map = mapEntity.Map.map;
 
-    this.ctx.save();
-    this.ctx.globalAlpha = mapEntity.Renderable.alpha;
-    this.ctx.fillStyle = mapEntity.Renderable.bgColor;
-    this.ctx.fillRect(coords.X, coords.Y, map.pixelWidth, map.pixelHeight);
+    // this.ctx.save();
+    // this.ctx.globalAlpha = mapEntity.Renderable.alpha;
+    // this.ctx.fillStyle = mapEntity.Renderable.bgColor;
+    // // this.ctx.fillRect(coords.X, coords.Y, map.pixelWidth, map.pixelHeight);
+    // this.ctx.fillRect(0, 0, map.pixelWidth, map.pixelHeight);
 
     if (
       mode === "designing" ||
@@ -238,6 +238,10 @@ export class RenderMap extends EntityComponentSystem.System {
       mode === "won" ||
       mode === "lost"
     ) {
+      this.ctx.save();
+      this.ctx.globalAlpha = mapEntity.Renderable.alpha;
+      this.ctx.fillStyle = mapEntity.Renderable.bgColor;
+      this.ctx.fillRect(0, 0, map.pixelWidth, map.pixelHeight);
       drawTileMap(
         tileMap.tiles,
         map.width,
@@ -262,12 +266,14 @@ export class RenderMap extends EntityComponentSystem.System {
             tileCoords.Y,
             tileMap.tileWidth,
             tileMap.tileHeight,
-            x * tileMap.tileWidth + coords.X,
-            y * tileMap.tileHeight + coords.Y,
+            // x * tileMap.tileWidth + coords.X,
+            x * tileMap.tileWidth,
+            // y * tileMap.tileHeight + coords.Y,
+            y * tileMap.tileHeight,
             w,
             h
           );
-          if (hasAlpha || hasRotation) this.ctx.restore()
+          if (hasAlpha || hasRotation) this.ctx.restore();
         }
       );
 
@@ -339,34 +345,35 @@ export class RenderGameplayEntities extends EntityComponentSystem.System {
     has: ["Coordinates", "Renderable"],
     hasnt: ["Button", "Car", "Map"],
   };
-  private ctx: CanvasRenderingContext2D;
-  private canvas: HTMLCanvasElement;
 
-  constructor(ecs: ECS, ctx: CanvasRenderingContext2D) {
+  constructor(
+    ecs: ECS,
+    private ctx: CanvasRenderingContext2D,
+    private canvas: HTMLCanvasElement
+  ) {
     super(ecs);
-    //@ts-ignore
-    this.canvas = document.getElementById("ents-offscreen");
-    this.ctx = <CanvasRenderingContext2D>this.canvas.getContext("2d");
   }
 
   update(tick: number, entities: Set<Entity>) {
     const global = this.ecs.getEntity("global").Global;
     const mode = global.game.mode;
 
-    if (mode === "playing") {
+    if (mode === "playing" || mode === "levelStartAnimation") {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       for (let entity of entities) {
-        this.ctx.drawImage(
-          global.spriteSheet,
-          entity.Renderable.spriteX,
-          entity.Renderable.spriteY,
-          entity.Renderable.spriteWidth,
-          entity.Renderable.spriteHeight,
-          entity.Coordinates.X,
-          entity.Coordinates.Y,
-          entity.Renderable.renderWidth,
-          entity.Renderable.renderHeight
-        );
+        if (entity.Renderable.visible && entity.id !== "countdown") {
+          this.ctx.drawImage(
+            global.spriteSheet,
+            entity.Renderable.spriteX,
+            entity.Renderable.spriteY,
+            entity.Renderable.spriteWidth,
+            entity.Renderable.spriteHeight,
+            entity.Coordinates.X,
+            entity.Coordinates.Y,
+            entity.Renderable.renderWidth,
+            entity.Renderable.renderHeight
+          );
+        }
       }
     }
   }
@@ -403,12 +410,13 @@ export class RenderViewBox extends EntityComponentSystem.System {
   update(tick: number, entities: Set<Entity>) {
     const global = this.ecs.getEntity("global").Global;
     let mode = global.game.mode;
-    let zoom = global.game.zoomFactor;
+    let zoom = global.game.currentZoom;
     let mapView = global.game.mapView;
-    if (mode !== "playing") return;
+    if (mode !== "playing" && mode !== "levelStartAnimation") return;
+    // if (mode !== "playing") return;
 
     let mapEntity = <Entity>entities.values().next().value;
-    this.updateViewbox(mapEntity, global);
+    this.updateViewbox(mapEntity, global, mode);
     let vb = mapEntity.ViewBox;
     const coords = mapEntity.Coordinates;
     const map = mapEntity.Map.map;
@@ -437,6 +445,8 @@ export class RenderViewBox extends EntityComponentSystem.System {
         map.pixelWidth,
         map.pixelHeight
       );
+
+      if (mode === "levelStartAnimation") return;
 
       if (this.carInViewbox(this.bossEntity, vb)) {
         this.renderCarSprite(
@@ -470,7 +480,7 @@ export class RenderViewBox extends EntityComponentSystem.System {
     }
   }
 
-  updateViewbox(mapEntity: Entity, global: BaseComponent) {
+  updateViewbox(mapEntity: Entity, global: BaseComponent, mode: string) {
     let { ViewBox } = mapEntity;
     let mapOffscreen = <HTMLCanvasElement>(
       document.getElementById("map-offscreen")
@@ -483,12 +493,17 @@ export class RenderViewBox extends EntityComponentSystem.System {
       focusEnt.Renderable.renderWidth,
       focusEnt.Renderable.renderHeight
     );
+    ViewBox.w = 1000 / global.game.currentZoom;
+    ViewBox.h = 625 / global.game.currentZoom;
     let vbCenter = getCenterPoint(ViewBox.x, ViewBox.y, ViewBox.w, ViewBox.h);
 
-    // ViewBox.x += (center.X - vbCenter.X) * (3 / 4);
-    // ViewBox.y += (center.Y - vbCenter.Y) * (3 / 4);
-    ViewBox.x += (center.X - vbCenter.X) * (1 / 8);
-    ViewBox.y += (center.Y - vbCenter.Y) * (1 / 8);
+    if (mode === "playing") {
+      ViewBox.x += (center.X - vbCenter.X) * (1 / 8);
+      ViewBox.y += (center.Y - vbCenter.Y) * (1 / 8);
+    } else {
+      ViewBox.x = center.X - ViewBox.w / 2;
+      ViewBox.y = center.Y - ViewBox.h / 2;
+    }
 
     if (ViewBox.x < 0) ViewBox.x = 0;
     if (ViewBox.y < 0) ViewBox.y = 0;

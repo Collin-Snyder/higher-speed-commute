@@ -1,7 +1,7 @@
 import { Entity } from "@fritzy/ecs";
 import { Game } from "../main";
 import Race from "../modules/raceData";
-import { findCenteredElementSpread } from "../modules/gameMath";
+import { findCenteredElementSpread, getCenterPoint } from "../modules/gameMath";
 import { MapGrid, DesignMapGrid } from "./map";
 import { Tool } from "../modules/designModule";
 import { DisabledButtons } from "../buttonModifiers";
@@ -125,7 +125,6 @@ class GameModeMachine {
       onplay: function() {
         let game = <Game>(<unknown>this);
         game.startRace();
-        const mapEntity = game.ecs.getEntity("map");
         game.mapView = false;
         game.mode = "playing";
       },
@@ -162,6 +161,7 @@ class GameModeMachine {
         }
 
         if (game.recordRaceData) game.saveRaceData("win");
+        game.currentZoom = 1;
         game.mode = "won";
         // game.globalEntity.Global.mode = to;
         //stop game music/animations
@@ -192,6 +192,7 @@ class GameModeMachine {
         if (game.recordRaceData) game.saveRaceData("loss");
 
         mapEntity.Renderable.bgColor = "#eb5555";
+        game.currentZoom = 1;
         game.mode = "lost";
         //stop game music/animations
         //render lose animation and game over options
@@ -220,6 +221,7 @@ class GameModeMachine {
         }
         if (game.recordRaceData) game.saveRaceData("crash");
         mapEntity.Renderable.bgColor = "#eb5555";
+        game.currentZoom = 1;
         game.mode = "lost";
       },
       onpause: function() {

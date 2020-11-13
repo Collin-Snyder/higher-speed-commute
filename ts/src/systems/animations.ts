@@ -1,6 +1,7 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
-import { centerWithin } from "../modules/gameMath";
+import { centerWithin, getCenterPoint } from "../modules/gameMath";
 import { Tile, TileInterface } from "../state/map";
+const { floor } = Math;
 
 interface AnimationStateInterface {
   duration: number;
@@ -73,6 +74,7 @@ export class LevelStartAnimation extends StateAnimation {
   private revealCol: number;
   private shrinkDuration: number;
   private revealElapsedTime: number;
+  private zoomStep: number;
 
   constructor(ecs: any, step: number, ctx: CanvasRenderingContext2D) {
     super(ecs, step);
@@ -136,7 +138,6 @@ export class LevelStartAnimation extends StateAnimation {
       },
     };
     this.currentState = "start";
-    this.currentStep = this.states[this.currentState].step;
     this.currentTimeRemaining = this.states[this.currentState].duration;
     this.gameboardAlpha = 0;
     this.gameboardAlphaStep = Number(
@@ -160,6 +161,7 @@ export class LevelStartAnimation extends StateAnimation {
     this.shrinkDuration = this.states.reveal.duration / this.map.width;
     this.revealElapsedTime = 0;
     this.revealCol = 1;
+    this.zoomStep = 0.075;
   }
 
   isAnimationRunning(): boolean {
@@ -252,49 +254,87 @@ export class LevelStartAnimation extends StateAnimation {
   onCountdownDone(): string {
     // let mapEntity = this.ecs.getEntity("map");
     // mapEntity.TileMap.tiles = mapEntity.Map.map.generateTileMap();
-    
     return "reveal";
   }
 
   onRevealDone(): string {
     console.log("GO!");
+    this.revealElapsedTime = 0;
+    this.revealCol = 1;
     return "zoom";
   }
 
   onRevealStep(): void {
     let newCol = false;
-    this.tileMap.tiles.forEach((t: TileInterface, i: number) => {
+    this.tileMap.tiles.forEach((t: TileInterface) => {
+      let light = this.ecs.getEntity(`light${t.id}`);
+      let coffee = this.ecs.getEntity(`coffee${t.id}`);
       if (
         t.col > this.revealCol ||
         t.type === "playerHome" ||
         t.type === "bossHome" ||
         t.type === "office"
-      )
+      ) {
         return;
+      }
       if (t.col < this.revealCol) {
         if (t.w === this.tileMap.tileWidth) return;
         t.w--;
         t.h--;
-        t.a + 0.04 > 1 ? (t.a = 1) : (t.a += 0.04);
+        if (light) {
+          light.Renderable.renderWidth = t.w;
+          light.Renderable.renderHeight = t.h;
+        }
+        if (coffee) {
+          coffee.Renderable.renderWidth = floor(t.w / 2);
+          coffee.Renderable.renderHeight = floor(t.h / 2);
+        }
         return;
       }
-      if (this.revealElapsedTime > this.revealCol * (this.shrinkDuration / 1.5)) {
+      if (
+        this.revealElapsedTime >
+        this.revealCol * (this.shrinkDuration / 1.5)
+      ) {
         t.display = true;
         t.w = 50;
         t.h = 50;
-        // t.a = 0.5;
         newCol = true;
+        if (light) {
+          light.Renderable.visible = true;
+          light.Renderable.renderWidth = t.w;
+          light.Renderable.renderHeight = t.h;
+        }
+        if (coffee) {
+          coffee.Renderable.visible = true;
+          coffee.Renderable.renderWidth = floor(t.w / 2);
+          coffee.Renderable.renderHeight = floor(t.h / 2);
+        }
       }
     });
-    // console.log("Incrementing elapsed time by current step (", this.gameStep, ") from ", this.revealElapsedTime, "...")
     if (newCol) this.revealCol++;
     this.revealElapsedTime += this.gameStep;
-    // console.log("...to ", this.revealElapsedTime);
   }
 
-  onZoomStep(): void {}
+  onZoomStep(): void {
+    let game = this.ecs.getEntity("global").Global.game;
+    game.currentZoom +=
+      (game.defaultGameZoom - game.currentZoom) * this.zoomStep;
+  }
 
   onZoomDone(): string {
+    let game = this.ecs.getEntity("global").Global.game;
+    if (game.currentZoom !== game.defaultGameZoom)
+      game.currentZoom = game.defaultGameZoom;
+    const vb = this.ecs.getEntity("map").ViewBox;
+    const { Coordinates, Renderable } = this.ecs.getEntity("player");
+    const center = getCenterPoint(
+      Coordinates.X,
+      Coordinates.Y,
+      Renderable.renderWidth,
+      Renderable.renderHeight
+    );
+    vb.x = center.X - vb.w / 2;
+    vb.y = center.Y - vb.h / 2;
     return "done";
   }
 

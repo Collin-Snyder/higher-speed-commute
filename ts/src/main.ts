@@ -73,6 +73,10 @@ export class Game {
   public backgroundIsLoaded: boolean;
   private UICanvas: HTMLCanvasElement;
   private uictx: CanvasRenderingContext2D;
+  private OSMapCanvas: HTMLCanvasElement;
+  private osmctx: CanvasRenderingContext2D;
+  private OSEntCanvas: HTMLCanvasElement;
+  private osectx: CanvasRenderingContext2D;
   public ecs: ECS;
   public currentLevel: {
     id: number | null;
@@ -94,6 +98,8 @@ export class Game {
   public focusView: "player" | "boss";
   public mapView: boolean;
   public zoomFactor: number;
+  public currentZoom: number;
+  public defaultGameZoom: number;
   public logTimers: LogTimers;
   // public sounds: Sounds;
 
@@ -118,10 +124,16 @@ export class Game {
     this.focusView = "player";
     this.mapView = false;
     this.zoomFactor = 4;
+    this.currentZoom = 1;
+    this.defaultGameZoom = 4;
     this.inputs = new InputEvents();
     // this.sounds = new Sounds(this);
     this.UICanvas = <HTMLCanvasElement>document.getElementById("ui");
     this.uictx = <CanvasRenderingContext2D>this.UICanvas.getContext("2d");
+    this.OSMapCanvas = <HTMLCanvasElement>document.getElementById("map-offscreen");
+    this.osmctx = <CanvasRenderingContext2D>this.OSMapCanvas.getContext("2d");
+    this.OSEntCanvas = <HTMLCanvasElement>document.getElementById("ents-offscreen");
+    this.osectx = <CanvasRenderingContext2D>this.OSEntCanvas.getContext("2d");
     this.subscribers = {};
     this.logTimers = new LogTimers(this);
     this.map = new MapGrid(40, 25);
@@ -166,11 +178,11 @@ export class Game {
         radius: 20,
       },
       ViewBox: {
-        w: 1000 / this.zoomFactor,
-        h: 625 / this.zoomFactor,
+        w: 1000 / this.currentZoom,
+        h: 625 / this.currentZoom,
       },
     });
-
+    
     let hb = [];
     hb.push(scaleVector({ X: 6, Y: 2 }, 2 / 3));
     hb.push(scaleVector({ X: 19, Y: 2 }, 2 / 3));
@@ -410,10 +422,10 @@ export class Game {
     MenuButtons.createEntities(this);
 
     this.ecs.addSystem("render", new RenderBorders(this.ecs, this.uictx));
-    this.ecs.addSystem("render", new RenderMap(this.ecs, this.uictx));
+    this.ecs.addSystem("render", new RenderMap(this.ecs, this.osmctx));
     this.ecs.addSystem(
       "render",
-      new RenderGameplayEntities(this.ecs, this.uictx)
+      new RenderGameplayEntities(this.ecs, this.osectx, this.OSEntCanvas)
     );
     this.ecs.addSystem("render", new RenderViewBox(this.ecs, this.uictx, this.step));
     this.ecs.addSystem("render", new RenderMenus(this.ecs, this.uictx));
