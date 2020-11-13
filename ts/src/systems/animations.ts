@@ -127,7 +127,7 @@ export class LevelStartAnimation extends StateAnimation {
       reveal: {
         onDone: this.onRevealDone.bind(this),
         onStep: this.onRevealStep.bind(this),
-        duration: 2000,
+        duration: 1000,
         step: this.gameStep,
       },
       zoom: {
@@ -158,7 +158,7 @@ export class LevelStartAnimation extends StateAnimation {
     this.countdownAlphaStep = Number(
       (1 / Math.floor(1000 / this.states.countdown.step)).toFixed(3)
     );
-    this.shrinkDuration = this.states.reveal.duration / this.map.width;
+    this.shrinkDuration = (this.states.reveal.duration * 2) / this.map.width;
     this.revealElapsedTime = 0;
     this.revealCol = 1;
     this.zoomStep = 0.075;
@@ -249,11 +249,13 @@ export class LevelStartAnimation extends StateAnimation {
 
     let cd = this.ecs.getEntity("countdown");
     cd.Renderable.alpha = this.countdownAlpha;
+    if (this.countdownNum === 1) this.onRevealStep();
   }
 
   onCountdownDone(): string {
     // let mapEntity = this.ecs.getEntity("map");
     // mapEntity.TileMap.tiles = mapEntity.Map.map.generateTileMap();
+    this.onRevealStep();
     return "reveal";
   }
 
