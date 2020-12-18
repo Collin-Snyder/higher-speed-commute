@@ -61,8 +61,6 @@ export class Game {
   public step: number = 1000 / 60; //17; //1/60s
   private tickTimes: number[];
   public inputs: InputEvents;
-  // public width: number;
-  // public height: number;
   public mode: Mode;
   public modeMachine: GameModeMachine;
   public subscribers: { [key: string]: Function[] };
@@ -78,6 +76,7 @@ export class Game {
   private OSEntCanvas: HTMLCanvasElement;
   private osectx: CanvasRenderingContext2D;
   public ecs: ECS;
+  public firstLevel: number;
   public currentLevel: {
     id: number | null;
     number: number | null;
@@ -101,7 +100,6 @@ export class Game {
   public currentZoom: number;
   public defaultGameZoom: number;
   public logTimers: LogTimers;
-  // public sounds: Sounds;
 
   constructor() {
     this.start = this.timestamp();
@@ -112,6 +110,7 @@ export class Game {
     this.mode = "init";
     this.modeMachine = new GameModeMachine("init");
     this.ecs = new EntityComponentSystem.ECS();
+    this.firstLevel = 7;
     this.currentLevel = {
       id: null,
       number: null,

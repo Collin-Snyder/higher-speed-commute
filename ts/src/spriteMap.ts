@@ -61,8 +61,8 @@ const spriteMap = {
   wonGraphic: { X: 425, Y: 200 },
   lostGraphic: { X: 425, Y: 275 },
   crashGraphic: { X: 425, Y: 350 },
-  pausedGraphic: { X: 350, Y: 200 },
-  shine: { X: 201, Y: 351 },
+  pausedGraphic: { X: 200, Y: 425 },
+  shine: { X: 200, Y: 350 },
   shiny: { X: 275, Y: 350 },
   badShiny: {X: 350, Y: 350 }
 };

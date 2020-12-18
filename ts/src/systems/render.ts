@@ -378,7 +378,7 @@ export class RenderViewBox extends EntityComponentSystem.System {
       office: "#f0d31a",
       street: "#878787",
     };
-    this.modeNames = ["playing", "won", "lost", "crash", "levelStartAnimation"];
+    this.modeNames = ["playing", "won", "levelStartAnimation"];
   }
 
   update(tick: number, entities: Set<Entity>) {
@@ -869,7 +869,7 @@ export class RenderMenus extends EntityComponentSystem.System {
   }
 
   drawShine(
-    menu: "won" | "crash",
+    menu: "paused" | "won" | "lost" | "crash",
     graphicX: number,
     graphicY: number,
     graphicW: number,
