@@ -362,12 +362,6 @@ export class Game {
     }
   }
 
-  // registerSounds(): void {
-  //   allSounds.forEach(({ name, src, loop, startMusic }) => {
-  //     this.sounds.addSound(name, src, loop, startMusic);
-  //   });
-  // }
-
   buildWorld(): void {
     this.globalEntity.Global.bgSheet = this.background;
     this.globalEntity.Global.bgMap = bgMap;

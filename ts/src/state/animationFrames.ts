@@ -1,2 +1,0 @@
-import spriteMap from "../spriteMap";
-

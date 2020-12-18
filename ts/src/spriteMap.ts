@@ -60,9 +60,11 @@ const spriteMap = {
   title: { X: 0, Y: 926 },
   wonGraphic: { X: 425, Y: 200 },
   lostGraphic: { X: 425, Y: 275 },
+  crashGraphic: { X: 425, Y: 350 },
   pausedGraphic: { X: 350, Y: 200 },
   shine: { X: 201, Y: 351 },
-  shiny: { X: 276, Y: 351 },
+  shiny: { X: 275, Y: 350 },
+  badShiny: {X: 350, Y: 350 }
 };
 
 export default spriteMap;

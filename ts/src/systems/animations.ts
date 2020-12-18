@@ -443,27 +443,41 @@ export class AnimationSystem extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
     has: ["Animation"],
   };
-  public dotPulseData: any;
+
   constructor(ecs: any) {
     super(ecs);
-    this.dotPulseData = {
-      maxRadius: 2,
-      currentRadius: 1,
-      radiusStep: 3 / 4,
-    };
   }
 
   update(tick: number, entities: Set<Entity>) {
+    let game = this.ecs.getEntity("global").Global.game;
+    let et = game.totalElapsedTime;
+    //for each entity
     for (let entity of entities) {
-      let animation: Animations = entity.Animation.name;
-      // @ts-ignore
-      this[`run${animation}`](entity, animation);
+      let {startTime, duration, easing, keyframes, repeat, direction} = entity.Animation;
+      //find current p value: (current et - start time) / duration
+      let p = (et - startTime) / duration;
+      //if easing, apply easing function to get eased p value
+      //if reversed, p = 100 - p
+      if (direction === "reverse") p = 100 - p;
+      //get prev keyframe and next keyframe
+      let prevkf;
+      //for each prop in prev keyframe, calculate new value
+        //p value between prev and next p * diff between prev and next value + prev value
+        //update entity's corresponding component/property to new value
+
     }
   }
 
-  runDotPulse(entity: Entity) {
-    let { maxRadius, currentRadius } = this.dotPulseData;
-    //every run, the radius expands by the step amount until it reaches (or is very close to) the max radius
-    //every run, the
+  getKeyframes(kf: any[], p: number) {
+    
   }
 }
+
+//for each animation component
+  //determine position relative to whole animation
+  //use position to find prev and next keyframes
+  //determine position between prev and next keyframes
+  //for each property of each component of the keyframes, 
+    //calculate current value of property based on position
+    //if easing, run value through appropriate easing function to get final value
+    //apply value to matching property on entity's actual component

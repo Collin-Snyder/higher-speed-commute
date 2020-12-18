@@ -1,12 +1,3 @@
-interface AnimationFrameInterface {
-  spriteX: number;
-  spriteY: number;
-  spriteW: number;
-  spriteH: number;
-  alpha: number;
-  frameAction: Function;
-}
-
 export const ParallaxLayer = {
   properties: {
     name: null,
@@ -36,18 +27,19 @@ export const Animation = {
   },
 };
 
-//maybe have separate animation components - Animation vs AnimationFrame
-//all animating entities have an Animation component
-//some entities can have AnimationFrame components - discrete system for handling frame-based animation
-
-export const AnimationFrame = {
+export const AnimationReal = {
   multiset: true,
   properties: {
-    spriteX: 0,
-    spriteY: 0,
-    spriteW: 0,
-    spriteH: 0,
-    alpha: 1,
-    frameAction: null, //can pass function here to be run in lieu of subbing out sprites
-  },
-};
+    duration: 0, //duration of one loop of the animation, in ms
+    startTime: 0, //game elapsed time value when Animation component is added to entity
+    keyframes: [], //a collection of keyframe objects
+    repeat: "none", //options: "loop" or a number
+    direction: "forward", //options: "reverse", "alternate", "reverseAlternate"
+    easing: "none" //options: "in", "out", "inOut"
+  }
+}
+
+export interface KeyframeInterface {
+  p: number,
+  [key: string]: any
+}

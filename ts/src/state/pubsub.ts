@@ -14,6 +14,7 @@ export type Mode =
   | "paused"
   | "won"
   | "lost"
+  | "crash"
   | "designing"
   | "end";
 
@@ -112,8 +113,10 @@ class GameModeMachine {
         let game = <Game>(<unknown>this);
         const mapEntity = game.ecs.getEntity("map");
         const wonGraphic = game.ecs.getEntity("wonGraphic");
+        const crashGraphic = game.ecs.getEntity("crashGraphic");
         mapEntity.Renderable.alpha = 0;
         if (wonGraphic) wonGraphic.Renderable.visible = false;
+        if (crashGraphic) crashGraphic.Renderable.visible = false;
         game.currentZoom = 1;
         game.mode = "starting";
         game.loadLevel(level);
@@ -198,13 +201,10 @@ class GameModeMachine {
         for (let button of buttons) {
           button.removeTag("noninteractive");
         }
+        
         if (game.recordRaceData) game.saveRaceData("loss");
-
-        mapEntity.Renderable.bgColor = "#eb5555";
         game.currentZoom = 1;
         game.mode = "lost";
-        //stop game music/animations
-        //render lose animation and game over options
       },
       oncrash: function() {
         let game = <Game>(<unknown>this);
@@ -228,13 +228,27 @@ class GameModeMachine {
         for (let button of buttons) {
           button.removeTag("noninteractive");
         }
+        let graphic = game.ecs.getEntity("crashGraphic");
+
+        if (!graphic) {
+          let { X, Y } = game.spriteMap.crashGraphic;
+          graphic = game.ecs.createEntity({
+            id: "crashGraphic",
+            Coordinates: {},
+            Animation: { startSprite: game.spriteMap.badShiny, degStep: 1 },
+            Renderable: {
+              spriteX: X,
+              spriteY: Y,
+            },
+          });
+        } else {
+          graphic.Renderable.visible = true;
+        }
         if (game.recordRaceData) game.saveRaceData("crash");
-        mapEntity.Renderable.bgColor = "#eb5555";
         game.currentZoom = 1;
-        game.mode = "lost";
+        game.mode = "crash";
       },
       onpause: function() {
-        //show paused menu
         let game = <Game>(<unknown>this);
         let mapEntity = game.ecs.getEntity("map");
 
@@ -249,7 +263,6 @@ class GameModeMachine {
         game.mode = "paused";
       },
       onresume: function() {
-        //hide paused menu
         let game = <Game>(<unknown>this);
         let mapEntity = game.ecs.getEntity("map");
 
@@ -275,8 +288,6 @@ class GameModeMachine {
         game.mode = "starting";
         game.ecs.runSystemGroup("map");
         game.publish("startingAnimation");
-        // game.startRace();
-        // game.publish("play");
       },
       onnextLevel: function() {
         let game = <Game>(<unknown>this);
@@ -466,11 +477,11 @@ class GameModeMachine {
       },
       { name: "pause", from: ["playing", "starting"], to: "paused" },
       { name: "resume", from: "paused", to: "playing" },
-      { name: "restart", from: ["paused", "won", "lost"], to: "playing" },
+      { name: "restart", from: ["paused", "won", "lost", "crash"], to: "playing" },
       { name: "win", from: "playing", to: "won" },
       { name: "lose", from: "playing", to: "lost" },
-      { name: "crash", from: "playing", to: "lost" },
-      { name: "quit", from: ["paused", "won", "lost"], to: "menu" },
+      { name: "crash", from: "playing", to: "crash" },
+      { name: "quit", from: ["paused", "won", "lost", "crash"], to: "menu" },
       { name: "nextLevel", from: "won", to: "playing" },
       { name: "design", from: "menu", to: "designing" },
       { name: "test", from: "designing", to: "starting" },

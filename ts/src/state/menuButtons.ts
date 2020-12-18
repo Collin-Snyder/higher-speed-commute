@@ -18,7 +18,7 @@ export class MenuButtons {
         name: "play",
         onClick: function() {
           game.publish("leaveMenu");
-          game.publish("start", 1);
+          game.publish("start", 2);
         },
         height: 75,
         width: 200,
@@ -49,7 +49,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 200,
-        tags: ["menu", "gameplay", "paused", "won", "lost"],
+        tags: ["menu", "gameplay", "paused", "won", "lost", "crash"],
       },
       quit: {
         name: "quit",
@@ -58,7 +58,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 200,
-        tags: ["menu", "gameplay", "paused", "won", "lost"],
+        tags: ["menu", "gameplay", "paused", "won", "lost", "crash"],
       },
       design: {
         name: "design",

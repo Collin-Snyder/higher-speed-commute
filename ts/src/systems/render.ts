@@ -89,7 +89,6 @@ export class RenderBorders extends EntityComponentSystem.System {
           weight,
           radius
         );
-      // this.drawChrome(X, Y, renderWidth, renderHeight, weight, radius);
       this.ctx.drawImage(
         this.canvases[entity.id],
         X - weight,
@@ -121,11 +120,7 @@ export class RenderBorders extends EntityComponentSystem.System {
     this.canvases[id] = canv;
 
     const ctx = <CanvasRenderingContext2D>canv.getContext("2d");
-    // ctx.fillStyle = "#fff";
-    // ctx.fillRect(0, 0, 125, 78);
     this.drawChrome(ctx, sweight, sweight, sw, sh, sweight, sr);
-    // document.body.appendChild(canv);
-    // canv.style.position = "absolute";
   }
 
   roundRect(
@@ -226,12 +221,6 @@ export class RenderMap extends EntityComponentSystem.System {
     const tileMap = mapEntity.TileMap;
     const map = mapEntity.Map.map;
 
-    // this.ctx.save();
-    // this.ctx.globalAlpha = mapEntity.Renderable.alpha;
-    // this.ctx.fillStyle = mapEntity.Renderable.bgColor;
-    // // this.ctx.fillRect(coords.X, coords.Y, map.pixelWidth, map.pixelHeight);
-    // this.ctx.fillRect(0, 0, map.pixelWidth, map.pixelHeight);
-
     if (
       mode === "designing" ||
       mode === "levelStartAnimation" ||
@@ -266,9 +255,7 @@ export class RenderMap extends EntityComponentSystem.System {
             tileCoords.Y,
             tileMap.tileWidth,
             tileMap.tileHeight,
-            // x * tileMap.tileWidth + coords.X,
             x * tileMap.tileWidth,
-            // y * tileMap.tileHeight + coords.Y,
             y * tileMap.tileHeight,
             w,
             h
@@ -288,14 +275,6 @@ export class RenderMap extends EntityComponentSystem.System {
     this.ctx.restore();
 
     // this.renderMiniCars(global.spriteSheet);
-
-    if (mode === "won" || mode === "lost") {
-      this.ctx.save();
-      this.ctx.globalAlpha = 0.75;
-      this.ctx.fillStyle = "#000";
-      this.ctx.fillRect(coords.X, coords.Y, map.pixelWidth, map.pixelHeight);
-      this.ctx.restore();
-    }
   }
 
   renderMiniCars(spriteSheet: any) {
@@ -315,13 +294,8 @@ export class RenderMap extends EntityComponentSystem.System {
       let dw = entity.Renderable.renderWidth;
       let dh = entity.Renderable.renderHeight;
       let trans = getCenterPoint(dx, dy, dw, dh);
-      // if (entity.id === "player") {
-      //   console.log(entity.Velocity.vector);
-      //   console.log(entity.Renderable.degrees);
-      // }
       ctx.save();
       ctx.translate(trans.X, trans.Y);
-      // this.ctx.rotate(entity.Renderable.radians);
       ctx.rotate(degreesToRadians(entity.Renderable.degrees));
       ctx.translate(-trans.X, -trans.Y);
       ctx.drawImage(
@@ -386,6 +360,7 @@ export class RenderViewBox extends EntityComponentSystem.System {
   private playerEntity: Entity;
   private bossEntity: Entity;
   private refColors: { [key: string]: string };
+  private modeNames: string[];
 
   constructor(
     ecs: ECS,
@@ -393,8 +368,6 @@ export class RenderViewBox extends EntityComponentSystem.System {
     private step: number
   ) {
     super(ecs);
-    // this.ctx = ctx;
-
     this.playerEntity = this.ecs.getEntity("player");
     this.bossEntity = this.ecs.getEntity("boss");
     this.refColors = {
@@ -405,6 +378,7 @@ export class RenderViewBox extends EntityComponentSystem.System {
       office: "#f0d31a",
       street: "#878787",
     };
+    this.modeNames = ["playing", "won", "lost", "crash", "levelStartAnimation"];
   }
 
   update(tick: number, entities: Set<Entity>) {
@@ -412,8 +386,7 @@ export class RenderViewBox extends EntityComponentSystem.System {
     let mode = global.game.mode;
     let zoom = global.game.currentZoom;
     let mapView = global.game.mapView;
-    if (mode !== "playing" && mode !== "levelStartAnimation") return;
-    // if (mode !== "playing") return;
+    if (!this.modeNames.includes(mode)) return;
 
     let mapEntity = <Entity>entities.values().next().value;
     this.updateViewbox(mapEntity, global, mode);
@@ -732,6 +705,7 @@ export class RenderMenus extends EntityComponentSystem.System {
       paused: ["gameplay", "paused"],
       won: ["gameplay", "won"],
       lost: ["gampeplay", "lost"],
+      crash: ["gameplay", "crash"],
     };
     this.modeNames = Object.keys(this.menuTags);
     this.buttonEntities = [];
@@ -742,38 +716,36 @@ export class RenderMenus extends EntityComponentSystem.System {
     let mode = global.game.mode;
 
     //calculate coordinates for buttons using button spacing logic and current state/size of game
-    if (this.modeNames.includes(mode)) {
-      this.buttonEntities = this.selectButtons(entities, mode);
-      let { pixelWidth, pixelHeight } = global.map.Map.map ?? {
-        pixelHeight: 0,
-        pixelWidth: 0,
-      };
-      let { X, Y } = global.map.Coordinates ?? { X: 0, Y: 0 };
+    if (!this.modeNames.includes(mode)) return;
+    this.buttonEntities = this.selectButtons(mode);
+    let { pixelWidth, pixelHeight } = global.map.Map.map ?? {
+      pixelHeight: 0,
+      pixelWidth: 0,
+    };
+    let { X, Y } = global.map.Coordinates ?? { X: 0, Y: 0 };
 
-      switch (mode) {
-        case "menu":
-          this.renderMainMenu();
-          return;
-        case "paused":
-        case "won":
-        case "lost":
-          this.renderGameplayMenu(mode, X, Y, pixelWidth, pixelHeight);
-          return;
-        case "designing":
-          this.renderDesignMenus(X, Y, pixelWidth, pixelHeight);
-          return;
-        default:
-          return;
-      }
+    switch (mode) {
+      case "menu":
+        this.renderMainMenu();
+        return;
+      case "paused":
+      case "won":
+      case "lost":
+      case "crash":
+        this.renderGameplayMenu(mode, X, Y, pixelWidth, pixelHeight);
+        return;
+      case "designing":
+        this.renderDesignMenus(X, Y, pixelWidth, pixelHeight);
+        return;
+      default:
+        return;
     }
   }
 
-  selectButtons(buttonEntities: Set<Entity>, mode: string) {
-    const selected = [
+  selectButtons(mode: string) {
+    return [
       ...this.ecs.queryEntities({ has: ["menu", ...this.menuTags[mode]] }),
     ];
-
-    return selected;
   }
 
   positionButtons(
@@ -830,7 +802,6 @@ export class RenderMenus extends EntityComponentSystem.System {
 
   drawButtons(buttonEntities: Entity[]) {
     for (let entity of buttonEntities) {
-      // console.log(`Drawing ${entity.id} at {${entity.Coordinates.X}, ${entity.Coordinates.Y}} with height ${entity.Renderable.renderHeight} and width ${entity.Renderable.renderWidth}`)
       this.ctx.drawImage(
         this.spriteSheet,
         entity.Renderable.spriteX,
@@ -898,15 +869,16 @@ export class RenderMenus extends EntityComponentSystem.System {
   }
 
   drawShine(
+    menu: "won" | "crash",
     graphicX: number,
     graphicY: number,
     graphicW: number,
     graphicH: number
   ) {
-    let { degOffset } = this.global.Global.game.ecs.getEntity(
-      "wonGraphic"
-    ).Animation;
-    let shineCoords = this.spriteMap.shiny;
+    let graphic = this.global.Global.game.ecs.getEntity(`${menu}Graphic`);
+    let { degOffset } = graphic.Animation;
+    let shineCoords =
+      menu === "won" ? this.spriteMap.shiny : this.spriteMap.badShiny;
     let spriteW = 75;
     let spriteH = 75;
     let radians = (degOffset * Math.PI) / 180;
@@ -970,14 +942,14 @@ export class RenderMenus extends EntityComponentSystem.System {
   }
 
   drawGameplayMenuGraphic(
-    menu: "paused" | "won" | "lost" | "crashed",
+    menu: "paused" | "won" | "lost" | "crash",
     mapX: number,
     mapY: number,
     mapW: number,
     mapH: number
   ) {
     let spriteCoords = this.spriteMap[`${menu}Graphic`];
-    let hasShine = menu === "won";
+    let hasShine = menu === "won" || menu === "crash";
     let spriteW = 75;
     let spriteH = 75;
     let graphicH = mapH / 3;
@@ -1002,6 +974,7 @@ export class RenderMenus extends EntityComponentSystem.System {
 
     if (hasShine) {
       let { ix, iy, ih, iw } = this.drawShine(
+        menu,
         graphicX,
         graphicY,
         graphicW,
@@ -1029,12 +1002,20 @@ export class RenderMenus extends EntityComponentSystem.System {
   }
 
   renderGameplayMenu(
-    menu: "won" | "lost" | "paused" | "crashed",
+    menu: "won" | "lost" | "paused" | "crash",
     mapX: number,
     mapY: number,
     mapWidth: number,
     mapHeight: number
   ) {
+    //draw translucent dark rectangle over map 
+    this.ctx.save();
+    this.ctx.globalAlpha = 0.75;
+    this.ctx.fillStyle = "#000";
+    this.ctx.fillRect(mapX, mapY, mapWidth, mapHeight);
+    this.ctx.restore();
+
+    //draw menu graphic and retain size/position
     let containerH = this.drawGameplayMenuGraphic(
       menu,
       mapX,
@@ -1045,6 +1026,7 @@ export class RenderMenus extends EntityComponentSystem.System {
     let menuY = mapY + containerH;
     let menuH = (mapHeight / 2.5) * 2 - mapHeight / 4;
 
+    //position and draw buttons based on location/size of menu graphic
     this.positionButtons(
       mapX,
       menuY,
@@ -1145,7 +1127,6 @@ export class RenderButtonModifiers extends EntityComponentSystem.System {
     for (let entity of entities) {
       //render selected design tool selection indicator
       if (entity.has("Disabled")) {
-        // console.log(entity)
         const image = this.ctx.getImageData(
           entity.Coordinates.X,
           entity.Coordinates.Y,
@@ -1153,7 +1134,6 @@ export class RenderButtonModifiers extends EntityComponentSystem.System {
           entity.Renderable.renderHeight
         );
         const { data } = image;
-        // console.log(data);
         for (let p = 0; p < data.length; p += 4) {
           const r = data[p];
           const g = data[p + 1];
