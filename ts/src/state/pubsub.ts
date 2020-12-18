@@ -174,10 +174,8 @@ class GameModeMachine {
 
         if (game.recordRaceData) game.saveRaceData("win");
         game.currentZoom = 1;
+        game.focusView = "player";
         game.mode = "won";
-        // game.globalEntity.Global.mode = to;
-        //stop game music/animations
-        //render win animation and gameover options
       },
       onlose: function() {
         let game = <Game>(<unknown>this);
@@ -204,6 +202,7 @@ class GameModeMachine {
         
         if (game.recordRaceData) game.saveRaceData("loss");
         game.currentZoom = 1;
+        game.focusView = "player";
         game.mode = "lost";
       },
       oncrash: function() {
@@ -246,6 +245,7 @@ class GameModeMachine {
         }
         if (game.recordRaceData) game.saveRaceData("crash");
         game.currentZoom = 1;
+        game.focusView = "player";
         game.mode = "crash";
       },
       onpause: function() {
@@ -579,32 +579,6 @@ class GameModeMachine {
     }
 
     return valid;
-  }
-}
-
-export enum EVENT {
-  CRASH,
-  CAFFEINATE,
-  SETDESIGNTOOL,
-}
-
-class PubSub {
-  static enable(target: any) {
-    target.subscribe = function(event: any, callback: Function) {
-      this.subscribers = this.subscribers || {};
-      this.subscribers[event] = this.subscribers[event] || [];
-      this.subscribers[event].push(callback);
-    };
-
-    target.publish = function(event: any) {
-      if (this.subscribers && this.subscribers[event]) {
-        const subs = this.subscribers[event];
-        const args = [].slice.call(arguments, 1);
-        for (let n = 0; n < subs.length; n++) {
-          subs[n].apply(target, args);
-        }
-      }
-    };
   }
 }
 
