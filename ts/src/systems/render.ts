@@ -336,6 +336,15 @@ export class RenderGameplayEntities extends EntityComponentSystem.System {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       for (let entity of entities) {
         if (entity.Renderable.visible && entity.id !== "countdown") {
+          if (entity.Color) {
+            this.drawLightTile(
+              entity.Color.color,
+              entity.Coordinates.X,
+              entity.Coordinates.Y,
+              entity.Renderable.renderWidth,
+              entity.Renderable.renderHeight
+            );
+          }
           this.ctx.drawImage(
             global.spriteSheet,
             entity.Renderable.spriteX,
@@ -350,6 +359,31 @@ export class RenderGameplayEntities extends EntityComponentSystem.System {
         }
       }
     }
+  }
+
+  drawLightTile(
+    color: "red" | "green" | "yellow",
+    x: number,
+    y: number,
+    w: number,
+    h: number
+  ) {
+    this.ctx.save();
+    this.ctx.globalAlpha = 0.3;
+    switch (color) {
+      case "red":
+        this.ctx.fillStyle = "#ff0000";
+        break;
+      case "yellow":
+        this.ctx.fillStyle = "#ffcc00";
+        break;
+      case "green":
+      default:
+        this.ctx.fillStyle = "#00ff00";
+        break;
+    }
+    this.ctx.fillRect(x, y, w, h);
+    this.ctx.restore();
   }
 }
 
@@ -1008,7 +1042,7 @@ export class RenderMenus extends EntityComponentSystem.System {
     mapWidth: number,
     mapHeight: number
   ) {
-    //draw translucent dark rectangle over map 
+    //draw translucent dark rectangle over map
     this.ctx.save();
     this.ctx.globalAlpha = 0.75;
     this.ctx.fillStyle = "#000";
