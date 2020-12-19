@@ -72,6 +72,7 @@ export class MapSystem extends EntityComponentSystem.System {
 
   createLightEntities(newMap: any) {
     let lights = this.ecs.queryEntities({ has: ["Timer", "Color"] });
+    let spriteMap = this.ecs.getEntity("global").Global.spriteMap;
 
     for (let light of lights) {
       light.destroy();
@@ -95,8 +96,8 @@ export class MapSystem extends EntityComponentSystem.System {
         },
         Color: {},
         Renderable: {
-          spriteX: 200,
-          spriteY: 0,
+          spriteX: spriteMap.greenLight.X,
+          spriteY: spriteMap.greenLight.Y,
           renderWidth: rw,
           renderHeight: rh,
           visible: false
