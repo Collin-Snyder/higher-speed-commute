@@ -380,7 +380,6 @@ export class RenderGameplayEntities extends EntityComponentSystem.System {
       case "green":
       default:
         this.ctx.fillStyle = "#00ff00";
-        break;
     }
     this.ctx.fillRect(x, y, w, h);
     this.ctx.restore();
