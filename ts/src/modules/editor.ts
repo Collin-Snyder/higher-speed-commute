@@ -35,11 +35,7 @@ class Editor {
   }
 
   beginGroup() {
-    //console.log("BEGINNING GROUP");
     if (this._group) {
-      //console.log(
-      //   "Cannot begin an action group because there is already an active group. End group with 'endGroup()' and try again."
-      // );
       return false;
     }
     this._group = true;
@@ -47,7 +43,6 @@ class Editor {
   }
 
   execute(name: string, ...args: any[]) {
-    //console.log(`Executing command '${name}'`);
     const cmd = this._commands[name];
     cmd.execute(...args);
     if (this._history[this._current] === undefined) {
@@ -57,11 +52,7 @@ class Editor {
   }
 
   endGroup() {
-    //console.log("ENDING GROUP");
     if (!this._group) {
-      //console.log(
-      //   "Cannot end action group because there is no current active group. Did you forget to start an action group with 'beginGroup()'?"
-      // );
       return false;
     }
     this._group = false;
@@ -85,7 +76,6 @@ class Editor {
     let group = this._currentActionGroup();
     for (let i = group.length - 1; i >= 0; i--) {
       let { name, args } = group[i];
-      //console.log(`Undoing '${name}'`);
       this._commands[name].undo(...args);
     }
 
@@ -97,7 +87,6 @@ class Editor {
 
     for (let action of this._currentActionGroup()) {
       let { name, args } = action;
-      //console.log(`Redoing '${name}'`);
       this._commands[name].execute(...args);
     }
 
@@ -161,13 +150,11 @@ const actions = {
     delete map.coffees[squareId];
   },
   makeKeySquare: function (keySquare: string, squareId: number) {
-    //console.log(`Adding key square ${keySquare} to square ${squareId}`);
     let game = <Game>(<unknown>this);
     let map = game.ecs.getEntity("global").Global.map.Map.map;
     map[keySquare] = squareId;
   },
   removeKeySquare: function (keySquare: string, squareId: number, ) {
-    //console.log(`Removing key square ${keySquare} from square ${squareId}`);
     let game = <Game>(<unknown>this);
     let map = game.ecs.getEntity("global").Global.map.Map.map;
     map[keySquare] = 0;
