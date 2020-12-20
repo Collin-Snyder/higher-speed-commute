@@ -454,7 +454,8 @@ export class DesignMapGrid extends MapGrid {
         h: 25,
         deg: 0,
         xoffset: 0,
-        yoffset: 0
+        yoffset: 0,
+        display: true
       };
     });
   }

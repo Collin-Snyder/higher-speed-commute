@@ -109,10 +109,11 @@ class DesignModule {
     let tiles = mapEntity.TileMap.tiles;
     tileChanges.forEach((id: number) => {
       let index = id - 1;
-      let oldTile = tiles[index];
+      let oldTile = tiles[index].type;
       let newTile = designMap.determineTileValue(id);
+      // debugger;
       if (oldTile !== newTile) {
-        tiles[index] = newTile;
+        tiles[index].type = newTile;
         this.saved = false;
         let saveBtn = this._game.ecs.getEntity("saveButton");
 

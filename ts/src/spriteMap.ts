@@ -32,6 +32,7 @@ const spriteMap = {
   redLight: { X: 450, Y: 0 },
   greenLight: { X: 475, Y: 25 },
   yellowLight: { X: 475, Y: 0 },
+  designLight: {X: 50, Y: 25},
   coffee: { X: 250, Y: 0 },
   playButton: { X: 0, Y: 50 },
   designButton: { X: 0, Y: 125 },

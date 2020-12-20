@@ -206,7 +206,6 @@ export class RenderMap extends EntityComponentSystem.System {
       "paused",
       "won",
       "lost",
-      "designing",
       "levelStartAnimation",
     ];
   }
@@ -263,14 +262,6 @@ export class RenderMap extends EntityComponentSystem.System {
           if (hasAlpha || hasRotation) this.ctx.restore();
         }
       );
-
-      if (mode === "designing" && global.game.designModule.gridLoaded) {
-        this.ctx.drawImage(
-          global.game.designModule.gridOverlay,
-          coords.X,
-          coords.Y
-        );
-      }
     }
     this.ctx.restore();
 
@@ -383,6 +374,90 @@ export class RenderGameplayEntities extends EntityComponentSystem.System {
     }
     this.ctx.fillRect(x, y, w, h);
     this.ctx.restore();
+  }
+}
+
+export class RenderSandbox extends EntityComponentSystem.System {
+  private tileColors: { [type: string]: string };
+  constructor(ecs: ECS, private ctx: CanvasRenderingContext2D) {
+    super(ecs);
+    this.tileColors = {
+      street: "#1e1e1e",
+      schoolZone: "#988612",
+      playerHome: "#0058cf",
+      bossHome: "#eb3626",
+      office: "#f0d31a",
+    };
+  }
+
+  update(tick: number, entities: Set<Entity>) {
+    let { game, spriteMap, spriteSheet } = this.ecs.getEntity("global").Global;
+    let { mode, designModule } = game;
+    if (mode !== "designing") return;
+
+    let mapEntity = this.ecs.getEntity("map");
+    let { TileMap } = mapEntity;
+    let { map } = mapEntity.Map;
+    let { X, Y } = mapEntity.Coordinates;
+
+    this.ctx.fillStyle = "lightgray";
+    this.ctx.fillRect(X, Y, map.pixelWidth, map.pixelHeight);
+
+    drawTileMap(
+      TileMap.tiles,
+      map.width,
+      (
+        type: Tile,
+        x: number,
+        y: number,
+        w: number,
+        h: number,
+        a: number,
+        deg: number
+      ) => {
+        if (type === "greenLight" || type === "coffee") return;
+        this.ctx.fillStyle = this.tileColors[type];
+        this.ctx.fillRect(
+          x * TileMap.tileWidth + X,
+          y * TileMap.tileHeight + Y,
+          w,
+          h
+        );
+      }
+    );
+
+    if (designModule.gridLoaded) {
+      this.ctx.drawImage(designModule.gridOverlay, X, Y);
+    }
+
+    drawTileMap(
+      TileMap.tiles,
+      map.width,
+      (
+        type: Tile,
+        x: number,
+        y: number,
+        w: number,
+        h: number,
+        a: number,
+        deg: number
+      ) => {
+        if (type !== "greenLight" && type !== "coffee") return;
+        let tileCoords =
+          type === "greenLight" ? spriteMap.designLight : spriteMap.coffee;
+        this.ctx.drawImage(
+          spriteSheet,
+          tileCoords.X,
+          tileCoords.Y,
+          TileMap.tileWidth,
+          TileMap.tileHeight,
+          x * TileMap.tileWidth + X,
+          y * TileMap.tileHeight + Y,
+          w,
+          h
+        );
+      }
+    );
   }
 }
 
@@ -806,7 +881,6 @@ export class RenderMenus extends EntityComponentSystem.System {
     let newCoord = dir === "horizontal" ? x.start : y.start;
     for (let btn of buttons) {
       if (Array.isArray(btn)) {
-        console.log("Detected subarray and running recursion");
         let subx = dir === "horizontal" ? newCoord : x.start;
         let suby = dir === "vertical" ? newCoord : y.start;
         let subw = dir === "horizontal" ? x.step : ew;

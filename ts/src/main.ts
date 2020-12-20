@@ -38,6 +38,7 @@ import {
   RenderBackground,
   RenderMap,
   RenderGameplayEntities,
+  RenderSandbox,
   RenderViewBox,
   RenderMenus,
   RenderButtonModifiers,
@@ -420,6 +421,7 @@ export class Game {
       "render",
       new RenderGameplayEntities(this.ecs, this.osectx, this.OSEntCanvas)
     );
+    this.ecs.addSystem("render", new RenderSandbox(this.ecs, this.uictx));
     this.ecs.addSystem("render", new RenderViewBox(this.ecs, this.uictx, this.step));
     this.ecs.addSystem("render", new RenderMenus(this.ecs, this.uictx));
     this.ecs.addSystem(

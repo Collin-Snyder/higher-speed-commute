@@ -328,6 +328,7 @@ class GameModeMachine {
           1,
           "spaceEvenly"
         ).start;
+        mapEntity.Renderable.visible = true;
 
         let entities = game.ecs.queryEntities({ has: ["menu", "design"] });
         for (let entity of entities) {

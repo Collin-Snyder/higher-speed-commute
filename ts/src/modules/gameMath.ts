@@ -1,6 +1,6 @@
 import { Entity } from "@fritzy/ecs";
-import { couldStartTrivia } from "../../../node_modules/typescript/lib/typescript";
 const { abs, cos, sin } = Math;
+import Game from "../main";
 
 export interface VectorInterface {
   X: number;
@@ -88,9 +88,9 @@ export function findCenteredElementSpread(
   let container = c ? (c < p ? c : p) : p;
   let total = n * e;
   if (total > container) {
-    console.log(
-      "You are trying to place too many elements into too small of a container."
-    );
+    // console.log(
+    //   "You are trying to place too many elements into too small of a container."
+    // );
     return output;
   }
   let space = container - total;

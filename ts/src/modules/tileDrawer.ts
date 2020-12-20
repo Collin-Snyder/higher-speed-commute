@@ -3,7 +3,15 @@ import { TileInterface, Tile } from "../state/map";
 export const drawTileMap = (
   tiles: TileInterface[],
   widthInSquares: number,
-  drawFunc: Function
+  drawFunc: (
+    type: Tile,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    a: number,
+    deg: number
+  ) => void
 ) => {
   let x = 0,
     y = 0;
