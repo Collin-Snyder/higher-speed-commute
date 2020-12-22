@@ -36,3 +36,19 @@ h1 {
   left: 0;
   z-index: 0;
 }
+
+#modals {
+  position: absolute;
+  z-index: 99;
+  top: 0;
+  left: 0;
+}
+
+.action-button {
+  display: inline-block;
+  width: 200px;
+  height: 75px;
+  background-image: url("./spritesheet.png");
+  background-repeat: no-repeat;
+  cursor: pointer;
+}

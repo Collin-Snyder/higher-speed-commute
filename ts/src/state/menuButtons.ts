@@ -1,4 +1,5 @@
-import {Game} from "../main";
+import { Game } from "../main";
+import { toggleModal } from "../react/modalContainer";
 
 export interface ButtonInterface {
   name: string;
@@ -17,6 +18,8 @@ export class MenuButtons {
       play: {
         name: "play",
         onClick: function() {
+          //@ts-ignore
+          window.toggleModal(true, "loadLevel");
           game.publish("leaveMenu");
           game.publish("start", game.firstLevel);
         },
@@ -246,15 +249,18 @@ export class MenuButtons {
     MenuButtons.createButtonEntities(buttons, game);
   }
 
-  private static createButtonEntities(buttons: {[key: string]: ButtonInterface}, game: Game) {
+  private static createButtonEntities(
+    buttons: { [key: string]: ButtonInterface },
+    game: Game
+  ) {
     for (let name in buttons) {
       let button = buttons[name];
       let coords = game.ecs.getEntity("global").Global.spriteMap[
         `${button.name}Button`
       ];
-  
+
       if (!coords) return;
-  
+
       let entity = game.ecs.createEntity({
         id: `${button.name}Button`,
         Button: { name: button.name },
@@ -269,11 +275,11 @@ export class MenuButtons {
           renderHeight: button.height,
         },
       });
-  
+
       for (let tag of button.tags) {
         entity.addTag(tag);
       }
-  
+
       entity.addTag("noninteractive");
     }
   }

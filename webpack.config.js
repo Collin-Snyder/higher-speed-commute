@@ -1,12 +1,14 @@
 const path = require("path");
+// import path from "path";
 const CopyWebpackPlugin = require("copy-webpack-plugin");
-const VueLoaderPlugin = require("vue-loader/lib/plugin");
+// import CopyWebpackPlugin from "copy-webpack-plugin";
 
 module.exports = {
   mode: "development",
   devtool: "inline-source-map",
   entry: {
     main: "./ts/src/main.ts",
+    reactApp: "./ts/src/react/index.tsx"
   },
   output: {
     path: path.resolve(__dirname, "build"),
@@ -20,10 +22,6 @@ module.exports = {
     rules: [
       // all files with a `.ts` or `.tsx` extension will be handled by `ts-loader`
       { test: /\.tsx?$/, loader: "ts-loader" },
-      {
-        test: /\.vue$/,
-        loader: "vue-loader",
-      },
     ],
   },
   plugins: [
@@ -36,7 +34,6 @@ module.exports = {
       },
       { from: "./assets" },
     ]),
-    new VueLoaderPlugin(),
   ],
 };
 

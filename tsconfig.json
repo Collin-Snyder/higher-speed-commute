@@ -3,6 +3,7 @@
     "rootDir": "ts",
     "outDir": "build",
     "target": "es6",
+    "jsx": "react",
     "noImplicitAny": true,
     "typeRoots": ["./ts/@types", "node-modules/@types"],
     "lib": [
@@ -14,7 +15,8 @@
     "module": "es2015",
     // "esModuleInterop": true,
     "strict": true,
-    "sourceMap": false
+    "sourceMap": false,
+    "allowSyntheticDefaultImports": true
   },
   "exclude": ["@types", "node_modules"]
 }
