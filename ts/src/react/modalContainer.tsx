@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import Modal from "./modal";
+import ModalButtonContainer from "./modalButtons";
+import ModalContent from "./modalContent";
 import ActionButton from "./actionButton";
 
 let toggleModal = (isOpen: boolean, modalName: string) => {
@@ -8,32 +11,54 @@ let toggleModal = (isOpen: boolean, modalName: string) => {
 const ModalContainer = () => {
   let [modalOpen, setModalOpen] = useState(false);
   let [modalName, setModalName] = useState("");
-  //@ts-ignore
+
   window.toggleModal = (isOpen: boolean, modalName: string) => {
     setModalOpen(isOpen);
     setModalName(modalName);
+    console.log("toggleModal is running");
   };
-  if (modalOpen) {
-    return (
-      <div id="modal-container">
-        <h3>Now showing modal: {modalName}</h3>
-        <ActionButton
-          buttonName="save"
-          buttonAction={() => {
+
+  return (
+    <>
+      {modalOpen ? (
+        <div
+          id="modal-container"
+          onClick={(e) => {
             setModalOpen(false);
           }}
-        />
-        <ActionButton
-          buttonName="playEasy"
-          buttonAction={() => {
-            setModalOpen(false);
-          }}
-        />
-      </div>
-    );
-  } else {
-    return <></>;
-  }
+        >
+          <Modal name={modalName}>
+            <ModalContent modalName={modalName} />
+            <ModalButtonContainer>
+              <ActionButton
+                buttonName="playEasy"
+                buttonAction={() => {
+                  setModalOpen(false);
+                  console.log("I chose Easy!");
+                }}
+              />
+              <ActionButton
+                buttonName="playMedium"
+                buttonAction={() => {
+                  setModalOpen(false);
+                  console.log("I chose Medium!");
+                }}
+              />
+              <ActionButton
+                buttonName="playHard"
+                buttonAction={() => {
+                  setModalOpen(false);
+                  console.log("I chose Hard!");
+                }}
+              />
+            </ModalButtonContainer>
+          </Modal>
+        </div>
+      ) : (
+        <></>
+      )}
+    </>
+  );
 };
 
 export { toggleModal };

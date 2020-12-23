@@ -6,20 +6,20 @@ interface ActionButtonProps {
 }
 
 const buttonImages: { [key: string]: any } = {
-  playEasy: { x: 0, y: 50, w: 200, h: 75 },
-  playEasyDepressed: { x: 0, y: 650, w: 200, h: 75 },
-  playMedium: { x: 0, y: 0, w: 200, h: 75 },
-  playMediumDepressed: { x: 0, y: 0, w: 200, h: 75 },
-  playHard: { x: 0, y: 0, w: 200, h: 75 },
-  playHardDepressed: { x: 0, y: 0, w: 200, h: 75 },
-  cancel: { x: 0, y: 0, w: 200, h: 75 },
-  cancelDepressed: { x: 0, y: 0, w: 200, h: 75 },
-  load: { x: 0, y: 0, w: 200, h: 75 },
-  loadDepressed: { x: 0, y: 0, w: 200, h: 75 },
-  reset: { x: 0, y: 0, w: 200, h: 75 },
-  resetDepressed: { x: 0, y: 0, w: 200, h: 75 },
-  save: { x: 0, y: 200, w: 150, h: 75 },
-  saveDepressed: { x: 0, y: 425, w: 150, h: 75 },
+  playEasy: { x: 200, y: 890, w: 200, h: 75 },
+  playEasyDepressed: { x: 200, y: 890, w: 200, h: 75 },
+  playMedium: { x: 200, y: 815, w: 200, h: 75 },
+  playMediumDepressed: { x: 200, y: 815, w: 200, h: 75 },
+  playHard: { x: 200, y: 740, w: 200, h: 75 },
+  playHardDepressed: { x: 200, y: 740, w: 200, h: 75 },
+  cancel: { x: 200, y: 680, w: 150, h: 60 },
+  cancelDepressed: { x: 350, y: 680, w: 150, h: 60 },
+  load: { x: 200, y: 500, w: 150, h: 60 },
+  loadDepressed: { x: 350, y: 500, w: 150, h: 60 },
+  reset: { x: 200, y: 620, w: 150, h: 60 },
+  resetDepressed: { x: 350, y: 620, w: 150, h: 60 },
+  save: { x: 200, y: 560, w: 150, h: 60 },
+  saveDepressed: { x: 350, y: 560, w: 150, h: 60 },
 };
 
 const ActionButton = ({ buttonName, buttonAction }: ActionButtonProps) => {
@@ -40,8 +40,10 @@ const ActionButton = ({ buttonName, buttonAction }: ActionButtonProps) => {
       }}
       onMouseUp={() => {
         setDepressed(false);
-        buttonAction();
-        //handle modal action depending on button name
+        // buttonAction();
+      }}
+      onClick={() => {
+          buttonAction();
       }}
     ></i>
   );

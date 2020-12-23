@@ -1,6 +1,19 @@
+@font-face {
+  font-family: "8-bit-pusab-regular";
+  src: url("../8-bit pusab.ttf")
+      format("woff"),
+    url("../8-bit pusab.ttf")
+      format("truetype");
+}
+
+/* @import url("https://candyfonts.com/wp-data/2019/03/03/23957/8-bit pusab.ttf"); */
+
 html,
-body {
+body,
+h1,
+h3 {
   margin: 0;
+  font-family: "8-bit-pusab-regular", "Courier New", monospace;
 }
 
 body {
@@ -9,10 +22,6 @@ body {
   position: relative;
   background-color: #fff;
   /* background-color: #50cdff; */
-}
-
-h1 {
-  color: red;
 }
 
 #game {
@@ -25,7 +34,6 @@ h1 {
   margin-top: -312px;
   left: 50%;
   margin-left: -500px;
-  
 }
 
 #ui {
@@ -44,6 +52,52 @@ h1 {
   left: 0;
 }
 
+#modal-container {
+  padding: 0;
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 100;
+}
+
+#modal {
+  width: 50vw;
+  height: 50vh;
+  max-width: 60vw;
+  max-height: 60vh;
+  display: block;
+  background-color: white;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 101;
+  padding: 2vw;
+  text-align: center;
+}
+
+/* #modal.loadMap {
+  width: 75vw;
+} */
+
+#modal-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  padding: 1vw;
+  width: 90%;
+  height: 60%;
+  border: 3px solid black;
+  overflow-y: scroll;
+}
+
+#modal-button-container {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
 .action-button {
   display: inline-block;
   width: 200px;
@@ -51,4 +105,75 @@ h1 {
   background-image: url("./spritesheet.png");
   background-repeat: no-repeat;
   cursor: pointer;
+  /* margin: 2vw; */
+}
+
+#modal-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  /* justify-content: space-evenly;
+  flex-wrap: wrap; */
+}
+
+.option-button {
+  width: 40vw;
+  max-width: 40vw;
+  height: 10vh;
+  max-height: 10vw;
+  display: block;
+  position: relative;
+  cursor: pointer;
+  margin-top: 1vh;
+  margin-bottom: 1vh;
+}
+
+.option-button.small {
+  width: 20vw;
+  max-width: 20vw;
+}
+
+.option-button input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  cursor: pointer;
+}
+
+.option-button-graphic {
+  position: absolute;
+  display: flex;
+  top: 0;
+  left: 0;
+  width: 40vw;
+  height: 10vh;
+  border: 2px solid black;
+  justify-content: center;
+  align-items: center;
+}
+
+.option-button.small .option-button-graphic {
+  width: 20vw;
+  justify-content: left;
+}
+
+.option-button-graphic.selected {
+  outline: 4px solid yellow;
+}
+
+.option-button-graphic:hover {
+  background-color: #dddddd;
+}
+
+.option-button-label {
+  margin-left: 1vw;
+}
+
+.map-icon {
+  height: 8vh;
+  width: 8vh;
+  margin: 1vh;
+  background-image: url('./map-icon.png');
+  background-repeat: no-repeat;
+  background-size: cover;
 }

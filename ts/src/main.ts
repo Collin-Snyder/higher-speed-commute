@@ -1,7 +1,5 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import {
-  average,
-  findCenteredElementSpread,
   getCenterPoint,
   scaleVector,
   VectorInterface,
@@ -45,7 +43,12 @@ import {
   RenderTopLevelGraphics,
   RenderBorders,
 } from "./systems/render";
-import { ViewBoxSystem } from "./systems/viewbox";
+
+declare global {
+  interface Window {
+    toggleModal: Function;
+  }
+}
 
 interface InputEventsInterface {
   mouseX: number;

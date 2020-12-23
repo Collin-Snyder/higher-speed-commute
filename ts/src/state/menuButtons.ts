@@ -18,8 +18,7 @@ export class MenuButtons {
       play: {
         name: "play",
         onClick: function() {
-          //@ts-ignore
-          window.toggleModal(true, "loadLevel");
+          window.toggleModal(true, "loadMap");
           game.publish("leaveMenu");
           game.publish("start", game.firstLevel);
         },
