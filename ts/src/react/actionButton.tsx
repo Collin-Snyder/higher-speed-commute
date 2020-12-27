@@ -33,7 +33,7 @@ const ActionButton = ({ buttonName, buttonAction }: ActionButtonProps) => {
       style={{
         width: `${w}px`,
         height: `${h}px`,
-        backgroundPosition: `-${x}px -${y}px`,
+        backgroundPosition: `-${x}px -${y}px`
       }}
       onMouseDown={() => {
         setDepressed(true);

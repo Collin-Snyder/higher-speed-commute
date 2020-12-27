@@ -4,6 +4,7 @@ import SelectionButton from "./selectionButton";
 export interface ModalOptions {
   value: string | number;
   label: string;
+  [key: string]: any;
 }
 
 interface OptionListProps {
@@ -17,6 +18,8 @@ const OptionList = ({ listName, options }: OptionListProps) => {
   let handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSelected(e.target.value);
   };
+
+ 
   return (
     <div id="modal-options">
       {options.map(({ value, label }) => (

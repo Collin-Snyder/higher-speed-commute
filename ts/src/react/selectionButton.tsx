@@ -16,6 +16,8 @@ const SelectionButton = ({
   handleChange,
 }: SelectionButtonProps) => {
   let isMapSelector = name === "loadMap";
+  let labelTrunc = label.length > 11 ? `${label.slice(0, 10)}...` : label;
+  let labelFormatted = labelTrunc.toUpperCase();
   return (
     <label className={`option-button ${isMapSelector ? `small` : ``}`}>
       <input
@@ -27,7 +29,7 @@ const SelectionButton = ({
       />
       <span className={`option-button-graphic ${selected ? `selected` : ``}`}>
         {isMapSelector ? <i className="map-icon"></i> : <></>}
-        <h3 className="option-button-label">{label}</h3>
+        <h3 className="option-button-label">{labelFormatted}</h3>
       </span>
     </label>
   );
