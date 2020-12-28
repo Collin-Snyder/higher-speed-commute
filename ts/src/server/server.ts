@@ -100,9 +100,8 @@ app.post("/maps", async (req, res) => {
   } = req.body;
   try {
     let returned = await db.query(
-      "INSERT INTO levels (user_id, level_name, board_height, board_width, player_home, boss_home, office, squares, lights, coffees) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id",
+      "INSERT INTO levels (level_name, board_height, board_width, player_home, boss_home, office, squares, lights, coffees) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id",
       [
-        user_id,
         level_name,
         board_height,
         board_width,
@@ -116,7 +115,8 @@ app.post("/maps", async (req, res) => {
     );
     res.send(returned.rows[0]);
   } catch (err) {
-    res.send(`${err.name}: ${err.message}`);
+    console.error(err);
+    res.send(err);
   }
 });
 

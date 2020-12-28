@@ -21,7 +21,7 @@ const OptionList = ({ listName, options }: OptionListProps) => {
 
  
   return (
-    <div id="modal-options">
+    <div id="modal-options" className={listName==="loadMap" ? "columns" : ""}>
       {options.map(({ value, label }) => (
         <SelectionButton
           name={listName}

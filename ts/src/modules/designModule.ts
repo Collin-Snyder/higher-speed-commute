@@ -145,15 +145,19 @@ class DesignModule {
           console.error(err);
         });
     } else {
-      this.saveAs();
+      this.openSaveAsModal();
     }
   }
 
-  saveAs() {
+  openSaveAsModal() {
+    window.toggleModal(true, "save");
+  }
+
+  saveAs(name: string) {
     let global = this._game.ecs.getEntity("global").Global;
     let map = global.map.Map;
     let saved = map.map.exportForSave();
-    let name = window.prompt("Please enter a name for your map");
+    
     if (name) {
       saved.level_name = name;
       saved.user_id = 1;
@@ -161,6 +165,7 @@ class DesignModule {
       axios
         .post("/maps", saved)
         .then((data: any) => {
+          console.log(data.data);
           let { id } = data.data;
           map.mapId = id;
           this.saved = true;
@@ -170,15 +175,19 @@ class DesignModule {
     }
   }
 
-  loadSaved() {
-    let id = window.prompt("Please enter a level ID to edit");
-    if (id) {
+  openLoadSavedModal() {
+    window.toggleModal(true, "loadMap");
+  }
+
+  loadSaved(levelId: number) {
+    // let id = 0;
+    if (levelId) {
       let global = this._game.ecs.getEntity("global").Global;
       axios
-        .get(`/maps/${id}`)
+        .get(`/maps/${levelId}`)
         .then((data: any) => {
           console.log(data.data);
-          global.map.Map.mapId = id;
+          global.map.Map.mapId = levelId;
           global.map.Map.map = DesignMapGrid.fromMapObject(data.data);
           global.map.TileMap.tiles = global.map.Map.map.generateDesignTileMap();
           this._editor.restart();
@@ -216,23 +225,17 @@ class DesignModule {
     this.saved = conf;
   }
 
-  resetMap() {
-    let confirmReset = window.confirm(
-      "Are you sure you want to reset the map? This action cannot be undone."
-    );
+  openResetModal() {
+    window.toggleModal(true, "reset");
+  }
 
-    if (!confirmReset) return;
-
-    let confirmOverwrite = window.confirm(
-      "Press OK to reset your existing map. This will overwrite your existing map and cannot be undone.\n\nPress Cancel to create a new map. This will preserve the last saved version of the current map and generate a new, blank one."
-    );
-
+  resetMap(resetChoice: "save" | "overwrite") {
     let mapEntity = this._game.ecs.getEntity("map");
 
     mapEntity.Map.map.clear(this._editor);
     mapEntity.TileMap.tiles = mapEntity.Map.map.generateDesignTileMap();
 
-    if (confirmOverwrite) this.save();
+    if (resetChoice === "overwrite") this.save();
     else mapEntity.Map.mapId = null;
 
     this._editor.restart();

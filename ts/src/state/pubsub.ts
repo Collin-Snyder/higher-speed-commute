@@ -119,6 +119,7 @@ class GameModeMachine {
         if (crashGraphic) crashGraphic.Renderable.visible = false;
         game.currentZoom = 1;
         game.mode = "starting";
+        window.toggleModal(true, "levelStart", level);
         game.loadLevel(level);
       },
       onstartingAnimation: function() {
@@ -421,11 +422,11 @@ class GameModeMachine {
       },
       onSaveAs: function() {
         let game = <Game>(<unknown>this);
-        game.designModule.saveAs();
+        game.designModule.openSaveAsModal();
       },
       onLoadSaved: function() {
         let game = <Game>(<unknown>this);
-        game.designModule.loadSaved();
+        game.designModule.openLoadSavedModal();
       },
       onUndo: function() {
         let game = <Game>(<unknown>this);
@@ -442,7 +443,7 @@ class GameModeMachine {
       },
       onResetMap: function() {
         let game = <Game>(<unknown>this);
-        game.designModule.resetMap();
+        game.designModule.openResetModal();
       },
       onCaffeinate: function(driver: Entity, coffee: Entity) {
         let game = <Game>(<unknown>this);

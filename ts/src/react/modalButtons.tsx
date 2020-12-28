@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useContext } from "react";
 import ActionButton from "./actionButton";
+import { ModalInputContext } from "./modalInputContext";
 
 interface ModalButtonContainerProps {
   modalName: string;
@@ -7,51 +8,64 @@ interface ModalButtonContainerProps {
 }
 
 interface ModalButton {
+  type: string;
   name: string;
-  action: Function;
+  action?: Function;
 }
+
+const noOp = function() {};
 
 const modalButtons: { [key: string]: ModalButton[] } = {
   save: [
-    { name: "cancel", action: function() {} },
-    { name: "save", action: function() {} },
+    { type: "cancel", name: "cancel" },
+    {
+      type: "submit",
+      name: "save",
+    },
   ],
   loadMap: [
-    { name: "cancel", action: function() {} },
-    { name: "load", action: function() {} },
+    { type: "cancel", name: "cancel" },
+    {
+      type: "submit",
+      name: "load",
+    },
   ],
   reset: [
-    { name: "cancel", action: function() {} },
-    { name: "reset", action: function() {} },
+    { type: "cancel", name: "cancel" },
+    {
+      type: "submit",
+      name: "reset",
+    },
   ],
   levelStart: [
-    { name: "playEasy", action: function() {} },
-    { name: "playMedium", action: function() {} },
-    { name: "playHard", action: function() {} },
+    { type: "submit", name: "playEasy" },
+    { type: "submit", name: "playMedium" },
+    { type: "submit", name: "playHard" },
   ],
-};
-
-const makeButtonAction = function(toggleModal: Function, callback: Function) {
-  return function() {
-    toggleModal(false);
-    callback();
-  };
 };
 
 const ModalButtonContainer = ({
   modalName,
   toggleModal,
 }: ModalButtonContainerProps) => {
+  let [inputState] = useContext(ModalInputContext);
+
   let buttons = modalButtons[modalName] || [];
+
   return (
     <div id="modal-button-container">
-      {buttons.map(({ name, action }: ModalButton) => (
-        <ActionButton
-          buttonName={name}
-          buttonAction={makeButtonAction(toggleModal, action)}
-          key={name}
-        />
-      ))}
+      {buttons.map(({ type, name }: ModalButton) => {
+        let action = noOp;
+        if (type === "submit") action = inputState.submitInput;
+        return (
+          <ActionButton
+            buttonName={name}
+            toggleModal={toggleModal}
+            buttonAction={action}
+            key={name}
+          />
+        );
+      })}
     </div>
   );
 };

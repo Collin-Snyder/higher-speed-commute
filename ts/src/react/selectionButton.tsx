@@ -16,8 +16,11 @@ const SelectionButton = ({
   handleChange,
 }: SelectionButtonProps) => {
   let isMapSelector = name === "loadMap";
-  let labelTrunc = label.length > 11 ? `${label.slice(0, 10)}...` : label;
-  let labelFormatted = labelTrunc.toUpperCase();
+  let labelFormatted = label;
+  if (isMapSelector) {
+    let labelTrunc = label.length > 11 ? `${label.slice(0, 10)}...` : label;
+    labelFormatted = labelTrunc.toUpperCase();
+  }
   return (
     <label className={`option-button ${isMapSelector ? `small` : ``}`}>
       <input

@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
+import { ModalInputContext } from "./modalInputContext";
 
 interface ActionButtonProps {
   buttonName: string;
+  toggleModal: Function;
   buttonAction: Function;
 }
 
@@ -22,7 +24,12 @@ const buttonImages: { [key: string]: any } = {
   saveDepressed: { x: 350, y: 560, w: 150, h: 60 },
 };
 
-const ActionButton = ({ buttonName, buttonAction }: ActionButtonProps) => {
+const ActionButton = ({
+  buttonName,
+  toggleModal,
+  buttonAction,
+}: ActionButtonProps) => {
+  const [inputState] = useContext(ModalInputContext);
   const [depressed, setDepressed] = useState(false);
   const { x, y, w, h } = depressed
     ? buttonImages[`${buttonName}Depressed`]
@@ -33,17 +40,18 @@ const ActionButton = ({ buttonName, buttonAction }: ActionButtonProps) => {
       style={{
         width: `${w}px`,
         height: `${h}px`,
-        backgroundPosition: `-${x}px -${y}px`
+        backgroundPosition: `-${x}px -${y}px`,
       }}
       onMouseDown={() => {
         setDepressed(true);
       }}
       onMouseUp={() => {
         setDepressed(false);
-        // buttonAction();
       }}
       onClick={() => {
-          buttonAction();
+        console.log(`Running onClick action for '${buttonName}' button with input value ${inputState.inputValue}`)
+        buttonAction(inputState.inputValue);
+        toggleModal(false);
       }}
     ></i>
   );

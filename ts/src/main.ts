@@ -47,6 +47,7 @@ import {
 declare global {
   interface Window {
     toggleModal: Function;
+    game: Game;
   }
 }
 
