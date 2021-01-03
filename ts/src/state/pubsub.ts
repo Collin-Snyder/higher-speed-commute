@@ -9,6 +9,8 @@ export type Mode =
   | "init"
   | "menu"
   | "starting"
+  | "loadLevel"
+  | "chooseDifficulty"
   | "levelStartAnimation"
   | "playing"
   | "paused"
@@ -26,7 +28,7 @@ interface StateInterface {
 interface EventInterface {
   name: string;
   from: Mode | Mode[];
-  to: Mode | Mode[];
+  to: Mode;
   [key: string]: any;
 }
 
@@ -88,10 +90,6 @@ class GameModeMachine {
 
         return GameModeMachine.validateTransition(from, current, event);
       },
-      onready: function() {
-        let game = <Game>(<unknown>this);
-        game.mode = "menu";
-      },
       onmenu: function() {
         let game = <Game>(<unknown>this);
         if (game.mode !== "menu") return;
@@ -101,8 +99,8 @@ class GameModeMachine {
         }
         console.log("menu loaded");
       },
-      onleaveMenu: function() {
-        let game = <Game>(<unknown>this);
+      onleavemenu: function() {
+        let game = <Game>(<unknown>this); 
         let entities = game.ecs.queryEntities({ has: ["menu", "main"] });
         for (let entity of entities) {
           entity.addTag("noninteractive");
@@ -111,29 +109,29 @@ class GameModeMachine {
       onstart: function(level: number) {
         //play starting animations
         let game = <Game>(<unknown>this);
-        const mapEntity = game.ecs.getEntity("map");
-        const wonGraphic = game.ecs.getEntity("wonGraphic");
-        const crashGraphic = game.ecs.getEntity("crashGraphic");
-        mapEntity.Renderable.alpha = 0;
-        if (wonGraphic) wonGraphic.Renderable.visible = false;
-        if (crashGraphic) crashGraphic.Renderable.visible = false;
-        game.currentZoom = 1;
-        game.mode = "starting";
-        window.toggleModal(true, "levelStart", level);
         game.loadLevel(level);
+      },
+      onloadLevel: function(level: number) {
+        let game = <Game>(<unknown>this);
+        //render loading graphic
+        game.loadLevel(level);
+      },
+      onchooseDifficulty: function() {
+        let game = <Game>(<unknown>this);
+        window.toggleModal(true, "levelStart");
       },
       onstartingAnimation: function() {
         const game = <Game>(<unknown>this);
         const mapEntity = game.ecs.getEntity("map");
+        game.ecs.runSystemGroup("map");
+        game.currentZoom = 1;
         mapEntity.Renderable.bgColor = "#81c76d";
         mapEntity.Renderable.visible = true;
-        game.mode = "levelStartAnimation";
       },
       onplay: function() {
         let game = <Game>(<unknown>this);
         game.startRace();
         game.mapView = false;
-        game.mode = "playing";
       },
       onwin: function() {
         let game = <Game>(<unknown>this);
@@ -176,7 +174,13 @@ class GameModeMachine {
         if (game.recordRaceData) game.saveRaceData("win");
         game.currentZoom = 1;
         game.focusView = "player";
-        game.mode = "won";
+      },
+      onleavewon: function () {
+        let game = <Game>(<unknown>this);
+        const mapEntity = game.ecs.getEntity("map");
+        const wonGraphic = game.ecs.getEntity("wonGraphic");
+        mapEntity.Renderable.alpha = 0;
+        if (wonGraphic) wonGraphic.Renderable.visible = false;
       },
       onlose: function() {
         let game = <Game>(<unknown>this);
@@ -204,7 +208,11 @@ class GameModeMachine {
         if (game.recordRaceData) game.saveRaceData("loss");
         game.currentZoom = 1;
         game.focusView = "player";
-        game.mode = "lost";
+      },
+      onleavelost: function() {
+        let game = <Game>(<unknown>this);
+        const mapEntity = game.ecs.getEntity("map");
+        mapEntity.Renderable.alpha = 0;
       },
       oncrash: function() {
         let game = <Game>(<unknown>this);
@@ -247,7 +255,13 @@ class GameModeMachine {
         if (game.recordRaceData) game.saveRaceData("crash");
         game.currentZoom = 1;
         game.focusView = "player";
-        game.mode = "crash";
+      },
+      onleavecrash: function() {
+        let game = <Game>(<unknown>this);
+        const mapEntity = game.ecs.getEntity("map");
+        const crashGraphic = game.ecs.getEntity("crashGraphic");
+        mapEntity.Renderable.alpha = 0;
+        if (crashGraphic) crashGraphic.Renderable.visible = false;
       },
       onpause: function() {
         let game = <Game>(<unknown>this);
@@ -261,7 +275,11 @@ class GameModeMachine {
         }
 
         mapEntity.Renderable.bgColor = "lightgray";
-        game.mode = "paused";
+      },
+      onleavepaused: function () {
+        let game = <Game>(<unknown>this);
+        const mapEntity = game.ecs.getEntity("map");
+        mapEntity.Renderable.alpha = 0;
       },
       onresume: function() {
         let game = <Game>(<unknown>this);
@@ -275,18 +293,13 @@ class GameModeMachine {
         }
         mapEntity.Renderable.bgColor = "#81c76d";
         game.mapView = false;
-        game.mode = "playing";
       },
       onrestart: function() {
         let game = <Game>(<unknown>this);
-        const mapEntity = game.ecs.getEntity("map");
         let entities = game.ecs.queryEntities({ has: ["menu", "gameplay"] });
         for (let entity of entities) {
           if (!entity.has("noninteractive")) entity.addTag("noninteractive");
         }
-        mapEntity.Renderable.alpha = 0;
-        game.currentZoom = 1;
-        game.mode = "starting";
         game.ecs.runSystemGroup("map");
         game.publish("startingAnimation");
       },
@@ -338,7 +351,6 @@ class GameModeMachine {
 
         // game.designModule.createDesignMenus();
 
-        game.mode = "designing";
         //(eventually) if first time, play walk-through
       },
       onbeforeleaveDesign: function() {
@@ -348,7 +360,7 @@ class GameModeMachine {
           game.designModule.confirmUnsaved();
         }
       },
-      onleaveDesign: function() {
+      onleavedesigning: function() {
         let game = <Game>(<unknown>this);
         let mapEntity = game.globalEntity.Global.map;
         if (game.designModule.saved) {
@@ -368,7 +380,6 @@ class GameModeMachine {
           mapEntity.removeComponentByType("Clickable");
 
           //change mode
-          game.mode = "menu";
         }
       },
       onbeforetest: function() {
@@ -393,7 +404,6 @@ class GameModeMachine {
         mapEntity.mapId = null;
         mapEntity.map = null;
         mapEntity.Renderable.visible = false;
-        game.mode = "menu";
       },
       onendOfGame: function() {
         let game = <Game>(<unknown>this);
@@ -407,8 +417,6 @@ class GameModeMachine {
           entity.addTag("noninteractive");
         }
         mapEntity.Renderable.visible = false;
-
-        game.mode = "end";
       },
     };
     this.customActions = {
@@ -466,7 +474,8 @@ class GameModeMachine {
     };
     this.events = [
       { name: "ready", from: "init", to: "menu" },
-      { name: "start", from: ["menu", "won", "lost"], to: "starting" },
+      { name: "start", from: ["menu", "won", "lost", "crash"], to: "loadLevel" },
+      { name: "chooseDifficulty", from: ["loadLevel", "paused", "won", "lost", "crash"], to: "chooseDifficulty"},
       {
         name: "startingAnimation",
         from: "starting",
@@ -479,7 +488,7 @@ class GameModeMachine {
       },
       { name: "pause", from: ["playing", "starting"], to: "paused" },
       { name: "resume", from: "paused", to: "playing" },
-      { name: "restart", from: ["paused", "won", "lost", "crash"], to: "playing" },
+      { name: "restart", from: ["paused", "won", "lost", "crash"], to: "chooseDifficulty" },
       { name: "win", from: "playing", to: "won" },
       { name: "lose", from: "playing", to: "lost" },
       { name: "crash", from: "playing", to: "crash" },
@@ -487,8 +496,8 @@ class GameModeMachine {
       { name: "nextLevel", from: "won", to: "playing" },
       { name: "design", from: "menu", to: "designing" },
       { name: "test", from: "designing", to: "starting" },
-      { name: "leaveDesign", from: "designing", to: "menu" },
-      { name: "leaveMenu", from: "menu", to: ["starting", "designing"] },
+      // { name: "leaveDesign", from: "designing", to: "menu" },
+      // { name: "leaveMenu", from: "menu", to: ["starting", "designing"] },
       { name: "endOfGame", from: ["won", "starting"], to: "end" },
     ];
     this.customEvents = [
