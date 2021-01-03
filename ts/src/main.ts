@@ -95,8 +95,6 @@ export class Game {
   public designModule: DesignModule;
   private playerEntity: Entity;
   private bossEntity: Entity;
-  private lightEntities: { [key: string]: Entity };
-  private coffeeEntities: { [key: string]: Entity };
   private map: MapGridInterface;
   public difficulty: "easy" | "medium" | "hard" | null;
   public focusView: "player" | "boss";

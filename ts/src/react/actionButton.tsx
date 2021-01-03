@@ -1,5 +1,6 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, PointerEvent, MouseEvent } from "react";
 import { ModalInputContext } from "./modalInputContext";
+import { checkForMouseCollision } from "../modules/gameMath";
 
 interface ActionButtonProps {
   buttonName: string;
@@ -37,21 +38,38 @@ const ActionButton = ({
   return (
     <i
       className="action-button"
+      id={`${buttonName}-button`}
       style={{
         width: `${w}px`,
         height: `${h}px`,
         backgroundPosition: `-${x}px -${y}px`,
       }}
-      onMouseDown={() => {
+      onPointerDown={(e: PointerEvent) => {
+        //@ts-ignore
+        e.target.setPointerCapture(e.pointerId);
         setDepressed(true);
       }}
-      onMouseUp={() => {
+      onPointerUp={(e: PointerEvent) => {
+        //@ts-ignore
+        e.target.releasePointerCapture(e.pointerId);
         setDepressed(false);
-      }}
-      onClick={() => {
-        console.log(`Running onClick action for '${buttonName}' button with input value ${inputState.inputValue}`)
-        buttonAction(inputState.inputValue);
-        toggleModal(false);
+
+        let mx = e.clientX;
+        let my = e.clientY;
+        //@ts-ignore
+        let { x, y, width, height } = e.target.getBoundingClientRect();
+        let pointerOnButton = checkForMouseCollision(
+          mx,
+          my,
+          x,
+          y,
+          width,
+          height
+        );
+        if (pointerOnButton) {
+          buttonAction(inputState.inputValue);
+          toggleModal(false);
+        }
       }}
     ></i>
   );

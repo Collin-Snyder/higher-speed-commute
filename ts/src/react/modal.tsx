@@ -1,5 +1,5 @@
 import React from "react";
-import { generateModalTitle } from "../modules/gameHelpers";
+import { generateModalTitles } from "../modules/gameHelpers";
 
 interface ModalProps {
   children: any;
@@ -8,10 +8,11 @@ interface ModalProps {
 }
 
 const Modal = ({ children, name, levelNum }: ModalProps) => {
-  let title = generateModalTitle(name, levelNum);
+  let { title, subtitle } = generateModalTitles(name, levelNum);
   return (
     <div id="modal" className={name} onClick={(e) => e.stopPropagation()}>
       {title ? <h1 className="modal-title">{title}</h1> : <></>}
+      {subtitle ? <p className="modal-subtitle">{subtitle}</p> : <></>}
       {children}
     </div>
   );

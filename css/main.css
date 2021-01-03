@@ -9,7 +9,7 @@
 html,
 body,
 h1,
-h3 {
+h3, p {
   margin: 0;
   font-family: "8-bit-pusab-regular", "Courier New", monospace;
 }
@@ -179,6 +179,8 @@ h1.modal-title {
   position: relative;
   cursor: pointer;
   background-color: white;
+  /* white-space: nowrap; */
+  /* text-overflow: ellipsis; */
 }
 
 .option-button.small {
@@ -221,6 +223,10 @@ h1.modal-title {
 
 .option-button-label {
   margin-left: 1vw;
+  flex-grow: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .map-icon {
@@ -230,6 +236,7 @@ h1.modal-title {
   background-image: url("./map-icon.png");
   background-repeat: no-repeat;
   background-size: cover;
+  flex-shrink: 0;
 }
 
 #level-start-content {

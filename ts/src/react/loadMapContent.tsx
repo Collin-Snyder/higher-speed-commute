@@ -1,10 +1,9 @@
 import React, { useContext, useEffect } from "react";
 import OptionList, { ModalOptions } from "./optionList";
-import { MapProperties } from "./modalContainer";
 import { ModalInputContext } from "./modalInputContext";
 
 interface LoadMapContentProps {
-  userMaps: MapProperties[];
+  userMaps: any[];
 }
 
 const LoadMapContent = ({ userMaps }: LoadMapContentProps) => {
