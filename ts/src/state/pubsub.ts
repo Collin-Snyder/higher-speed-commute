@@ -329,11 +329,13 @@ class GameModeMachine {
         mapEntity.Map.map = designMap;
         mapEntity.TileMap.tiles = designMap.generateDesignTileMap();
         mapEntity.Renderable.bgColor = "lightgray";
-        mapEntity.addComponent("Clickable", {
-          onClick: function() {
-            game.designModule.editDesign();
-          },
-        });
+        if (!mapEntity.has("Clickable")) {
+          mapEntity.addComponent("Clickable", {
+            onClick: function() {
+              game.designModule.editDesign();
+            },
+          });
+        }
         mapEntity.Coordinates.X = findCenteredElementSpread(
           window.innerWidth,
           mapEntity.Map.map.pixelWidth,
@@ -369,12 +371,12 @@ class GameModeMachine {
         let mapEntity = game.globalEntity.Global.map;
         if (game.designModule.saved) {
           //delete all design button entities
-          let designButtons = game.ecs.queryEntities({
-            has: ["menu", "design"],
-          });
-          for (let button of designButtons) {
-            button.destroy();
-          }
+          // let designButtons = game.ecs.queryEntities({
+          //   has: ["menu", "design"],
+          // });
+          // for (let button of designButtons) {
+          //   button.destroy();
+          // }
 
           //reset map entity
           mapEntity.Map.map = null;
@@ -400,10 +402,23 @@ class GameModeMachine {
       onquit: function() {
         //hide game canvas
         let game = <Game>(<unknown>this);
-        let entities = game.ecs.queryEntities({ has: ["menu", "gameplay"] });
-        for (let entity of entities) {
-          if (!entity.has("noninteractive")) entity.addTag("noninteractive");
+
+        if (game.mode === "designing") {
+          let designMenuButtons = game.ecs.queryEntities({
+            has: ["menu", "design"],
+          });
+          for (let entity of designMenuButtons) {
+            if (!entity.has("noninteractive")) entity.addTag("noninteractive");
+          }
+        } else {
+          let gameplayMenuButtons = game.ecs.queryEntities({
+            has: ["menu", "gameplay"],
+          });
+          for (let entity of gameplayMenuButtons) {
+            if (!entity.has("noninteractive")) entity.addTag("noninteractive");
+          }
         }
+
         let mapEntity = game.ecs.getEntity("map");
         mapEntity.mapId = null;
         mapEntity.map = null;
@@ -508,7 +523,11 @@ class GameModeMachine {
       { name: "win", from: "playing", to: "won" },
       { name: "lose", from: "playing", to: "lost" },
       { name: "crash", from: "playing", to: "crash" },
-      { name: "quit", from: ["paused", "won", "lost", "crash"], to: "menu" },
+      {
+        name: "quit",
+        from: ["paused", "won", "lost", "crash", "designing"],
+        to: "menu",
+      },
       { name: "nextLevel", from: "won", to: "playing" },
       { name: "design", from: "menu", to: "designing" },
       { name: "test", from: "designing", to: "starting" },

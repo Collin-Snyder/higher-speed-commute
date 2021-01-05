@@ -138,8 +138,9 @@ export class MenuButtons {
       home: {
         name: "home",
         onClick: function() {
-          game.publish("leaveDesign");
-          game.publish("forceMouseUp");
+          // game.publish("leaveDesign");
+          // game.publish("forceMouseUp");
+          game.publish("quit");
         },
         height: 75,
         width: 200,

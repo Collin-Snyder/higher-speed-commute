@@ -1266,7 +1266,7 @@ export class RenderButtonModifiers extends EntityComponentSystem.System {
           entity.Coordinates.X,
           entity.Coordinates.Y
         );
-      } else if (entity.Button.name === global.game.designModule.selectedTool) {
+      } else if (entity.Button.name === global.game.designModule.selectedTool && global.game.mode === "designing") {
         this.ctx.beginPath();
         this.ctx.lineWidth = 3;
         this.ctx.strokeStyle = "yellow";
