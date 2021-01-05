@@ -13,6 +13,7 @@
       "ES2017"
     ],
     "module": "es2015",
+    "moduleResolution": "node",
     // "esModuleInterop": true,
     "strict": true,
     "sourceMap": false,

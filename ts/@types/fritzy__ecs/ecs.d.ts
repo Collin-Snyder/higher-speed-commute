@@ -1,6 +1,6 @@
-import { Entity } from "entity";
-import { System } from "system";
-import { BaseComponent } from "component";
+import { Entity } from "./entity";
+import { System } from "./system";
+import { BaseComponent } from "./component";
 
 interface ComponentDefinition {
     properties?: object,

@@ -1,6 +1,6 @@
-import {ECS} from "ecs";
-import {Entity} from "entity";
-import {QueryCache} from "querycache";
+import {ECS} from "./ecs";
+import {Entity} from "./entity";
+import {QueryCache} from "./querycache";
 import {BaseComponent} from "./component";
 
 interface Change {

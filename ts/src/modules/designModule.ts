@@ -1,5 +1,4 @@
 import { Entity } from "@fritzy/ecs";
-//@ts-ignore
 import axios from "axios";
 import { capitalize } from "../modules/gameHelpers";
 import { centerWithin } from "../modules/gameMath";
@@ -8,6 +7,7 @@ import Editor, { commands } from "./editor";
 import { DisabledButtons } from "../buttonModifiers";
 import { DesignMenuName, ButtonInterface } from "../state/menuButtons";
 import Game from "../main";
+import localdb from "../state/localDb";
 
 export type Tool =
   | ""

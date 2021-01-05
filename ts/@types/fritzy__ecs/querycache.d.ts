@@ -1,5 +1,5 @@
-import { ECS } from "ecs";
-import { Entity } from "entity";
+import { ECS } from "./ecs";
+import { Entity } from "./entity";
 
 export class QueryCache {
 

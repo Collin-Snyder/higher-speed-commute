@@ -1,5 +1,5 @@
-import { ECS } from "ecs";
-import { BaseComponent } from "component";
+import { ECS } from "./ecs";
+import { BaseComponent } from "./component";
 
 export class Entity {
 
