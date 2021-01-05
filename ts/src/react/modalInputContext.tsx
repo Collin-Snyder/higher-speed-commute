@@ -20,6 +20,13 @@ interface ModalInputContextProviderProps {
   children: any;
 }
 
+interface Action {
+  type: ModalInputReducerAction;
+  payload: any;
+}
+
+type ModalInputReducerAction = "SET_INPUT_VALUE" | "SET_SUBMIT_FUNC";
+
 export const ModalInputContextProvider = ({
   children,
 }: ModalInputContextProviderProps) => {

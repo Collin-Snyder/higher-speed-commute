@@ -86,6 +86,7 @@ export class Game {
     id: number | null;
     number: number | null;
     name: string | null;
+    quote?: string | null;
     nextLevelId: number | null;
   };
   public currentRace: Race | null;
@@ -113,12 +114,13 @@ export class Game {
     this.mode = "init";
     this.modeMachine = new GameModeMachine("init");
     this.ecs = new EntityComponentSystem.ECS();
-    this.firstLevel = 7;
+    this.firstLevel = 1;
     this.currentLevel = {
       id: null,
       number: null,
       name: null,
       nextLevelId: null,
+      quote: null,
     };
     this.currentRace = null;
     this.recordRaceData = true;
@@ -132,9 +134,13 @@ export class Game {
     // this.sounds = new Sounds(this);
     this.UICanvas = <HTMLCanvasElement>document.getElementById("ui");
     this.uictx = <CanvasRenderingContext2D>this.UICanvas.getContext("2d");
-    this.OSMapCanvas = <HTMLCanvasElement>document.getElementById("map-offscreen");
+    this.OSMapCanvas = <HTMLCanvasElement>(
+      document.getElementById("map-offscreen")
+    );
     this.osmctx = <CanvasRenderingContext2D>this.OSMapCanvas.getContext("2d");
-    this.OSEntCanvas = <HTMLCanvasElement>document.getElementById("ents-offscreen");
+    this.OSEntCanvas = <HTMLCanvasElement>(
+      document.getElementById("ents-offscreen")
+    );
     this.osectx = <CanvasRenderingContext2D>this.OSEntCanvas.getContext("2d");
     this.subscribers = {};
     this.logTimers = new LogTimers(this);
@@ -184,7 +190,7 @@ export class Game {
         h: 625 / this.currentZoom,
       },
     });
-    
+
     let hb = [];
     hb.push(scaleVector({ X: 6, Y: 2 }, 2 / 3));
     hb.push(scaleVector({ X: 19, Y: 2 }, 2 / 3));
@@ -270,8 +276,8 @@ export class Game {
     this.bossEntity.Collision.currentHb = getCurrentHb.bind(this.bossEntity);
     this.bossEntity.Collision.currentCp = getCurrentCp.bind(this.bossEntity);
 
-    this.lightEntities = {};
-    this.coffeeEntities = {};
+    // this.lightEntities = {};
+    // this.coffeeEntities = {};
 
     this.globalEntity.Global.map = this.mapEntity;
     this.globalEntity.Global.player = this.playerEntity;
@@ -327,27 +333,23 @@ export class Game {
     console.log("Subscribing events...");
     let validate = this.modeMachine.defaultActions.validate;
     for (let event of this.modeMachine.events) {
-      if (event.name === "ready") {
-        this.subscribe(
-          event.name,
-          this.modeMachine.defaultActions[`on${event.name}`].bind(
-            this,
-            event.from,
-            event.to
-          )
-        );
-      } else {
-        let onbefore = this.modeMachine.defaultActions[`onbefore${event.name}`];
-        let on = this.modeMachine.defaultActions[`on${event.name}`];
-        this.subscribe(event.name, validate.bind(this, event.name, event.from));
-        if (onbefore) {
-          this.subscribe(event.name, onbefore.bind(this));
-        }
-        if (on) {
-          this.subscribe(event.name, on.bind(this));
-        }
-      }
+      let onbefore = this.modeMachine.defaultActions[`onbefore${event.name}`];
+      let on = this.modeMachine.defaultActions[`on${event.name}`];
       let onNewState = this.modeMachine.defaultActions[`on${event.to}`];
+      this.subscribe(event.name, validate.bind(this, event.name, event.from));
+      this.subscribe(event.name, () => {
+        let onleave = this.modeMachine.defaultActions[`onleave${this.mode}`];
+        if (onleave) onleave.call(this);
+      });
+      if (onbefore) {
+        this.subscribe(event.name, onbefore.bind(this));
+      }
+      if (on) {
+        this.subscribe(event.name, on.bind(this));
+      }
+      this.subscribe(event.name, () => {
+        this.mode = event.to;
+      });
       if (onNewState) {
         this.subscribe(event.name, onNewState.bind(this));
       }
@@ -424,7 +426,10 @@ export class Game {
       new RenderGameplayEntities(this.ecs, this.osectx, this.OSEntCanvas)
     );
     this.ecs.addSystem("render", new RenderSandbox(this.ecs, this.uictx));
-    this.ecs.addSystem("render", new RenderViewBox(this.ecs, this.uictx, this.step));
+    this.ecs.addSystem(
+      "render",
+      new RenderViewBox(this.ecs, this.uictx, this.step)
+    );
     this.ecs.addSystem("render", new RenderMenus(this.ecs, this.uictx));
     this.ecs.addSystem(
       "render",
@@ -455,15 +460,14 @@ export class Game {
           number: level_number,
           name: level_name,
           nextLevelId: next_level_id,
+          quote: "Not all who wander are late"
         };
         let mapEntity = this.ecs.getEntity("map");
         let { map_info } = levelInfo;
         mapEntity.Map.mapId = levelInfo.id;
         mapEntity.Map.map = MapGrid.fromMapObject(map_info);
-        this.ecs.runSystemGroup("map");
-        this.publish("startingAnimation");
-        // this.publish("play");
-        // this.publish("pause");
+        // this.ecs.runSystemGroup("map");
+        this.publish("chooseDifficulty");
       })
       //@ts-ignore
       .catch((err) => {
@@ -526,19 +530,6 @@ export class Game {
   }
 
   render() {
-    // if (this.backgroundIsLoaded)
-    //   this.uictx.drawImage(
-    //     this.background,
-    //     0,
-    //     0,
-    //     window.innerWidth,
-    //     window.innerHeight
-    //   );
-    // else {
-    //   this.uictx.fillStyle = "#50cdff";
-    //   // this.gamectx.fillRect(0, 0, this.width, this.height);
-    //   this.uictx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-    // }
     if (this.backgroundIsLoaded && this.spriteSheetIsLoaded) {
       this.ecs.runSystemGroup("animations");
       this.ecs.runSystemGroup("render");
@@ -614,6 +605,17 @@ export class Game {
     console.log("HB before rotation: ", hb);
     //@ts-ignore
     return hb.map(({ X, Y }) => findRotatedVertex(X, Y, cpx, cpy, deg));
+  }
+
+  setDifficulty(d: "easy" | "medium" | "hard") {
+    this.difficulty = d;
+    let bossEntity = this.ecs.getEntity("boss");
+    let speedConstants = {
+      easy: 1,
+      medium: 1.5,
+      hard: 2
+    }
+    bossEntity.Velocity.speedConstant = speedConstants[d];
   }
 }
 
