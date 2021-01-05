@@ -114,7 +114,7 @@ export class Game {
     this.mode = "init";
     this.modeMachine = new GameModeMachine("init");
     this.ecs = new EntityComponentSystem.ECS();
-    this.firstLevel = 7;
+    this.firstLevel = 1;
     this.currentLevel = {
       id: null,
       number: null,
@@ -335,11 +335,8 @@ export class Game {
     for (let event of this.modeMachine.events) {
       let onbefore = this.modeMachine.defaultActions[`onbefore${event.name}`];
       let on = this.modeMachine.defaultActions[`on${event.name}`];
+      let onNewState = this.modeMachine.defaultActions[`on${event.to}`];
       this.subscribe(event.name, validate.bind(this, event.name, event.from));
-      // let onleave = this.modeMachine.defaultActions[`onleave${this.mode}`];
-      // if (onleave) {
-      //   this.subscribe(event.name, onleave.bind(this));
-      // }
       this.subscribe(event.name, () => {
         let onleave = this.modeMachine.defaultActions[`onleave${this.mode}`];
         if (onleave) onleave.call(this);
@@ -347,14 +344,12 @@ export class Game {
       if (onbefore) {
         this.subscribe(event.name, onbefore.bind(this));
       }
-      this.subscribe(event.name, () => {
-        this.mode = event.to;
-      });
       if (on) {
         this.subscribe(event.name, on.bind(this));
       }
-
-      let onNewState = this.modeMachine.defaultActions[`on${event.to}`];
+      this.subscribe(event.name, () => {
+        this.mode = event.to;
+      });
       if (onNewState) {
         this.subscribe(event.name, onNewState.bind(this));
       }
@@ -535,19 +530,6 @@ export class Game {
   }
 
   render() {
-    // if (this.backgroundIsLoaded)
-    //   this.uictx.drawImage(
-    //     this.background,
-    //     0,
-    //     0,
-    //     window.innerWidth,
-    //     window.innerHeight
-    //   );
-    // else {
-    //   this.uictx.fillStyle = "#50cdff";
-    //   // this.gamectx.fillRect(0, 0, this.width, this.height);
-    //   this.uictx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-    // }
     if (this.backgroundIsLoaded && this.spriteSheetIsLoaded) {
       this.ecs.runSystemGroup("animations");
       this.ecs.runSystemGroup("render");
@@ -623,6 +605,17 @@ export class Game {
     console.log("HB before rotation: ", hb);
     //@ts-ignore
     return hb.map(({ X, Y }) => findRotatedVertex(X, Y, cpx, cpy, deg));
+  }
+
+  setDifficulty(d: "easy" | "medium" | "hard") {
+    this.difficulty = d;
+    let bossEntity = this.ecs.getEntity("boss");
+    let speedConstants = {
+      easy: 1,
+      medium: 1.5,
+      hard: 2
+    }
+    bossEntity.Velocity.speedConstant = speedConstants[d];
   }
 }
 

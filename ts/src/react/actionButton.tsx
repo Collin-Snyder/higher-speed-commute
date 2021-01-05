@@ -30,7 +30,7 @@ const ActionButton = ({
   toggleModal,
   buttonAction,
 }: ActionButtonProps) => {
-  const [inputState] = useContext(ModalInputContext);
+  const [inputState, dispatch] = useContext(ModalInputContext);
   const [depressed, setDepressed] = useState(false);
   const { x, y, w, h } = depressed
     ? buttonImages[`${buttonName}Depressed`]
@@ -67,8 +67,10 @@ const ActionButton = ({
           height
         );
         if (pointerOnButton) {
-          buttonAction(inputState.inputValue);
+          let input = inputState.inputValue === "" ? e : inputState.inputValue;
+          buttonAction(input);
           toggleModal(false);
+          dispatch({type: "SET_INPUT_VALUE", payload: ""});
         }
       }}
     ></i>

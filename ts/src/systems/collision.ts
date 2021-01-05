@@ -80,7 +80,6 @@ export class CollisionSystem extends ECS.System {
                 entity.Coordinates.X,
                 entity.Coordinates.Y
               ).id;
-            console.log(`adding boss school zone at square ${sq}`);
           }
           entity.addComponent("SchoolZone", { multiplier: 0.34 });
         }
@@ -94,7 +93,6 @@ export class CollisionSystem extends ECS.System {
                 entity.Coordinates.X,
                 entity.Coordinates.Y
               ).id;
-            console.log(`removing boss school zone at square ${sq}`);
           }
           entity.removeComponentByType("SchoolZone");
         }

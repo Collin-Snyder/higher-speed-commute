@@ -100,7 +100,7 @@ class GameModeMachine {
         console.log("menu loaded");
       },
       onleavemenu: function() {
-        let game = <Game>(<unknown>this); 
+        let game = <Game>(<unknown>this);
         let entities = game.ecs.queryEntities({ has: ["menu", "main"] });
         for (let entity of entities) {
           entity.addTag("noninteractive");
@@ -109,19 +109,23 @@ class GameModeMachine {
       onstart: function(level: number) {
         //play starting animations
         let game = <Game>(<unknown>this);
+        console.log("running onstart");
         game.loadLevel(level);
       },
       onloadLevel: function(level: number) {
         let game = <Game>(<unknown>this);
+        console.log("running onloadLevel");
         //render loading graphic
         game.loadLevel(level);
       },
       onchooseDifficulty: function() {
         let game = <Game>(<unknown>this);
+        console.log("running onchooseDifficulty");
         window.toggleModal(true, "levelStart");
       },
       onstartingAnimation: function() {
         const game = <Game>(<unknown>this);
+        console.log("running onstartingAnimation");
         const mapEntity = game.ecs.getEntity("map");
         game.ecs.runSystemGroup("map");
         game.currentZoom = 1;
@@ -175,7 +179,7 @@ class GameModeMachine {
         game.currentZoom = 1;
         game.focusView = "player";
       },
-      onleavewon: function () {
+      onleavewon: function() {
         let game = <Game>(<unknown>this);
         const mapEntity = game.ecs.getEntity("map");
         const wonGraphic = game.ecs.getEntity("wonGraphic");
@@ -204,7 +208,7 @@ class GameModeMachine {
         for (let button of buttons) {
           button.removeTag("noninteractive");
         }
-        
+
         if (game.recordRaceData) game.saveRaceData("loss");
         game.currentZoom = 1;
         game.focusView = "player";
@@ -276,7 +280,7 @@ class GameModeMachine {
 
         mapEntity.Renderable.bgColor = "lightgray";
       },
-      onleavepaused: function () {
+      onleavepaused: function() {
         let game = <Game>(<unknown>this);
         const mapEntity = game.ecs.getEntity("map");
         mapEntity.Renderable.alpha = 0;
@@ -300,8 +304,8 @@ class GameModeMachine {
         for (let entity of entities) {
           if (!entity.has("noninteractive")) entity.addTag("noninteractive");
         }
-        game.ecs.runSystemGroup("map");
-        game.publish("startingAnimation");
+        // game.ecs.runSystemGroup("map");
+        game.publish("chooseDifficulty");
       },
       onnextLevel: function() {
         let game = <Game>(<unknown>this);
@@ -474,21 +478,33 @@ class GameModeMachine {
     };
     this.events = [
       { name: "ready", from: "init", to: "menu" },
-      { name: "start", from: ["menu", "won", "lost", "crash"], to: "loadLevel" },
-      { name: "chooseDifficulty", from: ["loadLevel", "paused", "won", "lost", "crash"], to: "chooseDifficulty"},
+      {
+        name: "start",
+        from: ["menu", "won", "lost", "crash"],
+        to: "loadLevel",
+      },
+      {
+        name: "chooseDifficulty",
+        from: ["loadLevel", "paused", "won", "lost", "crash"],
+        to: "chooseDifficulty",
+      },
       {
         name: "startingAnimation",
-        from: "starting",
+        from: "chooseDifficulty",
         to: "levelStartAnimation",
       },
       {
         name: "play",
-        from: ["starting", "levelStartAnimation"],
+        from: "levelStartAnimation",
         to: "playing",
       },
-      { name: "pause", from: ["playing", "starting"], to: "paused" },
+      { name: "pause", from: "playing", to: "paused" },
       { name: "resume", from: "paused", to: "playing" },
-      { name: "restart", from: ["paused", "won", "lost", "crash"], to: "chooseDifficulty" },
+      {
+        name: "restart",
+        from: ["paused", "won", "lost", "crash"],
+        to: "chooseDifficulty",
+      },
       { name: "win", from: "playing", to: "won" },
       { name: "lose", from: "playing", to: "lost" },
       { name: "crash", from: "playing", to: "crash" },
@@ -498,7 +514,7 @@ class GameModeMachine {
       { name: "test", from: "designing", to: "starting" },
       // { name: "leaveDesign", from: "designing", to: "menu" },
       // { name: "leaveMenu", from: "menu", to: ["starting", "designing"] },
-      { name: "endOfGame", from: ["won", "starting"], to: "end" },
+      { name: "endOfGame", from: "won", to: "end" },
     ];
     this.customEvents = [
       {
