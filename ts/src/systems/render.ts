@@ -7,7 +7,7 @@ import {
   VectorInterface,
 } from "../modules/gameMath";
 import { drawTileMap } from "../modules/tileDrawer";
-import { TileInterface, Tile } from "../state/map";
+import { ITile, Tile } from "../state/map";
 
 //systems must be added in this order
 

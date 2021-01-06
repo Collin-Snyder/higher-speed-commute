@@ -1,7 +1,8 @@
-import React, { useState, ChangeEvent } from "react";
+import React, { useState, ChangeEvent, useContext } from "react";
+import {ModalInputContext} from "./modalInputContext";
 import SelectionButton from "./selectionButton";
 
-export interface ModalOptions {
+export interface ModalOption {
   value: string | number;
   label: string;
   [key: string]: any;
@@ -9,14 +10,16 @@ export interface ModalOptions {
 
 interface OptionListProps {
   listName: string;
-  options: ModalOptions[];
+  options: ModalOption[];
 }
 
 const OptionList = ({ listName, options }: OptionListProps) => {
-  let [selected, setSelected] = useState("");
+  // let [selected, setSelected] = useState("");
+  let [inputState, dispatch] = useContext(ModalInputContext);
 
   let handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setSelected(e.target.value);
+    dispatch({type: "SET_INPUT_VALUE", payload: e.target.value});
+    // setSelected(e.target.value);
   };
 
  
@@ -27,7 +30,7 @@ const OptionList = ({ listName, options }: OptionListProps) => {
           name={listName}
           value={value}
           label={label}
-          selected={selected == value}
+          selected={inputState.inputValue == value}
           handleChange={handleChange}
           key={value}
         />

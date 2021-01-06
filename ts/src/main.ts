@@ -12,7 +12,7 @@ import bgMap from "./bgMap";
 import keyCodes from "./keyCodes";
 import DesignModule from "./modules/designModule";
 import LogTimers from "./modules/logger";
-import { MapGrid, MapGridInterface } from "./state/map";
+import { MapGrid, IMapGrid } from "./state/map";
 import GameModeMachine, { Mode } from "./state/pubsub";
 import Race from "./modules/raceData";
 import Sounds from "./modules/sound";
@@ -96,7 +96,7 @@ export class Game {
   public designModule: DesignModule;
   private playerEntity: Entity;
   private bossEntity: Entity;
-  private map: MapGridInterface;
+  private map: IMapGrid;
   public difficulty: "easy" | "medium" | "hard" | null;
   public focusView: "player" | "boss";
   public mapView: boolean;

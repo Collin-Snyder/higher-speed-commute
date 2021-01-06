@@ -1,4 +1,4 @@
-import { MapObjectInterface, SquareInterface, Square } from "./state/map";
+import { IMapObject, ISquare, Square } from "./state/map";
 
 const testLayout: any[] = [];
 
@@ -30,7 +30,7 @@ const coffees = {};
 export const convertToMapObjectSquares = (bigLayout: any[]) => {
   let formattedLayout = bigLayout.map((s) => {
     let idNum = Number(s.id);
-    let square: SquareInterface = new Square(
+    let square: ISquare = new Square(
       s.id,
       Math.ceil(idNum / 40),
       Math.floor(idNum % 40) > 0 ? Math.floor(idNum % 40) : 40
@@ -43,7 +43,7 @@ export const convertToMapObjectSquares = (bigLayout: any[]) => {
   return addBordersBack(formattedLayout);
 };
 
-const testMapObject: MapObjectInterface = {
+const testMapObject: IMapObject = {
   height: 25,
   width: 40,
   playerHome: 281,

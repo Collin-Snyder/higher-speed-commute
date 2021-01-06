@@ -30,7 +30,7 @@ type ModalInputReducerAction = "SET_INPUT_VALUE" | "SET_SUBMIT_FUNC";
 export const ModalInputContextProvider = ({
   children,
 }: ModalInputContextProviderProps) => {
-  const [inputState, dispatch] = useReducer(reducer, initialState);
+  let [inputState, dispatch] = useReducer(reducer, initialState);
 
   return (
     <ModalInputContext.Provider value={[inputState, dispatch]}>

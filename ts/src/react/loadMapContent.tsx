@@ -1,14 +1,16 @@
-import React, { useContext, useEffect } from "react";
-import OptionList, { ModalOptions } from "./optionList";
+import React, { useContext, useState, useEffect } from "react";
+import OptionList, { ModalOption } from "./optionList";
 import { ModalInputContext } from "./modalInputContext";
+import localdb, { UserMap } from "../state/localDb";
 
 interface LoadMapContentProps {
   userMaps: any[];
 }
 
-const LoadMapContent = ({ userMaps }: LoadMapContentProps) => {
+const LoadMapContent = () => {
   let [inputState, dispatch] = useContext(ModalInputContext);
-  
+  let [mapOptions, setMapOptions] = useState<ModalOption[]>([]);
+
   useEffect(() => {
     dispatch({
       type: "SET_SUBMIT_FUNC",
@@ -18,10 +20,23 @@ const LoadMapContent = ({ userMaps }: LoadMapContentProps) => {
     });
   }, []);
 
-  let options = userMaps.map((m) => {
-    return { value: m.id, label: m.name };
-  });
-  return <OptionList listName="loadMap" options={options} />;
+  useEffect(() => {
+    localdb.userMaps
+      .toArray()
+      .then((um) => {
+        let options = um.map((m) => {
+          let id = m.id || -1;
+          return { value: id, label: m.name };
+        });
+        setMapOptions(options);
+      })
+      .catch((err) => console.error(err));
+  }, []);
+
+  // let options = userMaps.map((m) => {
+  //   return { value: m.id, label: m.name };
+  // });
+  return <OptionList listName="loadMap" options={mapOptions} />;
 };
 
 export default LoadMapContent;

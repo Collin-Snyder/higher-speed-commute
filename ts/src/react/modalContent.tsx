@@ -15,22 +15,10 @@ export interface MapProperties {
 }
 
 const ModalContent = ({ modalName }: ModalContentProps) => {
-  let [userMaps, setUserMaps] = useState<MapProperties[]>([]);
   let [levelExtras, setLevelExtras] = useState({});
 
   useEffect(() => {
-    if (modalName === "loadMap") {
-      let maps = [
-        { id: 1, name: "This is a long label" },
-        { id: 2, name: "Short" },
-        { id: 3, name: "Short label" },
-        { id: 4, name: "My awesome level" },
-        { id: 5, name: "LEVEL" },
-        { id: 6, name: "Wow I made a level" },
-        { id: 7, name: "ABCDEFGHIJKLMNOP" },
-      ];
-      setUserMaps(maps);
-    } else if (modalName === "levelStart") {
+    if (modalName === "levelStart") {
       let extras = {
         quote: "Not all who wander are late",
       };
@@ -46,7 +34,11 @@ const ModalContent = ({ modalName }: ModalContentProps) => {
           modalName === "save" || modalName === "levelStart" ? "" : "border"
         }
       >
-        {modalName === "loadMap" ? <LoadMapContent userMaps={userMaps} /> : <></>}
+        {modalName === "loadMap" ? (
+          <LoadMapContent />
+        ) : (
+          <></>
+        )}
         {modalName === "save" ? <SaveMapContent /> : <></>}
         {modalName === "reset" ? <ResetMapContent /> : <></>}
         {modalName === "levelStart" ? (

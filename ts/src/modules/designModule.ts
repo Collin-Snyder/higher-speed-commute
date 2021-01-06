@@ -130,20 +130,23 @@ class DesignModule {
     let global = this._game.ecs.getEntity("global").Global;
     let map = global.map.Map;
     let saved = map.map.exportForSave();
+    let userMap = map.map.exportForLocalSave();
 
     if (map.mapId) {
-      axios
-        .put(`/maps/${map.mapId}`, saved)
-        .then((data: any) => {
-          console.log(data.data);
-          this.saved = true;
-          let saveBtn = global.game.ecs.getEntity("saveButton");
-          if (!saveBtn.has("Disabled"))
-            saveBtn.addComponent("Disabled", DisabledButtons.save);
-        })
-        .catch((err: any) => {
-          console.error(err);
-        });
+      // axios
+      //   .put(`/maps/${map.mapId}`, saved)
+      //   .then((data: any) => {
+      //     console.log(data.data);
+      //     this.saved = true;
+      //     let saveBtn = global.game.ecs.getEntity("saveButton");
+      //     if (!saveBtn.has("Disabled"))
+      //       saveBtn.addComponent("Disabled", DisabledButtons.save);
+      //   })
+      //   .catch((err: any) => {
+      //     console.error(err);
+      //   });
+      userMap.id = map.mapId;
+      userMap.save().catch((err: Error) => console.error(err));
     } else {
       this.openSaveAsModal();
     }
@@ -156,22 +159,28 @@ class DesignModule {
   saveAs(name: string) {
     let global = this._game.ecs.getEntity("global").Global;
     let map = global.map.Map;
-    let saved = map.map.exportForSave();
-    
-    if (name) {
-      saved.level_name = name;
-      saved.user_id = 1;
+    // let saved = map.map.exportForSave();
+    let userMap = map.map.exportForLocalSave();
 
-      axios
-        .post("/maps", saved)
-        .then((data: any) => {
-          console.log(data.data);
-          let { id } = data.data;
-          map.mapId = id;
-          this.saved = true;
-          console.log(`Saved new map #${id}!`);
-        })
-        .catch((err: any) => console.error(err));
+    if (name) {
+      // saved.level_name = name;
+      // saved.user_id = 1;
+      // axios
+      //   .post("/maps", saved)
+      //   .then((data: any) => {
+      //     console.log(data.data);
+      //     let { id } = data.data;
+      //     map.mapId = id;
+      //     this.saved = true;
+      //     console.log(`Saved new map #${id}!`);
+      //   })
+      //   .catch((err: any) => console.error(err));
+
+      userMap.name = name;
+      userMap
+        .save()
+        .then((x: any) => (map.name = name))
+        .catch((err: Error) => console.error(err));
     }
   }
 
@@ -179,20 +188,35 @@ class DesignModule {
     window.toggleModal(true, "loadMap");
   }
 
-  loadSaved(levelId: number) {
+  async loadSaved(levelId: number) {
     // let id = 0;
+    levelId = Number(levelId);
     if (levelId) {
       let global = this._game.ecs.getEntity("global").Global;
-      axios
-        .get(`/maps/${levelId}`)
-        .then((data: any) => {
-          console.log(data.data);
-          global.map.Map.mapId = levelId;
-          global.map.Map.map = DesignMapGrid.fromMapObject(data.data);
-          global.map.TileMap.tiles = global.map.Map.map.generateDesignTileMap();
-          this._editor.restart();
-        })
-        .catch((err: any) => console.error(err));
+      // axios
+      //   .get(`/maps/${levelId}`)
+      //   .then((data: any) => {
+      //     console.log(data.data);
+      //     global.map.Map.mapId = levelId;
+      //     global.map.Map.map = DesignMapGrid.fromMapObject(data.data);
+      //     global.map.TileMap.tiles = global.map.Map.map.generateDesignTileMap();
+      //     this._editor.restart();
+      //   })
+      //   .catch((err: any) => console.error(err));
+      try {
+        let savedMap = await localdb.userMaps.get(levelId);
+        if (!savedMap)
+          throw new Error(`There is no user map with id ${levelId}`);
+        let decompressed = await savedMap.loadSquares();
+        let mapEntity = global.map;
+        mapEntity.Map.mapId = levelId;
+        mapEntity.Map.name = decompressed.name;
+        mapEntity.Map.map = DesignMapGrid.fromUserMapObject(decompressed);
+        mapEntity.TileMap.tiles = global.map.Map.map.generateDesignTileMap();
+        this._editor.restart();
+      } catch (err) {
+        console.error(err);
+      }
     }
     // this.setDesignTool("");
   }

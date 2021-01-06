@@ -1,7 +1,7 @@
-import { TileInterface, Tile } from "../state/map";
+import { ITile, Tile } from "../state/map";
 
 export const drawTileMap = (
-  tiles: TileInterface[],
+  tiles: ITile[],
   widthInSquares: number,
   drawFunc: (
     type: Tile,
