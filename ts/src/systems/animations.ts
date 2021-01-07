@@ -1,6 +1,6 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { centerWithin, getCenterPoint } from "../modules/gameMath";
-import { Tile, TileInterface } from "../state/map";
+import { Tile, ITile } from "../state/map";
 const { floor } = Math;
 
 interface AnimationStateInterface {
@@ -268,7 +268,7 @@ export class LevelStartAnimation extends StateAnimation {
 
   onRevealStep(): void {
     let newCol = false;
-    this.tileMap.tiles.forEach((t: TileInterface) => {
+    this.tileMap.tiles.forEach((t: ITile) => {
       let light = this.ecs.getEntity(`light${t.id}`);
       let coffee = this.ecs.getEntity(`coffee${t.id}`);
       if (
@@ -363,7 +363,7 @@ export class LevelStartAnimation extends StateAnimation {
     let spriteMap = this.ecs.getEntity("global").Global.spriteMap;
 
     // console.log("resetting tilemap");
-    tiles.forEach((t: TileInterface) => {
+    tiles.forEach((t: ITile) => {
       t.display = false;
     });
 

@@ -1,11 +1,7 @@
 import React, { useContext, useEffect } from "react";
 import { ModalInputContext } from "./modalInputContext";
 
-interface LevelStartContentProps {
-  extras: any;
-}
-
-const LevelStartContent = ({ extras }: LevelStartContentProps) => {
+const LevelStartContent = () => {
   let [, dispatch] = useContext(ModalInputContext);
   useEffect(() => {
     dispatch({
@@ -23,7 +19,6 @@ const LevelStartContent = ({ extras }: LevelStartContentProps) => {
 
   return (
     <div id="level-start-content">
-      <p style={{ color: "gray" }}>{extras.quote}</p>
       <h3>Select playing difficulty to start</h3>
     </div>
   );

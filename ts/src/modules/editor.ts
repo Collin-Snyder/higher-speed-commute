@@ -112,12 +112,12 @@ const actions = {
   makeDrivable: function (squareId: number) {
     let game = <Game>(<unknown>this);
     let map = game.ecs.getEntity("global").Global.map.Map.map;
-    map.set(squareId, "drivable", true);
+    map.setSquare(squareId, "drivable", true);
   },
   makeSchoolZone: function (squareId: number) {
     let game = <Game>(<unknown>this);
     let map = game.ecs.getEntity("global").Global.map.Map.map;
-    map.set(squareId, "schoolZone", true);
+    map.setSquare(squareId, "schoolZone", true);
   },
   addLight: function (squareId: number, timer: number) {
     let game = <Game>(<unknown>this);
@@ -132,12 +132,12 @@ const actions = {
   makeNotDrivable: function (squareId: number) {
     let game = <Game>(<unknown>this);
     let map = game.ecs.getEntity("global").Global.map.Map.map;
-    map.set(squareId, "drivable", false);
+    map.setSquare(squareId, "drivable", false);
   },
   makeNotSchoolZone: function (squareId: number) {
     let game = <Game>(<unknown>this);
     let map = game.ecs.getEntity("global").Global.map.Map.map;
-    map.set(squareId, "schoolZone", false);
+    map.setSquare(squareId, "schoolZone", false);
   },
   removeLight: function (squareId: number) {
     let game = <Game>(<unknown>this);

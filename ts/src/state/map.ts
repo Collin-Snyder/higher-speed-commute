@@ -3,9 +3,10 @@ import {
   randomNumBtwn,
 } from "../modules/gameMath";
 import Editor from "../modules/editor";
+import {updateUserMap, saveNewUserMap} from "./localDb";
 
-export interface MapGridInterface {
-  squares: SquareInterface[];
+export interface IArcadeMap {
+  squares: ISquare[];
   squareCount: number;
   width: number;
   height: number;
@@ -16,16 +17,18 @@ export interface MapGridInterface {
   coffees: { [key: string]: boolean };
   pixelWidth: number;
   pixelHeight: number;
+  name?: string;
+  id?: number;
   generateTileMap: Function;
-  get: Function;
-  set: Function;
+  getSquare: Function;
+  setSquare: Function;
   findPath: Function;
 }
 
-export interface MapObjectInterface {
-  squares: SquareInterface[];
-  width: number;
-  height: number;
+export interface IMapObject {
+  squares: ISquare[];
+  boardWidth: number;
+  boardHeight: number;
   playerHome: number;
   bossHome: number;
   office: number;
@@ -33,35 +36,35 @@ export interface MapObjectInterface {
   coffees: { [key: string]: boolean };
 }
 
-export interface SquareInterface {
+export interface ISquare {
   id: number;
   row: number;
   column: number;
-  borders: BordersInterface;
+  borders: IBorders | IBordersCompressed;
   drivable: boolean;
   schoolZone: boolean;
   [key: string]: any;
 }
 
-export interface TileInterface {
-  type: Tile | Tile[],
-  a: number,
-  w: number,
-  h: number,
-  deg: number,
-  display: boolean,
-  [key: string]: any
+export interface ITile {
+  type: Tile | Tile[];
+  a: number;
+  w: number;
+  h: number;
+  deg: number;
+  display: boolean;
+  [key: string]: any;
 }
 
-type BordersInterface = {
-  [key in Direction]: SquareInterface | null;
+type IBorders = {
+  [key in Direction]: ISquare | null;
 };
 
-type BordersCompressedInterface = {
+type IBordersCompressed = {
   [key in Direction]: number | null;
 };
 
-type Direction = "up" | "down" | "left" | "right";
+export type Direction = "up" | "down" | "left" | "right";
 
 export type Tile =
   | "street"
@@ -75,9 +78,9 @@ export type Tile =
   | "coffee"
   | "";
 
-export class Square implements SquareInterface {
+export class Square implements ISquare {
   public drivable: boolean;
-  public borders: BordersInterface;
+  public borders: IBorders;
   public schoolZone: boolean;
   public coordinates: { X: number; Y: number };
   public tileIndex: number;
@@ -90,33 +93,33 @@ export class Square implements SquareInterface {
   }
 }
 
-export class MapGrid implements MapGridInterface {
+export class ArcadeMap implements IArcadeMap {
   public squareCount: number;
-  public squares: SquareInterface[];
+  public squares: ISquare[];
   public playerHome: number;
   public bossHome: number;
   public office: number;
   public lights: { [key: string]: number };
   public coffees: { [key: string]: boolean };
-  public pixelHeight: number;
-  public pixelWidth: number;
+  public name: string;
+  public id: number;
 
-  static fromMapObject(mapObj: any): MapGrid {
+  static fromMapObject(mapObj: IMapObject): ArcadeMap {
     const {
-      board_width,
-      board_height,
+      boardWidth,
+      boardHeight,
       squares,
-      player_home,
-      boss_home,
+      playerHome,
+      bossHome,
       office,
       lights,
       coffees,
     } = mapObj;
 
-    const newMap = new this(board_width, board_height);
+    const newMap = new this(boardWidth, boardHeight);
 
-    newMap.playerHome = player_home;
-    newMap.bossHome = boss_home;
+    newMap.playerHome = playerHome;
+    newMap.bossHome = bossHome;
     newMap.office = office;
     newMap.lights = lights;
     newMap.coffees = coffees;
@@ -128,22 +131,38 @@ export class MapGrid implements MapGridInterface {
     return newMap;
   }
 
-  constructor(public width: number, public height: number) {
+  constructor(public boardWidth: number, public boardHeight: number) {
     this.squares = [];
-    this.squareCount = width * height;
+    this.squareCount = boardWidth * boardHeight;
     this.playerHome = 0;
     this.bossHome = 0;
     this.office = 0;
     this.lights = {};
     this.coffees = {};
-    this.pixelWidth = this.width * 25;
-    this.pixelHeight = this.height * 25;
+    this.name = "";
+    this.id = 0;
 
     this.generateSquares();
 
-    this.get = this.get.bind(this);
-    this.set = this.set.bind(this);
+    this.getSquare = this.getSquare.bind(this);
+    this.setSquare = this.setSquare.bind(this);
     this.addBorders = this.addBorders.bind(this);
+  }
+
+  get width() {
+    return this.boardWidth;
+  }
+
+  get height() {
+    return this.boardHeight;
+  }
+
+  get pixelWidth() {
+    return this.width * 25;
+  }
+
+  get pixelHeight() {
+    return this.height * 25;
   }
 
   generateSquares() {
@@ -164,7 +183,7 @@ export class MapGrid implements MapGridInterface {
     });
   }
 
-  addBorders(square: SquareInterface) {
+  addBorders(square: ISquare) {
     const id = square.id;
 
     if ((id - 1) % this.width !== 0) square.borders.left = this.squares[id - 2];
@@ -180,7 +199,7 @@ export class MapGrid implements MapGridInterface {
     return square;
   }
 
-  get(s: number): SquareInterface | null {
+  getSquare(s: number): ISquare | null {
     if (!this.squares[s - 1]) {
       console.log("Invalid square id");
       return null;
@@ -189,7 +208,7 @@ export class MapGrid implements MapGridInterface {
     return this.squares[s - 1];
   }
 
-  set(s: number, key: string, val: any) {
+  setSquare(s: number, key: string, val: any) {
     if (!this.squares[s - 1]) {
       console.log("Invalid square id");
       return undefined;
@@ -198,8 +217,8 @@ export class MapGrid implements MapGridInterface {
     return this.squares[s - 1];
   }
 
-  generateTileMap(isRefMap: boolean = false): TileInterface[] {
-    return this.squares.map((s: SquareInterface) => {
+  generateTileMap(isRefMap: boolean = false): ITile[] {
+    return this.squares.map((s: ISquare) => {
       let type = <Tile>"";
 
       if (s.drivable) {
@@ -210,7 +229,11 @@ export class MapGrid implements MapGridInterface {
         else type = "street";
       } else if (!isRefMap) {
         if (Math.random() < 0.4) type = "tree";
-        else if (Math.random() < 0.3 && s.borders.down?.drivable) {
+        else if (
+          Math.random() < 0.3 &&
+          typeof s.borders.down != "number" &&
+          s.borders.down?.drivable
+        ) {
           type = "house";
         }
       }
@@ -222,15 +245,15 @@ export class MapGrid implements MapGridInterface {
         h: 25,
         w: 25,
         row: s.row,
-        col: s.column, 
+        col: s.column,
         deg: 0,
-        display: true
+        display: true,
       };
     });
   }
 
   generateTileMapLegacy(): (Tile | Tile[])[] {
-    return this.squares.map((s: SquareInterface) => {
+    return this.squares.map((s: ISquare) => {
       if (s.drivable) {
         if (s.schoolZone) return "schoolZone";
         if (this.playerHome === s.id) return "playerHome";
@@ -261,7 +284,7 @@ export class MapGrid implements MapGridInterface {
   }
 
   generateReferenceTileMap(): Tile[] {
-    return this.squares.map((s: SquareInterface) => {
+    return this.squares.map((s: ISquare) => {
       if (this.playerHome === s.id) return "playerHome";
       if (this.bossHome === s.id) return "bossHome";
       if (this.office === s.id) return "office";
@@ -270,22 +293,22 @@ export class MapGrid implements MapGridInterface {
     });
   }
 
-  getSquareByCoords(X: number, Y: number): SquareInterface | null {
+  getSquareByCoords(X: number, Y: number): ISquare | null {
     X = Math.floor(X / 25) * 25;
     Y = Math.floor(Y / 25) * 25;
     let row = Y / 25;
     let col = X / 25 + 1;
     let id = row * 40 + col;
-    return this.get(id);
+    return this.getSquare(id);
   }
 
   getSurroundingSquares(x: number, y: number, layers: number) {
-    let startSquare: SquareInterface = <SquareInterface>(
+    let startSquare: ISquare = <ISquare>(
       this.getSquareByCoords(x < 0 ? 0 : x, y < 0 ? 0 : y)
     );
     let queue = new PathQueue();
     let visited: { [key: string]: boolean } = {};
-    let toInclude: SquareInterface[] = [];
+    let toInclude: ISquare[] = [];
     let sqCount = calculateSurroundingSquareCount(layers);
     let count = 0;
 
@@ -295,12 +318,12 @@ export class MapGrid implements MapGridInterface {
 
     while (!queue.empty() && count < sqCount) {
       let currentId = queue.get();
-      let currentSquare: SquareInterface = <SquareInterface>this.get(currentId);
+      let currentSquare: ISquare = <ISquare>this.getSquare(currentId);
 
       toInclude.push(currentSquare);
 
       for (let direction in currentSquare.borders) {
-        let next = currentSquare.borders[<Direction>direction];
+        let next = <ISquare>currentSquare.borders[<Direction>direction];
         if (next && !visited.hasOwnProperty(next.id)) {
           queue.put(next);
           visited[next.id] = true;
@@ -308,7 +331,6 @@ export class MapGrid implements MapGridInterface {
       }
       count++;
     }
-    // console.log(toInclude);
     return toInclude;
   }
 
@@ -336,7 +358,7 @@ export class MapGrid implements MapGridInterface {
   }
 
   getKeySquare(k: "playerHome" | "bossHome" | "office") {
-    return this.get(this[k]);
+    return this.getSquare(this[k]);
   }
 
   findPath(
@@ -345,12 +367,8 @@ export class MapGrid implements MapGridInterface {
     endX: number,
     endY: number
   ): Array<number>[] | null {
-    let startSquare: SquareInterface = <SquareInterface>(
-      this.getSquareByCoords(startX, startY)
-    );
-    let endSquare: SquareInterface = <SquareInterface>(
-      this.getSquareByCoords(endX, endY)
-    );
+    let startSquare: ISquare = <ISquare>this.getSquareByCoords(startX, startY);
+    let endSquare: ISquare = <ISquare>this.getSquareByCoords(endX, endY);
 
     let frontier = new PathQueue();
     let cameFrom: { [key: string]: any } = {};
@@ -366,9 +384,7 @@ export class MapGrid implements MapGridInterface {
     while (frontier.empty() === false) {
       let currentId = frontier.get();
 
-      let currentSquare: SquareInterface = <SquareInterface>(
-        this.squares[currentId - 1]
-      );
+      let currentSquare: ISquare = <ISquare>this.squares[currentId - 1];
 
       if (currentId == endSquare.id) {
         foundTarget = true;
@@ -376,7 +392,7 @@ export class MapGrid implements MapGridInterface {
       }
 
       for (let direction in currentSquare.borders) {
-        let next = currentSquare.borders[<Direction>direction];
+        let next = <ISquare>currentSquare.borders[<Direction>direction];
         if (next && next.drivable && !cameFrom.hasOwnProperty(next.id)) {
           frontier.put(next);
           cameFrom[next.id] = currentId;
@@ -397,7 +413,7 @@ export class MapGrid implements MapGridInterface {
       let { X, Y } = current.coordinates;
       pathStack.push([X, Y]);
       // current.bossPath = true;
-      current = <SquareInterface>this.get(cameFrom[current.id]);
+      current = <ISquare>this.getSquare(cameFrom[current.id]);
     }
     pathStack.push([startX, startY]);
     return pathStack;
@@ -416,7 +432,7 @@ class PathQueue {
     this.size = 0;
   }
 
-  put(square: SquareInterface) {
+  put(square: ISquare) {
     this.end++;
     this.size++;
     this.storage[this.end] = square.id;
@@ -440,13 +456,26 @@ class PathQueue {
   }
 }
 
-export class DesignMapGrid extends MapGrid {
+export class SandboxMap extends ArcadeMap {
+  static fromUserMapObject(mapObj: any) {
+    console.log(mapObj);
+    let { boardWidth, boardHeight, playerHome, bossHome } = mapObj;
+    let converted = {
+      ...mapObj,
+      board_width: boardWidth,
+      board_height: boardHeight,
+      player_home: playerHome,
+      boss_home: bossHome,
+    };
+    return SandboxMap.fromMapObject(converted);
+  }
+
   constructor(width: number, height: number) {
     super(width, height);
   }
 
   generateDesignTileMap() {
-    return this.squares.map((s: SquareInterface) => {
+    return this.squares.map((s: ISquare) => {
       return {
         type: this.determineTileValue(s.id),
         a: 1,
@@ -455,7 +484,7 @@ export class DesignMapGrid extends MapGrid {
         deg: 0,
         xoffset: 0,
         yoffset: 0,
-        display: true
+        display: true,
       };
     });
   }
@@ -468,8 +497,8 @@ export class DesignMapGrid extends MapGrid {
     return this.playerHome == id || this.bossHome == id || this.office == id;
   }
 
-  determineTileValue = (id: number): Tile | Tile[] => {
-    let square = <Square>this.get(id);
+  determineTileValue(id: number): Tile | Tile[] {
+    let square = <Square>this.getSquare(id);
     if (square.drivable) {
       if (this.playerHome === square.id) return "playerHome";
       if (this.bossHome === square.id) return "bossHome";
@@ -486,11 +515,11 @@ export class DesignMapGrid extends MapGrid {
       return tiles.length > 1 ? tiles : tiles[0];
     }
     return "";
-  };
+  }
 
   handleKeySquareAction(
     editor: Editor,
-    square: SquareInterface,
+    square: ISquare,
     drawing: boolean,
     tool: "playerHome" | "bossHome" | "office"
   ) {
@@ -513,11 +542,7 @@ export class DesignMapGrid extends MapGrid {
     return tileChanges;
   }
 
-  handleStreetAction(
-    editor: Editor,
-    square: SquareInterface,
-    drawing: boolean
-  ) {
+  handleStreetAction(editor: Editor, square: ISquare, drawing: boolean) {
     let id = square.id;
     let tileChanges = [];
 
@@ -551,11 +576,7 @@ export class DesignMapGrid extends MapGrid {
     return tileChanges;
   }
 
-  handleSchoolZoneAction(
-    editor: Editor,
-    square: SquareInterface,
-    drawing: boolean
-  ) {
+  handleSchoolZoneAction(editor: Editor, square: ISquare, drawing: boolean) {
     let id = square.id;
     let tileChanges = [];
     if (square.drivable && square.schoolZone && !drawing) {
@@ -571,7 +592,7 @@ export class DesignMapGrid extends MapGrid {
     return tileChanges;
   }
 
-  handleLightAction(editor: Editor, square: SquareInterface) {
+  handleLightAction(editor: Editor, square: ISquare) {
     console.log("Adding light");
     let id = square.id;
     let tileChanges = [];
@@ -591,7 +612,7 @@ export class DesignMapGrid extends MapGrid {
     return tileChanges;
   }
 
-  handleCoffeeAction(editor: Editor, square: SquareInterface) {
+  handleCoffeeAction(editor: Editor, square: ISquare) {
     console.log("Adding coffee");
     let id = square.id;
     let tileChanges = [];
@@ -612,7 +633,7 @@ export class DesignMapGrid extends MapGrid {
     return tileChanges;
   }
 
-  handleEraserAction(editor: Editor, square: SquareInterface) {
+  handleEraserAction(editor: Editor, square: ISquare) {
     let id = square.id;
     let tileChanges = [];
 
@@ -649,7 +670,7 @@ export class DesignMapGrid extends MapGrid {
       return square;
     });
 
-    return JSON.stringify(compressed);
+    return compressed;
   }
 
   exportForSave() {
@@ -659,11 +680,84 @@ export class DesignMapGrid extends MapGrid {
       player_home: this.playerHome,
       boss_home: this.bossHome,
       office: this.office,
-      squares: this.compressSquares(),
+      squares: JSON.stringify(this.compressSquares()),
       lights: JSON.stringify(this.lights),
       coffees: JSON.stringify(this.coffees),
     };
     return save;
+  }
+
+  exportForLocalSaveAs() {
+    const save = {
+      boardHeight: this.height,
+      boardWidth: this.width,
+      playerHome: this.playerHome,
+      bossHome: this.bossHome,
+      office: this.office,
+      squares: this.compressSquares(),
+      lights: this.lights,
+      coffees: this.coffees,
+      name: this.name,
+    };
+    return save;
+  }
+
+  saveMapAsync(): Promise<any> {
+    return updateUserMap(this).then((id) => (this.id = id));
+  }
+
+  saveNewMapAsync(name: string): Promise<any> {
+    let newSandboxMap; 
+    if (this.id) {
+      //if this map has already been saved
+      //update new map name for storage, but do not change this map object's name or id
+      newSandboxMap = <SandboxMap>this.exportForLocalSaveAs();
+      newSandboxMap.name = name;
+      return saveNewUserMap(newSandboxMap);
+    } else {
+      //if this is a totally new unsaved map
+      //update this map object's name and id to new values
+      this.name = name;
+      newSandboxMap = <SandboxMap>this.exportForLocalSaveAs();
+      return saveNewUserMap(newSandboxMap).then((id) => {this.id = id});
+    }
+  }
+
+  compress() {
+    let compressedSq = this.squares.map((square) => {
+      square = { ...square };
+      square.borders = { ...square.borders };
+      for (let direction in square.borders) {
+        let dir = <Direction>direction;
+        if (square.borders[dir] !== null) {
+          //@ts-ignore
+          let borderId = square.borders[dir].id;
+          //@ts-ignore
+          square.borders[dir] = borderId;
+        }
+      }
+      return square;
+    });
+    this.squares = compressedSq;
+    return this;
+  }
+
+  decompress() {
+    let decompressed = this.squares.map((square) => {
+      square = { ...square };
+      square.borders = { ...square.borders };
+      for (let direction in square.borders) {
+        let dir = <Direction>direction;
+        let borderId = <number>square.borders[dir];
+        if (borderId !== null) {
+          //@ts-ignore
+          square.borders[dir] = this.squares[borderId - 1];
+        }
+      }
+      return square;
+    });
+    this.squares = decompressed;
+    return this;
   }
 
   clear(editor: Editor) {
@@ -680,4 +774,4 @@ export class DesignMapGrid extends MapGrid {
   }
 }
 
-// export default MapGrid;
+// export default ArcadeMap;

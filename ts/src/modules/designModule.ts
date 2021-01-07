@@ -2,12 +2,12 @@ import { Entity } from "@fritzy/ecs";
 import axios from "axios";
 import { capitalize } from "../modules/gameHelpers";
 import { centerWithin } from "../modules/gameMath";
-import { DesignMapGrid } from "../state/map";
+import { SandboxMap } from "../state/map";
 import Editor, { commands } from "./editor";
 import { DisabledButtons } from "../buttonModifiers";
 import { DesignMenuName, ButtonInterface } from "../state/menuButtons";
 import Game from "../main";
-import localdb from "../state/localDb";
+import { loadUserMap } from "../state/localDb";
 
 export type Tool =
   | ""
@@ -129,21 +129,24 @@ class DesignModule {
   save() {
     let global = this._game.ecs.getEntity("global").Global;
     let map = global.map.Map;
-    let saved = map.map.exportForSave();
+    // let saved = map.map.exportForSave();
+    // let userMap = map.map.exportForLocalSave();
 
     if (map.mapId) {
-      axios
-        .put(`/maps/${map.mapId}`, saved)
-        .then((data: any) => {
-          console.log(data.data);
-          this.saved = true;
-          let saveBtn = global.game.ecs.getEntity("saveButton");
-          if (!saveBtn.has("Disabled"))
-            saveBtn.addComponent("Disabled", DisabledButtons.save);
-        })
-        .catch((err: any) => {
-          console.error(err);
-        });
+      // axios
+      //   .put(`/maps/${map.mapId}`, saved)
+      //   .then((data: any) => {
+      //     console.log(data.data);
+      //     this.saved = true;
+      //     let saveBtn = global.game.ecs.getEntity("saveButton");
+      //     if (!saveBtn.has("Disabled"))
+      //       saveBtn.addComponent("Disabled", DisabledButtons.save);
+      //   })
+      //   .catch((err: any) => {
+      //     console.error(err);
+      //   });
+      // userMap.id = map.mapId;
+      map.map.saveMapAsync().catch((err: Error) => console.error(err));
     } else {
       this.openSaveAsModal();
     }
@@ -156,22 +159,32 @@ class DesignModule {
   saveAs(name: string) {
     let global = this._game.ecs.getEntity("global").Global;
     let map = global.map.Map;
-    let saved = map.map.exportForSave();
-    
+    // let saved = map.map.exportForSave();
+    // let userMap = map.map.exportForLocalSave();
+    console.log(`name passed to saveAs: "${name}"`);
     if (name) {
-      saved.level_name = name;
-      saved.user_id = 1;
+      // saved.level_name = name;
+      // saved.user_id = 1;
+      // axios
+      //   .post("/maps", saved)
+      //   .then((data: any) => {
+      //     console.log(data.data);
+      //     let { id } = data.data;
+      //     map.mapId = id;
+      //     this.saved = true;
+      //     console.log(`Saved new map #${id}!`);
+      //   })
+      //   .catch((err: any) => console.error(err));
 
-      axios
-        .post("/maps", saved)
-        .then((data: any) => {
-          console.log(data.data);
-          let { id } = data.data;
-          map.mapId = id;
-          this.saved = true;
-          console.log(`Saved new map #${id}!`);
+      // userMap.name = name;
+
+      // map.map.name = name;
+      map.map
+        .saveNewMapAsync(name)
+        .then((x: any) => {
+          map.name = name;
         })
-        .catch((err: any) => console.error(err));
+        .catch((err: Error) => console.error(err));
     }
   }
 
@@ -179,20 +192,36 @@ class DesignModule {
     window.toggleModal(true, "loadMap");
   }
 
-  loadSaved(levelId: number) {
+  async loadSaved(levelId: number) {
     // let id = 0;
+    levelId = Number(levelId);
     if (levelId) {
       let global = this._game.ecs.getEntity("global").Global;
-      axios
-        .get(`/maps/${levelId}`)
-        .then((data: any) => {
-          console.log(data.data);
-          global.map.Map.mapId = levelId;
-          global.map.Map.map = DesignMapGrid.fromMapObject(data.data);
-          global.map.TileMap.tiles = global.map.Map.map.generateDesignTileMap();
-          this._editor.restart();
-        })
-        .catch((err: any) => console.error(err));
+      // axios
+      //   .get(`/maps/${levelId}`)
+      //   .then((data: any) => {
+      //     console.log(data.data);
+      //     global.map.Map.mapId = levelId;
+      //     global.map.Map.map = SandboxMap.fromMapObject(data.data);
+      //     global.map.TileMap.tiles = global.map.Map.map.generateDesignTileMap();
+      //     this._editor.restart();
+      //   })
+      //   .catch((err: any) => console.error(err));
+      try {
+        let savedMap = await loadUserMap(levelId);
+        if (!savedMap)
+          throw new Error(`There is no user map with id ${levelId}`);
+        let decompressed = savedMap.decompress();
+        let mapEntity = global.map;
+        mapEntity.Map.mapId = levelId;
+        mapEntity.Map.name = decompressed.name;
+        // mapEntity.Map.map = SandboxMap.fromUserMapObject(decompressed);
+        mapEntity.Map.map = decompressed;
+        mapEntity.TileMap.tiles = global.map.Map.map.generateDesignTileMap();
+        this._editor.restart();
+      } catch (err) {
+        console.error(err);
+      }
     }
     // this.setDesignTool("");
   }

@@ -1,4 +1,5 @@
-import React, { ChangeEvent } from "react";
+import React, { ChangeEvent, useContext } from "react";
+import { ModalInputContext } from "./modalInputContext";
 
 interface SelectionButtonProps {
   value: number | string;
@@ -17,10 +18,6 @@ const SelectionButton = ({
 }: SelectionButtonProps) => {
   let isMapSelector = name === "loadMap";
   let labelFormatted = label;
-  // if (isMapSelector) {
-  //   let labelTrunc = label.length > 11 ? `${label.slice(0, 10)}...` : label;
-  //   labelFormatted = labelTrunc.toUpperCase();
-  // }
   return (
     <label className={`option-button ${isMapSelector ? `small` : ``}`}>
       <input

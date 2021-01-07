@@ -9,10 +9,13 @@ interface ModalProps {
 
 const Modal = ({ children, name, levelNum }: ModalProps) => {
   let { title, subtitle } = generateModalTitles(name, levelNum);
+  console.log("Title: ", title)
+  console.log("Subtitle: ", subtitle)
+  let warning = name === "reset";
   return (
     <div id="modal" className={name} onClick={(e) => e.stopPropagation()}>
       {title ? <h1 className="modal-title">{title}</h1> : <></>}
-      {subtitle ? <p className="modal-subtitle">{subtitle}</p> : <></>}
+      {subtitle ? <p className={`modal-subtitle ${warning ? `warning` : ``}`}>{subtitle}</p> : <></>}
       {children}
     </div>
   );

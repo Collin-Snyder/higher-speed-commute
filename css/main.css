@@ -94,6 +94,8 @@ body {
   z-index: 101;
   padding: 20px;
   text-align: center;
+  text-overflow: wrap;
+  /* overflow: hidden; */
 }
 
 /* #modal.loadMap {
@@ -115,6 +117,14 @@ body {
 h1.modal-title {
   font-size: 30px;
   margin: 0px;
+}
+
+.modal-subtitle {
+  color: gray;
+}
+
+.modal-subtitle.warning {
+  color: #eb3626;
 }
 
 #modal-content {

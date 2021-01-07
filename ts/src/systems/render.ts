@@ -7,7 +7,7 @@ import {
   VectorInterface,
 } from "../modules/gameMath";
 import { drawTileMap } from "../modules/tileDrawer";
-import { TileInterface, Tile } from "../state/map";
+import { ITile, Tile } from "../state/map";
 
 //systems must be added in this order
 
@@ -393,7 +393,10 @@ export class RenderSandbox extends EntityComponentSystem.System {
   update(tick: number, entities: Set<Entity>) {
     let { game, spriteMap, spriteSheet } = this.ecs.getEntity("global").Global;
     let { mode, designModule } = game;
+
+    
     if (mode !== "designing") return;
+    // console.log("RenderSandbox update is running");
 
     let mapEntity = this.ecs.getEntity("map");
     let { TileMap } = mapEntity;
@@ -1266,7 +1269,10 @@ export class RenderButtonModifiers extends EntityComponentSystem.System {
           entity.Coordinates.X,
           entity.Coordinates.Y
         );
-      } else if (entity.Button.name === global.game.designModule.selectedTool && global.game.mode === "designing") {
+      } else if (
+        entity.Button.name === global.game.designModule.selectedTool &&
+        global.game.mode === "designing"
+      ) {
         this.ctx.beginPath();
         this.ctx.lineWidth = 3;
         this.ctx.strokeStyle = "yellow";

@@ -2,7 +2,7 @@ import { Entity } from "@fritzy/ecs";
 import { Game } from "../main";
 import Race from "../modules/raceData";
 import { findCenteredElementSpread, getCenterPoint } from "../modules/gameMath";
-import { MapGrid, DesignMapGrid } from "./map";
+import { ArcadeMap, SandboxMap } from "./map";
 import { Tool } from "../modules/designModule";
 import { DisabledButtons } from "../buttonModifiers";
 export type Mode =
@@ -324,7 +324,7 @@ class GameModeMachine {
 
         //create design entities
         let mapEntity = game.ecs.getEntity("map");
-        let designMap = new DesignMapGrid(40, 25);
+        let designMap = new SandboxMap(40, 25);
 
         mapEntity.Map.map = designMap;
         mapEntity.TileMap.tiles = designMap.generateDesignTileMap();

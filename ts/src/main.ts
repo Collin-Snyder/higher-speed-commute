@@ -12,7 +12,7 @@ import bgMap from "./bgMap";
 import keyCodes from "./keyCodes";
 import DesignModule from "./modules/designModule";
 import LogTimers from "./modules/logger";
-import { MapGrid, MapGridInterface } from "./state/map";
+import { ArcadeMap, IArcadeMap } from "./state/map";
 import GameModeMachine, { Mode } from "./state/pubsub";
 import Race from "./modules/raceData";
 import Sounds from "./modules/sound";
@@ -43,13 +43,27 @@ import {
   RenderTopLevelGraphics,
   RenderBorders,
 } from "./systems/render";
+import { loadArcadeLevel } from "./state/localDb";
 
 declare global {
   interface Window {
     toggleModal: Function;
     game: Game;
+    showAll: Function;
+    deleteUserMap: Function;
+    makeSeedData: Function;
+    recreateLocalDb: Function;
+    updateLevelName: Function;
+    updateLevelDescription: Function;
   }
 }
+
+window.makeSeedData = function() {
+  axios
+    .post("/generate_arcade_map_json")
+    .then((result) => console.log(result))
+    .catch((err) => console.error(err));
+};
 
 interface InputEventsInterface {
   mouseX: number;
@@ -85,9 +99,9 @@ export class Game {
   public currentLevel: {
     id: number | null;
     number: number | null;
-    name: string | null;
-    quote?: string | null;
-    nextLevelId: number | null;
+    name: string;
+    description: string;
+    nextLevelId?: number | null;
   };
   public currentRace: Race | null;
   public recordRaceData: boolean;
@@ -96,7 +110,7 @@ export class Game {
   public designModule: DesignModule;
   private playerEntity: Entity;
   private bossEntity: Entity;
-  private map: MapGridInterface;
+  private map: IArcadeMap;
   public difficulty: "easy" | "medium" | "hard" | null;
   public focusView: "player" | "boss";
   public mapView: boolean;
@@ -114,13 +128,13 @@ export class Game {
     this.mode = "init";
     this.modeMachine = new GameModeMachine("init");
     this.ecs = new EntityComponentSystem.ECS();
-    this.firstLevel = 1;
+    this.firstLevel = 8;
     this.currentLevel = {
       id: null,
       number: null,
-      name: null,
+      name: "",
       nextLevelId: null,
-      quote: null,
+      description: "",
     };
     this.currentRace = null;
     this.recordRaceData = true;
@@ -144,7 +158,7 @@ export class Game {
     this.osectx = <CanvasRenderingContext2D>this.OSEntCanvas.getContext("2d");
     this.subscribers = {};
     this.logTimers = new LogTimers(this);
-    this.map = new MapGrid(40, 25);
+    this.map = new ArcadeMap(40, 25);
     this.designModule = new DesignModule(this);
     this.spritesheet = new Image();
     this.background = new Image();
@@ -233,8 +247,8 @@ export class Game {
     this.playerEntity = this.ecs.createEntity({
       id: "player",
       Coordinates: {
-        ...(this.map.get(this.map.playerHome)
-          ? this.map.get(this.map.playerHome).coordinates
+        ...(this.map.getSquare(this.map.playerHome)
+          ? this.map.getSquare(this.map.playerHome).coordinates
           : { X: 0, Y: 0 }),
       },
       Car: {
@@ -276,9 +290,6 @@ export class Game {
     this.bossEntity.Collision.currentHb = getCurrentHb.bind(this.bossEntity);
     this.bossEntity.Collision.currentCp = getCurrentCp.bind(this.bossEntity);
 
-    // this.lightEntities = {};
-    // this.coffeeEntities = {};
-
     this.globalEntity.Global.map = this.mapEntity;
     this.globalEntity.Global.player = this.playerEntity;
 
@@ -298,7 +309,6 @@ export class Game {
     this.ecs.addSystem("move", new MovementSystem(this.ecs));
     this.ecs.addSystem("collision", new CollisionSystem(this.ecs));
     this.ecs.addSystem("map", new MapSystem(this.ecs));
-    // this.ecs.addSystem("viewbox", new ViewBoxSystem(this.ecs));
     this.ecs.addSystem(
       "animations",
       new LevelStartAnimation(this.ecs, this.step, this.uictx)
@@ -444,6 +454,31 @@ export class Game {
   }
 
   loadLevel(num: number): void {
+    loadArcadeLevel(num)
+      .then((result) => {
+        if (result === "end of game") {
+          this.publish("endOfGame");
+          return;
+        }
+
+        let { id, name, levelNumber, description, mapInfo } = result;
+        this.currentLevel = {
+          id,
+          name,
+          number: levelNumber,
+          description,
+        };
+        let mapEntity = this.ecs.getEntity("map");
+        mapEntity.Map.mapId = id;
+        mapEntity.Map.map = ArcadeMap.fromMapObject(mapInfo);
+        this.publish("chooseDifficulty");
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }
+
+  loadLevelFromBackend(num: number): void {
     axios
       .get(`/levels/${num}`)
       //@ts-ignore
@@ -460,12 +495,12 @@ export class Game {
           number: level_number,
           name: level_name,
           nextLevelId: next_level_id,
-          quote: "Not all who wander are late"
+          description: "Not all who wander are late",
         };
         let mapEntity = this.ecs.getEntity("map");
         let { map_info } = levelInfo;
         mapEntity.Map.mapId = levelInfo.id;
-        mapEntity.Map.map = MapGrid.fromMapObject(map_info);
+        mapEntity.Map.map = ArcadeMap.fromMapObject(map_info);
         // this.ecs.runSystemGroup("map");
         this.publish("chooseDifficulty");
       })
@@ -483,7 +518,7 @@ export class Game {
         let mapInfo = data.data;
         let mapEntity = this.ecs.getEntity("map");
         mapEntity.Map.mapId = id;
-        mapEntity.Map.map = MapGrid.fromMapObject(mapInfo);
+        mapEntity.Map.map = ArcadeMap.fromMapObject(mapInfo);
         this.ecs.runSystemGroup("map");
         this.publish("play");
         this.publish("pause");
@@ -613,8 +648,8 @@ export class Game {
     let speedConstants = {
       easy: 1,
       medium: 1.5,
-      hard: 2
-    }
+      hard: 2,
+    };
     bossEntity.Velocity.speedConstant = speedConstants[d];
   }
 }
