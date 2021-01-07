@@ -12,7 +12,7 @@ import bgMap from "./bgMap";
 import keyCodes from "./keyCodes";
 import DesignModule from "./modules/designModule";
 import LogTimers from "./modules/logger";
-import { MapGrid, IMapGrid } from "./state/map";
+import { ArcadeMap, IArcadeMap } from "./state/map";
 import GameModeMachine, { Mode } from "./state/pubsub";
 import Race from "./modules/raceData";
 import Sounds from "./modules/sound";
@@ -48,7 +48,14 @@ declare global {
   interface Window {
     toggleModal: Function;
     game: Game;
+    showAll: Function;
+    deleteUserMap: Function;
+    makeSeedData: Function;
   }
+}
+
+window.makeSeedData = function() {
+  axios.post("/generate_arcade_map_json").then(result => console.log(result)).catch(err => console.error(err))
 }
 
 interface InputEventsInterface {
@@ -96,7 +103,7 @@ export class Game {
   public designModule: DesignModule;
   private playerEntity: Entity;
   private bossEntity: Entity;
-  private map: IMapGrid;
+  private map: IArcadeMap;
   public difficulty: "easy" | "medium" | "hard" | null;
   public focusView: "player" | "boss";
   public mapView: boolean;
@@ -144,7 +151,7 @@ export class Game {
     this.osectx = <CanvasRenderingContext2D>this.OSEntCanvas.getContext("2d");
     this.subscribers = {};
     this.logTimers = new LogTimers(this);
-    this.map = new MapGrid(40, 25);
+    this.map = new ArcadeMap(40, 25);
     this.designModule = new DesignModule(this);
     this.spritesheet = new Image();
     this.background = new Image();
@@ -233,8 +240,8 @@ export class Game {
     this.playerEntity = this.ecs.createEntity({
       id: "player",
       Coordinates: {
-        ...(this.map.get(this.map.playerHome)
-          ? this.map.get(this.map.playerHome).coordinates
+        ...(this.map.getSquare(this.map.playerHome)
+          ? this.map.getSquare(this.map.playerHome).coordinates
           : { X: 0, Y: 0 }),
       },
       Car: {
@@ -465,7 +472,7 @@ export class Game {
         let mapEntity = this.ecs.getEntity("map");
         let { map_info } = levelInfo;
         mapEntity.Map.mapId = levelInfo.id;
-        mapEntity.Map.map = MapGrid.fromMapObject(map_info);
+        mapEntity.Map.map = ArcadeMap.fromMapObject(map_info);
         // this.ecs.runSystemGroup("map");
         this.publish("chooseDifficulty");
       })
@@ -483,7 +490,7 @@ export class Game {
         let mapInfo = data.data;
         let mapEntity = this.ecs.getEntity("map");
         mapEntity.Map.mapId = id;
-        mapEntity.Map.map = MapGrid.fromMapObject(mapInfo);
+        mapEntity.Map.map = ArcadeMap.fromMapObject(mapInfo);
         this.ecs.runSystemGroup("map");
         this.publish("play");
         this.publish("pause");

@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
 import OptionList, { ModalOption } from "./optionList";
 import { ModalInputContext } from "./modalInputContext";
-import localdb, { UserMap } from "../state/localDb";
+import localdb from "../state/localDb";
 
 interface LoadMapContentProps {
   userMaps: any[];

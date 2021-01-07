@@ -1,17 +1,27 @@
 import Dexie from "dexie";
 import { ISquare, Direction } from "./map";
+import { SandboxMap } from "../state/map";
+//@ts-ignore
+import seedData from "./seedData.json";
 
+Dexie.delete("LocalDB");
 export class LocalDB extends Dexie {
-  userMaps: Dexie.Table<UserMap>;
+  userMaps: Dexie.Table<SandboxMap>;
+  arcadeMaps: Dexie.Table<any>;
+  nextLevels: Dexie.Table<any>;
 
   constructor() {
     super("LocalDB");
 
     this.version(1).stores({
       userMaps: "++id, &name",
+      arcadeMaps: "++id, &name",
+      nextLevels: "&levelId, &nextLevelId, &levelNumber",
     });
 
     this.userMaps = this.table("userMaps");
+    this.arcadeMaps = this.table("arcadeMaps");
+    this.nextLevels = this.table("nextLevels");
   }
 }
 
@@ -24,69 +34,67 @@ interface IUserMap {
 
 const db = new LocalDB();
 
-export class UserMap implements IUserMap {
-  id?: number;
-  public boardHeight: number;
-  public boardWidth: number;
+db.on("populate", async function() {
+  let { arcadeMaps, nextLevels } = seedData;
+  nextLevels = nextLevels.map((nl: any) => {
+    return {
+      levelId: nl.level_id,
+      nextLevelId: nl.next_level_id,
+      levelNumber: nl.level_number,
+    };
+  });
 
-  constructor(
-    public name: string,
-    public playerHome: number,
-    public bossHome: number,
-    public office: number,
-    public squares: ISquare[],
-    public lights: { [squareId: string]: number },
-    public coffees: { [squareId: string]: boolean },
-    id?: number
-  ) {
-    this.boardHeight = 25;
-    this.boardWidth = 40;
-    if (id) this.id = id;
+  arcadeMaps = arcadeMaps.map((am: any) => {
+    return {
+      name: am.level_name,
+      boardWidth: am.board_width,
+      boardHeight: am.board_height,
+      playerHome: am.player_home,
+      bossHome: am.boss_home,
+      office: am.office,
+      squares: am.squares,
+      lights: am.lights,
+      coffees: am.coffees,
+    };
+  });
+
+  console.log("about to populate db");
+  await db.arcadeMaps.bulkAdd(arcadeMaps);
+  await db.nextLevels.bulkAdd(nextLevels);
+  console.log("just populated db");
+});
+
+window.showAll = async function(tableName: string) {
+  try {
+    //@ts-ignore
+    let records = await db[tableName].toArray();
+    console.table(records);
+  } catch (err) {
+    console.error(err);
   }
+};
 
-  compressSquares() {
-    return this.squares.map((square) => {
-      square = { ...square };
-      square.borders = { ...square.borders };
-      for (let direction in square.borders) {
-        let dir = <Direction>direction;
-        if (square.borders[dir] !== null) {
-          //@ts-ignore
-          let borderId = square.borders[dir].id;
-          //@ts-ignore
-          square.borders[dir] = borderId;
-        }
-      }
-      return square;
-    });
+window.deleteUserMap = async function(map: number | string) {
+  try {
+    let result;
+    if (typeof map == "string") {
+      result = await db.userMaps
+        .where("name")
+        .equals(map)
+        .delete();
+      console.log(`${result} map successfully deleted`);
+    } else if (typeof map == "number") {
+      result = await db.userMaps
+        .where("id")
+        .equals(map)
+        .delete();
+      console.log(`${result} map successfully deleted`);
+    }
+  } catch (err) {
+    console.error(err);
   }
+};
 
-  async loadSquares() {
-    let userMap = await db.userMaps.get(this.id);
-    if (!userMap) throw new Error(`There is no user map with id ${this.id}`);
-
-    let decompressed = userMap.squares.map((square) => {
-      square = { ...square };
-      square.borders = { ...square.borders };
-      for (let direction in square.borders) {
-        let dir = <Direction>direction;
-        let borderId = <number>square.borders[dir];
-        if (borderId !== null) {
-          //@ts-ignore
-          square.borders[dir] = userMap.squares[borderId - 1];
-        }
-      }
-      return square;
-    });
-    this.squares = decompressed;
-    return this;
-  }
-
-  save() {
-    return db.userMaps.put(this).then((id) => (this.id = id));
-  }
-}
-
-db.userMaps.mapToClass(UserMap);
+db.userMaps.mapToClass(SandboxMap);
 
 export default db;

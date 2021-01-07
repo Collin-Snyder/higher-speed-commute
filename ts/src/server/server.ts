@@ -6,6 +6,8 @@ const express = require("express");
 const db = require("./db");
 //@ts-ignore
 const MapHelpers = require("./mapHelpers");
+//@ts-ignore
+const fs = require("fs");
 
 const app = express();
 app.use(express.json({ limit: "50mb" }));
@@ -62,7 +64,7 @@ app.get("/levels/:levelNum", async (req, res) => {
       res.send(levelInfo);
     }
   } catch (err) {
-    console.log("Error in GET levels/:levelNum handler")
+    console.log("Error in GET levels/:levelNum handler");
     console.error(err);
     res.send(err);
   }
@@ -218,8 +220,32 @@ app.post("/convert_legacy_levels", async (req, res) => {
 });
 
 //@ts-ignore
+app.post("/generate_arcade_map_json", async (req, res) => {
+  try {
+    let levelData = await db.query(
+      "SELECT * FROM levels WHERE id IN (SELECT level_id FROM next_levels) order by level_name"
+    );
+    let nextLevelData = await db.query("SELECT * FROM next_levels");
+    let alldata = {arcadeMaps: levelData.rows, nextLevels: nextLevelData.rows}
+    fs.writeFile("ts/src/state/seedData.json", JSON.stringify(alldata), (err: any) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
+      console.log("File write successful!");
+    });
+    res.send(alldata);
+  } catch (err) {
+    console.error(err);
+    res.send(err);
+  }
+});
+
+//@ts-ignore
 app.get("/", (req, res) => {
-  res.send("<h2>Hello World!</h2><p>If you're looking for High Speed Commute, click <a href='http://localhost:8080'>here</a></p>")
+  res.send(
+    "<h2>Hello World!</h2><p>If you're looking for High Speed Commute, click <a href='http://localhost:8080'>here</a></p>"
+  );
 });
 
 app.listen(app.get("port"), () => {
