@@ -1,74 +1,162 @@
 import Dexie from "dexie";
-import { ISquare, Direction } from "./map";
-import { SandboxMap } from "../state/map";
+import { ISquare, Direction, ArcadeMap, SandboxMap } from "./map";
 //@ts-ignore
 import seedData from "./seedData.json";
 
-Dexie.delete("LocalDB");
 export class LocalDB extends Dexie {
   userMaps: Dexie.Table<SandboxMap>;
   arcadeMaps: Dexie.Table<any>;
-  nextLevels: Dexie.Table<any>;
 
   constructor() {
     super("LocalDB");
 
     this.version(1).stores({
       userMaps: "++id, &name",
-      arcadeMaps: "++id, &name",
-      nextLevels: "&levelId, &nextLevelId, &levelNumber",
+      arcadeMaps: "++id, &name, &levelNumber",
     });
 
     this.userMaps = this.table("userMaps");
     this.arcadeMaps = this.table("arcadeMaps");
-    this.nextLevels = this.table("nextLevels");
   }
-}
-
-interface IUserMap {
-  id?: number;
-  name: string;
-  boardHeight: number;
-  boardWidth: number;
 }
 
 const db = new LocalDB();
 
 db.on("populate", async function() {
-  let { arcadeMaps, nextLevels } = seedData;
-  nextLevels = nextLevels.map((nl: any) => {
-    return {
-      levelId: nl.level_id,
-      nextLevelId: nl.next_level_id,
-      levelNumber: nl.level_number,
-    };
-  });
+  let arcadeMaps = seedData.map(
+    ({
+      level_number,
+      name,
+      description,
+      board_width,
+      board_height,
+      player_home,
+      boss_home,
+      office,
+      squares,
+      lights,
+      coffees,
+    }: any) => {
+      return {
+        name,
+        description,
+        levelNumber: level_number,
+        boardWidth: board_width,
+        boardHeight: board_height,
+        playerHome: player_home,
+        bossHome: boss_home,
+        office,
+        squares,
+        lights,
+        coffees,
+      };
+    }
+  );
 
-  arcadeMaps = arcadeMaps.map((am: any) => {
-    return {
-      name: am.level_name,
-      boardWidth: am.board_width,
-      boardHeight: am.board_height,
-      playerHome: am.player_home,
-      bossHome: am.boss_home,
-      office: am.office,
-      squares: am.squares,
-      lights: am.lights,
-      coffees: am.coffees,
-    };
-  });
-
-  console.log("about to populate db");
   await db.arcadeMaps.bulkAdd(arcadeMaps);
-  await db.nextLevels.bulkAdd(nextLevels);
-  console.log("just populated db");
+  console.log("Arcade levels seeded");
 });
+
+db.userMaps.mapToClass(SandboxMap);
+
+db.open().catch((err) => {
+  console.error(`Open failed: ${err.stack}`);
+});
+
+export default db;
+
+////////////////////////////
+///// QUERY FUNCTIONS /////
+///////////////////////////
+
+export async function loadArcadeLevel(levelNum: number) {
+  let lastLevel = await db.arcadeMaps
+    .orderBy("levelNumber")
+    .last(({ levelNumber }) => levelNumber);
+  if (levelNum > lastLevel) return "end of game";
+  let {
+    id,
+    levelNumber,
+    name,
+    description,
+    boardHeight,
+    boardWidth,
+    playerHome,
+    bossHome,
+    office,
+    squares,
+    lights,
+    coffees,
+  } = await db.arcadeMaps
+    .where("levelNumber")
+    .equals(levelNum)
+    .first();
+  return {
+    id,
+    levelNumber,
+    name,
+    description,
+    mapInfo: {
+      boardHeight,
+      boardWidth,
+      playerHome,
+      bossHome,
+      office,
+      squares,
+      lights,
+      coffees,
+    },
+  };
+}
+
+export async function loadUserMap(levelId: number) {
+  return db.userMaps.get(levelId);
+}
+
+export async function loadAllUserMaps() {
+  return db.userMaps.toArray();
+}
+
+export async function updateUserMap(map: SandboxMap) {
+    return db.userMaps.put(map);
+}
+
+export async function saveNewUserMap(mapData: any) {
+    return db.userMaps.add(mapData);
+}
+
+/////////////////////////////////
+///// DEV HELPER FUNCTIONS /////
+////////////////////////////////
 
 window.showAll = async function(tableName: string) {
   try {
     //@ts-ignore
     let records = await db[tableName].toArray();
-    console.table(records);
+    if (!records || !records.length)
+      console.log(`Table "${tableName}" is empty`);
+    else console.table(records);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+window.updateLevelName = async function(levelId: number, newName: string) {
+  try {
+    let result = await db.arcadeMaps.update(levelId, { name: newName });
+    console.log(`${result} record successfully updated`);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+window.updateLevelDescription = async function(
+  levelId: number,
+  newDesc: string
+) {
+  try {
+    let result = await db.arcadeMaps.update(levelId, { description: newDesc });
+    console.log(`${result} record successfully updated`);
   } catch (err) {
     console.error(err);
   }
@@ -95,6 +183,13 @@ window.deleteUserMap = async function(map: number | string) {
   }
 };
 
-db.userMaps.mapToClass(SandboxMap);
-
-export default db;
+window.recreateLocalDb = async function() {
+  try {
+    db.close();
+    let result = await db.delete();
+    console.log(result);
+    window.location.reload();
+  } catch (err) {
+    console.error(err);
+  }
+};

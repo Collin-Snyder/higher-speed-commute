@@ -15,17 +15,6 @@ export interface MapProperties {
 }
 
 const ModalContent = ({ modalName }: ModalContentProps) => {
-  let [levelExtras, setLevelExtras] = useState({});
-
-  useEffect(() => {
-    if (modalName === "levelStart") {
-      let extras = {
-        quote: "Not all who wander are late",
-      };
-      setLevelExtras(extras);
-    }
-  }, [modalName]);
-
   return (
     <>
       <div
@@ -42,7 +31,7 @@ const ModalContent = ({ modalName }: ModalContentProps) => {
         {modalName === "save" ? <SaveMapContent /> : <></>}
         {modalName === "reset" ? <ResetMapContent /> : <></>}
         {modalName === "levelStart" ? (
-          <LevelStartContent extras={levelExtras} />
+          <LevelStartContent />
         ) : (
           <></>
         )}

@@ -3,8 +3,7 @@ import {
   randomNumBtwn,
 } from "../modules/gameMath";
 import Editor from "../modules/editor";
-import localdb from "./localDb";
-// import { UserMap } from "./localDb";
+import {updateUserMap, saveNewUserMap} from "./localDb";
 
 export interface IArcadeMap {
   squares: ISquare[];
@@ -28,8 +27,8 @@ export interface IArcadeMap {
 
 export interface IMapObject {
   squares: ISquare[];
-  width: number;
-  height: number;
+  boardWidth: number;
+  boardHeight: number;
   playerHome: number;
   bossHome: number;
   office: number;
@@ -105,22 +104,22 @@ export class ArcadeMap implements IArcadeMap {
   public name: string;
   public id: number;
 
-  static fromMapObject(mapObj: any): ArcadeMap {
+  static fromMapObject(mapObj: IMapObject): ArcadeMap {
     const {
-      board_width,
-      board_height,
+      boardWidth,
+      boardHeight,
       squares,
-      player_home,
-      boss_home,
+      playerHome,
+      bossHome,
       office,
       lights,
       coffees,
     } = mapObj;
 
-    const newMap = new this(board_width, board_height);
+    const newMap = new this(boardWidth, boardHeight);
 
-    newMap.playerHome = player_home;
-    newMap.bossHome = boss_home;
+    newMap.playerHome = playerHome;
+    newMap.bossHome = bossHome;
     newMap.office = office;
     newMap.lights = lights;
     newMap.coffees = coffees;
@@ -332,7 +331,6 @@ export class ArcadeMap implements IArcadeMap {
       }
       count++;
     }
-    // console.log(toInclude);
     return toInclude;
   }
 
@@ -705,19 +703,23 @@ export class SandboxMap extends ArcadeMap {
   }
 
   saveMapAsync(): Promise<any> {
-    return localdb.userMaps.put(this).then((id) => (this.id = id));
+    return updateUserMap(this).then((id) => (this.id = id));
   }
 
   saveNewMapAsync(name: string): Promise<any> {
     let newSandboxMap; 
     if (this.id) {
+      //if this map has already been saved
+      //update new map name for storage, but do not change this map object's name or id
       newSandboxMap = <SandboxMap>this.exportForLocalSaveAs();
       newSandboxMap.name = name;
-      return localdb.userMaps.add(newSandboxMap);
+      return saveNewUserMap(newSandboxMap);
     } else {
+      //if this is a totally new unsaved map
+      //update this map object's name and id to new values
       this.name = name;
       newSandboxMap = <SandboxMap>this.exportForLocalSaveAs();
-      return localdb.userMaps.add(newSandboxMap).then((id) => {this.id = id});
+      return saveNewUserMap(newSandboxMap).then((id) => {this.id = id});
     }
   }
 

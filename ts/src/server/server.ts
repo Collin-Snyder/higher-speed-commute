@@ -8,6 +8,8 @@ const db = require("./db");
 const MapHelpers = require("./mapHelpers");
 //@ts-ignore
 const fs = require("fs");
+//@ts-ignore
+const levelDescriptors = require("./levelDescriptors");
 
 const app = express();
 app.use(express.json({ limit: "50mb" }));
@@ -225,16 +227,25 @@ app.post("/generate_arcade_map_json", async (req, res) => {
     let levelData = await db.query(
       "SELECT * FROM levels WHERE id IN (SELECT level_id FROM next_levels) order by level_name"
     );
-    let nextLevelData = await db.query("SELECT * FROM next_levels");
-    let alldata = {arcadeMaps: levelData.rows, nextLevels: nextLevelData.rows}
-    fs.writeFile("ts/src/state/seedData.json", JSON.stringify(alldata), (err: any) => {
+    let nextLevelData = await db.query("SELECT * FROM next_levels order by level_number");
+
+    nextLevelData.rows.forEach((r: any, i: number) => {
+      let level = levelData.rows[i];
+      let ld = levelDescriptors[r.level_number];
+      level.level_number = r.level_number;
+      level.name = ld.name;
+      level.description = ld.description;
+    })
+
+    let arcadeMaps = levelData.rows;
+    fs.writeFile("ts/src/state/seedData.json", JSON.stringify(arcadeMaps), (err: any) => {
       if (err) {
         console.error(err);
         return;
       }
       console.log("File write successful!");
     });
-    res.send(alldata);
+    res.send(arcadeMaps);
   } catch (err) {
     console.error(err);
     res.send(err);

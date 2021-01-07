@@ -24,7 +24,6 @@ const ModalContainer = () => {
     setModalOpen(isOpen);
     setModalName(modalName);
     if (levelNumber) setLevelNum(levelNumber);
-    console.log("toggleModal is running");
   };
 
   return (

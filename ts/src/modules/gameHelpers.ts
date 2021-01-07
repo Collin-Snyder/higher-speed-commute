@@ -4,8 +4,13 @@ export function capitalize(word: string) {
 
 export function generateModalTitles(modalName: string, levelNum: number): {title: string, subtitle: string} {
   let output = {title: "", subtitle: ""};
-  if (levelNum) {
-    output.title = `Level ${levelNum}`;
+  if (modalName === "levelStart") {
+    let {name, description} = window.game.currentLevel;
+    console.log("current level: ", window.game.currentLevel)
+    console.log("Name: ", name)
+    console.log("Description: ", description)
+    output.title = name;
+    output.subtitle = description;
   }
   else if (modalName === "loadMap") output.title = "Load Map";
   else if (modalName === "save") output.title = "Save Your Map";

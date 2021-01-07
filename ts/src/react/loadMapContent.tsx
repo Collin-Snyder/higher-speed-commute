@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
 import OptionList, { ModalOption } from "./optionList";
 import { ModalInputContext } from "./modalInputContext";
-import localdb from "../state/localDb";
+import { loadAllUserMaps } from "../state/localDb";
 
 interface LoadMapContentProps {
   userMaps: any[];
@@ -21,8 +21,7 @@ const LoadMapContent = () => {
   }, []);
 
   useEffect(() => {
-    localdb.userMaps
-      .toArray()
+    loadAllUserMaps()
       .then((um) => {
         let options = um.map((m) => {
           let id = m.id || -1;
@@ -36,6 +35,7 @@ const LoadMapContent = () => {
   // let options = userMaps.map((m) => {
   //   return { value: m.id, label: m.name };
   // });
+  if (!mapOptions.length) return <p>You have no saved maps</p>;
   return <OptionList listName="loadMap" options={mapOptions} />;
 };
 

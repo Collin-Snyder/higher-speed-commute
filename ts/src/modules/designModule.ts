@@ -7,7 +7,7 @@ import Editor, { commands } from "./editor";
 import { DisabledButtons } from "../buttonModifiers";
 import { DesignMenuName, ButtonInterface } from "../state/menuButtons";
 import Game from "../main";
-import localdb from "../state/localDb";
+import { loadUserMap } from "../state/localDb";
 
 export type Tool =
   | ""
@@ -208,7 +208,7 @@ class DesignModule {
       //   })
       //   .catch((err: any) => console.error(err));
       try {
-        let savedMap = await localdb.userMaps.get(levelId);
+        let savedMap = await loadUserMap(levelId);
         if (!savedMap)
           throw new Error(`There is no user map with id ${levelId}`);
         let decompressed = savedMap.decompress();

@@ -53,15 +53,15 @@ export class MapSystem extends EntityComponentSystem.System {
     let playerEntity = this.ecs.getEntity("player");
     let bossEntity = this.ecs.getEntity("boss");
 
-    let playerCoords = newMap.get(newMap.playerHome)
-      ? newMap.get(newMap.playerHome).coordinates
+    let playerCoords = newMap.getSquare(newMap.playerHome)
+      ? newMap.getSquare(newMap.playerHome).coordinates
       : { X: 0, Y: 0 };
 
     playerEntity.Coordinates.X = playerCoords.X;
     playerEntity.Coordinates.Y = playerCoords.Y;
 
-    let bossCoords = newMap.get(newMap.bossHome)
-      ? newMap.get(newMap.bossHome).coordinates
+    let bossCoords = newMap.getSquare(newMap.bossHome)
+      ? newMap.getSquare(newMap.bossHome).coordinates
       : { X: 0, Y: 0 };
 
     bossEntity.Coordinates.X = bossCoords.X;
@@ -79,7 +79,7 @@ export class MapSystem extends EntityComponentSystem.System {
     }
 
     for (let id in newMap.lights) {
-      const square = newMap.get(id);
+      const square = newMap.getSquare(id);
       const { X, Y } = square ? square.coordinates : { X: 0, Y: 0 };
       const rw = 25;
       const rh = 25;
@@ -124,7 +124,7 @@ export class MapSystem extends EntityComponentSystem.System {
       coffee.destroy();
     }
     for (let id in newMap.coffees) {
-      const square = newMap.get(id);
+      const square = newMap.getSquare(id);
       const { X, Y } = square ? square.coordinates : { X: 0, Y: 0 };
       const rw = 12;
       const rh = 12;
@@ -160,10 +160,10 @@ export class MapSystem extends EntityComponentSystem.System {
 
   findBossPath(bossEntity: Entity, newMap: any) {
     bossEntity.Path.path = newMap.findPath(
-      newMap.get(newMap.bossHome).coordinates.X,
-      newMap.get(newMap.bossHome).coordinates.Y,
-      newMap.get(newMap.office).coordinates.X,
-      newMap.get(newMap.office).coordinates.Y
+      newMap.getSquare(newMap.bossHome).coordinates.X,
+      newMap.getSquare(newMap.bossHome).coordinates.Y,
+      newMap.getSquare(newMap.office).coordinates.X,
+      newMap.getSquare(newMap.office).coordinates.Y
     );
   }
 
