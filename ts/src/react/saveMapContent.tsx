@@ -1,8 +1,9 @@
 import React, { useContext, useEffect } from "react";
 import { ModalInputContext } from "./modalInputContext";
+import TextInput from "./textInput";
 
 const SaveMapContent = () => {
-  let [inputState, dispatch] = useContext(ModalInputContext);
+  let [, dispatch] = useContext(ModalInputContext);
 
   useEffect(() => {
     dispatch({
@@ -14,14 +15,7 @@ const SaveMapContent = () => {
   }, []);
 
   return (
-    <input
-      type="text"
-      onChange={(e) => {
-        dispatch({ type: "SET_INPUT_VALUE", payload: e.target.value });
-      }}
-      value={inputState.inputValue}
-      placeholder="Enter a unique name for your map"
-    />
+    <TextInput />
   );
 };
 

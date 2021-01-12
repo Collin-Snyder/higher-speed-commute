@@ -1,5 +1,5 @@
 import React, { useState, ChangeEvent, useContext } from "react";
-import {ModalInputContext} from "./modalInputContext";
+import { ModalInputContext } from "./modalInputContext";
 import SelectionButton from "./selectionButton";
 
 export interface ModalOption {
@@ -14,17 +14,26 @@ interface OptionListProps {
 }
 
 const OptionList = ({ listName, options }: OptionListProps) => {
-  // let [selected, setSelected] = useState("");
   let [inputState, dispatch] = useContext(ModalInputContext);
+  let {toggleModal} = window;
 
   let handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    dispatch({type: "SET_INPUT_VALUE", payload: e.target.value});
-    // setSelected(e.target.value);
+    dispatch({ type: "SET_INPUT_VALUE", payload: e.target.value });
   };
 
- 
   return (
-    <div id="modal-options" className={listName==="loadMap" ? "columns" : ""}>
+    <div
+      id="modal-options"
+      className={listName === "loadMap" ? "columns" : ""}
+      onKeyPress={(e) => {
+        if (e.key === "Enter" && inputState.inputValue) {
+          let input = inputState.inputValue === "" ? e : inputState.inputValue;
+          inputState.submitInput(input);
+          toggleModal(false);
+          dispatch({ type: "SET_INPUT_VALUE", payload: "" });
+        }
+      }}
+    >
       {options.map(({ value, label }) => (
         <SelectionButton
           name={listName}

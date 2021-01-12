@@ -654,7 +654,7 @@ export class Game {
   }
 }
 
-class InputEvents {
+export class InputEvents {
   public UICanvas: undefined | HTMLCanvasElement;
   public mouseX: number;
   public mouseY: number;
@@ -662,7 +662,6 @@ class InputEvents {
   public dragging: boolean;
   public shift: boolean;
   public ctrl: boolean;
-  public cmd: boolean;
   public keyPressMap: { [keyCode: number]: boolean };
 
   constructor() {
@@ -674,8 +673,6 @@ class InputEvents {
     this.dragging = false;
     this.shift = false;
     this.ctrl = false;
-    this.cmd = false;
-
 
     for (let keyName in keyCodes) {
       this.keyPressMap[keyCodes[keyName]] = false;
@@ -717,11 +714,12 @@ class InputEvents {
   private handleKeypress = (e: KeyboardEvent) => {
     this.shift = e.getModifierState("Shift");
     this.ctrl = e.getModifierState("Control");
-    this.cmd = e.getModifierState("Meta");
 
     switch (e.type) {
       case "keydown":
         this.keyPressMap[e.keyCode] = true;
+        if (e.keyCode === 83 && this.ctrl) e.preventDefault();
+        if (e.keyCode === 90 && (this.ctrl || this.shift)) e.preventDefault();
         break;
       case "keyup":
         this.keyPressMap[e.keyCode] = false;

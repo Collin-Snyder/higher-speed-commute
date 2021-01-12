@@ -4,6 +4,7 @@ import { checkForMouseCollision } from "../modules/gameMath";
 
 interface ActionButtonProps {
   buttonName: string;
+  buttonType: string;
   toggleModal: Function;
   buttonAction: Function;
 }
@@ -29,6 +30,7 @@ const ActionButton = ({
   buttonName,
   toggleModal,
   buttonAction,
+  buttonType
 }: ActionButtonProps) => {
   const [inputState, dispatch] = useContext(ModalInputContext);
   const [depressed, setDepressed] = useState(false);
@@ -37,7 +39,7 @@ const ActionButton = ({
     : buttonImages[buttonName];
   return (
     <i
-      className="action-button"
+      className={`action-button ${buttonType}`}
       id={`${buttonName}-button`}
       style={{
         width: `${w}px`,
@@ -66,11 +68,12 @@ const ActionButton = ({
           width,
           height
         );
+
         if (pointerOnButton) {
           let input = inputState.inputValue === "" ? e : inputState.inputValue;
           buttonAction(input);
           toggleModal(false);
-          dispatch({type: "SET_INPUT_VALUE", payload: ""});
+          dispatch({ type: "SET_INPUT_VALUE", payload: "" });
         }
       }}
     ></i>

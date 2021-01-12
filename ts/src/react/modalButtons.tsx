@@ -60,6 +60,7 @@ const ModalButtonContainer = ({
         return (
           <ActionButton
             buttonName={name}
+            buttonType={type}
             toggleModal={toggleModal}
             buttonAction={action}
             key={name}

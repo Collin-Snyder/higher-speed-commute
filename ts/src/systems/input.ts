@@ -1,13 +1,14 @@
 import ECS, { Entity, BaseComponent } from "@fritzy/ecs";
+import { InputEvents } from "../main";
 import keyCodes from "../keyCodes";
 import { checkForMouseCollision, normalize } from "../modules/gameMath";
-import e from "@fritzy/ecs";
-import { isConstructSignatureDeclaration } from "../../../node_modules/typescript/lib/typescript";
 
 export class InputSystem extends ECS.System {
   public keyPressMap: { [key: string]: boolean };
   public global: BaseComponent;
+  public inputs: InputEvents;
   public spaceBarDebounce: number;
+  public lastKeyDowns: Map<string, boolean>;
   public lastMousedown: boolean;
   public lastSpaceDown: boolean;
   public lastMDown: boolean;
@@ -21,7 +22,9 @@ export class InputSystem extends ECS.System {
   constructor(ecs: any) {
     super(ecs);
     this.global = this.ecs.getEntity("global")["Global"];
-    this.keyPressMap = this.global.inputs.keyPressMap;
+    this.inputs = this.global.inputs;
+    this.keyPressMap = this.inputs.keyPressMap;
+    this.lastKeyDowns = new Map();
     this.spaceBarDebounce = 20;
     this.lastMousedown = false;
     this.lastSpaceDown = false;
@@ -36,10 +39,8 @@ export class InputSystem extends ECS.System {
     let my = this.global.inputs.mouseY;
     let mousedown = this.global.inputs.mouseDown;
     let mode = this.global.game.mode;
+    let keypressActionType;
     let dragging = this.global.inputs.dragging;
-
-    //handle spacebar input
-    if (mode === "playing" || mode === "paused") this.handlePauseResume(mode);
 
     //handle mouse inputs
     let clickable = this.ecs.queryEntities({
@@ -104,13 +105,18 @@ export class InputSystem extends ECS.System {
     this.global.game.UICanvas.style.cursor = cursor;
 
     //handle keypress inputs
-    if (this.global.game.mode === "playing") {
-      const playerEntity = entities.values().next().value;
-      playerEntity.Velocity.altVectors = this.getPotentialVectors();
-      this.handleMapView();
-      this.handleBossView();
-    } else if (this.global.game.mode === "designing") {
-      //all the modifier key events
+    if (mode === "playing" || mode === "paused")
+      keypressActionType = "gameplay";
+    else if (mode === "designing") keypressActionType = "design";
+
+    if (keypressActionType === "gameplay") {
+      if (mode === "playing") {
+        const playerEntity = entities.values().next().value;
+        playerEntity.Velocity.altVectors = this.getPotentialVectors();
+      }
+      this.handleGameplayKeypress(mode);
+    } else if (keypressActionType === "design") {
+      this.handleDesignKeypress();
     }
   }
 
@@ -160,23 +166,101 @@ export class InputSystem extends ECS.System {
     }
   }
 
-  handleBossView() {
-    let bDown = this.keyPressMap[keyCodes.B];
-    if (bDown && !this.lastBDown) {
-      this.global.game.focusView = this.global.game.focusView === "boss" ? "player" : "boss";
-      this.lastBDown = bDown;
-    } else if (!bDown && this.lastBDown) {
-      this.lastBDown = bDown;
-    }
+  handleGameplayKeypress(mode: "paused" | "playing") {
+    let { game } = this.global;
+    this.debounceKeypress(
+      "SPACE",
+      (gameMode: "paused" | "playing") => {
+        gameMode === "paused"
+          ? game.publish("resume")
+          : game.publish("pause");
+      },
+      mode
+    );
+
+    if (mode === "paused") return;
+
+    this.debounceKeypress("M", () => {
+      game.mapView = !game.mapView;
+    });
+    this.debounceKeypress("B", () => {
+      game.focusView =
+        game.focusView === "boss" ? "player" : "boss";
+    });
   }
 
-  handleMapView() {
-    let mDown = this.keyPressMap[keyCodes.M];
-    if (mDown && !this.lastMDown) {
-      this.global.game.mapView = !this.global.game.mapView;
-      this.lastMDown = mDown;
-    } else if (!mDown && this.lastMDown) {
-      this.lastMDown = mDown;
+  handleDesignKeypress() {
+    let { shift, ctrl } = this.inputs;
+    let { game } = this.global;
+
+    this.debounceKeypress(
+      "S",
+      (ctrlPressed: boolean) => {
+        if (ctrlPressed) game.publish("save");
+      },
+      ctrl
+    );
+
+    this.debounceKeypress(
+      "Z",
+      (ctrlPressed: boolean, shiftPressed: boolean) => {
+        if (ctrlPressed && shiftPressed) {
+          game.publish("redo");
+        } else if (ctrlPressed) {
+          game.publish("undo");
+        } else {
+          game.publish("setDesignTool", "schoolZone");
+        }
+      },
+      ctrl,
+      shift
+    );
+
+    this.debounceKeypress(
+      "L",
+      (ctrlPressed: boolean) => {
+        if (ctrlPressed) {
+          game.publish("loadSaved");
+        } else game.publish("setDesignTool", "light");
+      },
+      ctrl
+    );
+
+    this.debounceKeypress(
+      "Q",
+      (ctrlPressed: boolean) => {
+        if (ctrlPressed) game.publish("quit");
+      },
+      ctrl
+    );
+
+    this.debounceKeypress("P", () => {
+      game.publish("setDesignTool", "playerHome");
+    });
+    this.debounceKeypress("B", () => {
+      game.publish("setDesignTool", "bossHome");
+    });
+    this.debounceKeypress("O", () => {
+      game.publish("setDesignTool", "office");
+    });
+    this.debounceKeypress("R", () => {
+      game.publish("setDesignTool", "street");
+    });
+    this.debounceKeypress("C", () => {
+      game.publish("setDesignTool", "coffee");
+    });
+    this.debounceKeypress("E", () => {
+      game.publish("setDesignTool", "eraser");
+    });
+  }
+
+  debounceKeypress(key: string, action: Function, ...actionArgs: any[]) {
+    let keyPressed = this.keyPressMap[keyCodes[key]];
+    if (keyPressed && !this.lastKeyDowns.get(key)) {
+      action(...actionArgs);
+      this.lastKeyDowns.set(key, keyPressed);
+    } else if (!keyPressed && this.lastKeyDowns.has(key)) {
+      this.lastKeyDowns.set(key, keyPressed);
     }
   }
 
