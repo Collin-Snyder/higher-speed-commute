@@ -7,12 +7,8 @@ export class InputSystem extends ECS.System {
   public keyPressMap: { [key: string]: boolean };
   public global: BaseComponent;
   public inputs: InputEvents;
-  public spaceBarDebounce: number;
   public lastKeyDowns: Map<string, boolean>;
   public lastMousedown: boolean;
-  public lastSpaceDown: boolean;
-  public lastMDown: boolean;
-  public lastBDown: boolean;
   public startMouseX: number;
   public startMouseY: number;
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -25,11 +21,7 @@ export class InputSystem extends ECS.System {
     this.inputs = this.global.inputs;
     this.keyPressMap = this.inputs.keyPressMap;
     this.lastKeyDowns = new Map();
-    this.spaceBarDebounce = 20;
     this.lastMousedown = false;
-    this.lastSpaceDown = false;
-    this.lastMDown = false;
-    this.lastBDown = false;
     this.startMouseX = 0;
     this.startMouseY = 0;
   }
@@ -39,7 +31,6 @@ export class InputSystem extends ECS.System {
     let my = this.global.inputs.mouseY;
     let mousedown = this.global.inputs.mouseDown;
     let mode = this.global.game.mode;
-    let keypressActionType;
     let dragging = this.global.inputs.dragging;
 
     //handle mouse inputs
@@ -105,17 +96,13 @@ export class InputSystem extends ECS.System {
     this.global.game.UICanvas.style.cursor = cursor;
 
     //handle keypress inputs
-    if (mode === "playing" || mode === "paused")
-      keypressActionType = "gameplay";
-    else if (mode === "designing") keypressActionType = "design";
-
-    if (keypressActionType === "gameplay") {
+    if (mode === "playing" || mode === "paused") {
       if (mode === "playing") {
         const playerEntity = entities.values().next().value;
         playerEntity.Velocity.altVectors = this.getPotentialVectors();
       }
       this.handleGameplayKeypress(mode);
-    } else if (keypressActionType === "design") {
+    } else if (mode === "designing") {
       this.handleDesignKeypress();
     }
   }

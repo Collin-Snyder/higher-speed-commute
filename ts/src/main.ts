@@ -660,6 +660,7 @@ export class InputEvents {
   public mouseY: number;
   public mouseDown: boolean;
   public dragging: boolean;
+  public modifiableKeycodes: number[];
   public shift: boolean;
   public ctrl: boolean;
   public keyPressMap: { [keyCode: number]: boolean };
@@ -671,6 +672,7 @@ export class InputEvents {
     this.mouseDown = false;
     this.keyPressMap = {};
     this.dragging = false;
+    this.modifiableKeycodes = [keyCodes.S, keyCodes.Q, keyCodes.L, keyCodes.Z];
     this.shift = false;
     this.ctrl = false;
 
@@ -718,8 +720,8 @@ export class InputEvents {
     switch (e.type) {
       case "keydown":
         this.keyPressMap[e.keyCode] = true;
-        if (e.keyCode === 83 && this.ctrl) e.preventDefault();
-        if (e.keyCode === 90 && (this.ctrl || this.shift)) e.preventDefault();
+        if (this.modifiableKeycodes.includes(e.keyCode) && this.ctrl)
+          e.preventDefault();
         break;
       case "keyup":
         this.keyPressMap[e.keyCode] = false;
