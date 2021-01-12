@@ -20,5 +20,5 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true
   },
-  "exclude": ["@types", "node_modules"]
+  "exclude": ["@types", "node_modules", "ts/src/state/seedData.json"]
 }

@@ -1,5 +1,5 @@
 import Dexie from "dexie";
-import { ISquare, Direction, ArcadeMap, SandboxMap } from "./map";
+import { ArcadeMap, SandboxMap } from "./map";
 //@ts-ignore
 import seedData from "./seedData.json";
 
@@ -73,7 +73,9 @@ export async function loadArcadeLevel(levelNum: number) {
   let lastLevel = await db.arcadeMaps
     .orderBy("levelNumber")
     .last(({ levelNumber }) => levelNumber);
+
   if (levelNum > lastLevel) return "end of game";
+
   let {
     id,
     levelNumber,
@@ -91,6 +93,7 @@ export async function loadArcadeLevel(levelNum: number) {
     .where("levelNumber")
     .equals(levelNum)
     .first();
+
   return {
     id,
     levelNumber,
@@ -186,8 +189,7 @@ window.deleteUserMap = async function(map: number | string) {
 window.recreateLocalDb = async function() {
   try {
     db.close();
-    let result = await db.delete();
-    console.log(result);
+    await db.delete();
     window.location.reload();
   } catch (err) {
     console.error(err);

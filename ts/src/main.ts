@@ -689,6 +689,15 @@ class InputEvents {
     this.UICanvas.addEventListener("mousemove", (e) =>
       this.handleUIMouseEvent(e)
     );
+    document.addEventListener("pointerdown", (e: PointerEvent) => {
+      //@ts-ignore
+      e.target.setPointerCapture(e.pointerId);
+    });
+
+    document.addEventListener("pointerup", (e: PointerEvent) => {
+      //@ts-ignore
+      e.target.releasePointerCapture(e.pointerId);
+    });
   }
 
   private handleWindowResize = (e: UIEvent) => {
@@ -732,6 +741,7 @@ class InputEvents {
         return;
     }
   };
+
   startDrag() {
     console.log("DRAG START");
     this.dragging = true;
@@ -740,16 +750,6 @@ class InputEvents {
   endDrag() {
     console.log("DRAG END");
     this.dragging = false;
-  }
-
-  setMouseUp() {
-    console.log("MOUSE UP");
-    this.mouseDown = false;
-  }
-
-  setMouseDown() {
-    console.log("MOUSE DOWN");
-    this.mouseDown = true;
   }
 }
 

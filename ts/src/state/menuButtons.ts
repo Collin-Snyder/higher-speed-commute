@@ -66,7 +66,6 @@ export class MenuButtons {
         onClick: function() {
           game.publish("leaveMenu");
           game.publish("design");
-          game.publish("forceMouseUp");
         },
         height: 75,
         width: 200,
@@ -138,8 +137,6 @@ export class MenuButtons {
       home: {
         name: "home",
         onClick: function() {
-          // game.publish("leaveDesign");
-          // game.publish("forceMouseUp");
           game.publish("quit");
         },
         height: 75,
@@ -159,7 +156,6 @@ export class MenuButtons {
         name: "saveAs",
         onClick: function() {
           game.publish("saveAs");
-          game.publish("forceMouseUp");
           //on failure, display failure message
         },
         height: 75,
@@ -170,7 +166,6 @@ export class MenuButtons {
         name: "loadSaved",
         onClick: function() {
           game.publish("loadSaved");
-          game.publish("forceMouseUp");
         },
         width: 200,
         height: 75,
@@ -208,7 +203,6 @@ export class MenuButtons {
         name: "reset",
         onClick: function() {
           game.publish("resetMap");
-          game.publish("forceMouseUp");
         },
         height: 75,
         width: 75,

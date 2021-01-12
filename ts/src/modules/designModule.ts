@@ -34,7 +34,7 @@ class DesignModule {
     this._game = game;
     this._editor = new Editor(game);
     this.saved = true;
-    this.selectedTool = "street";
+    this.selectedTool = "";
     this.lastEditedSquare = 0;
     this.mapCursor = "default";
     this.gridLoaded = false;

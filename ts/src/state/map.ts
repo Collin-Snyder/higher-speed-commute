@@ -40,7 +40,7 @@ export interface ISquare {
   id: number;
   row: number;
   column: number;
-  borders: IBorders | IBordersCompressed;
+  borders: Borders | BordersCompressed;
   drivable: boolean;
   schoolZone: boolean;
   [key: string]: any;
@@ -56,11 +56,11 @@ export interface ITile {
   [key: string]: any;
 }
 
-type IBorders = {
+type Borders = {
   [key in Direction]: ISquare | null;
 };
 
-type IBordersCompressed = {
+type BordersCompressed = {
   [key in Direction]: number | null;
 };
 
@@ -80,7 +80,7 @@ export type Tile =
 
 export class Square implements ISquare {
   public drivable: boolean;
-  public borders: IBorders;
+  public borders: Borders;
   public schoolZone: boolean;
   public coordinates: { X: number; Y: number };
   public tileIndex: number;
@@ -367,8 +367,8 @@ export class ArcadeMap implements IArcadeMap {
     endX: number,
     endY: number
   ): Array<number>[] | null {
-    let startSquare: ISquare = <ISquare>this.getSquareByCoords(startX, startY);
-    let endSquare: ISquare = <ISquare>this.getSquareByCoords(endX, endY);
+    let startSquare = <ISquare>this.getSquareByCoords(startX, startY);
+    let endSquare = <ISquare>this.getSquareByCoords(endX, endY);
 
     let frontier = new PathQueue();
     let cameFrom: { [key: string]: any } = {};
@@ -384,7 +384,7 @@ export class ArcadeMap implements IArcadeMap {
     while (frontier.empty() === false) {
       let currentId = frontier.get();
 
-      let currentSquare: ISquare = <ISquare>this.squares[currentId - 1];
+      let currentSquare = <ISquare>this.squares[currentId - 1];
 
       if (currentId == endSquare.id) {
         foundTarget = true;

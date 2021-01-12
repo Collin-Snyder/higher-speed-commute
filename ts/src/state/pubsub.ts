@@ -355,6 +355,7 @@ class GameModeMachine {
           entity.removeTag("noninteractive");
         }
 
+        game.designModule.setDesignTool("street");
         // game.designModule.createDesignMenus();
 
         //(eventually) if first time, play walk-through
@@ -462,11 +463,6 @@ class GameModeMachine {
       onRedo: function() {
         let game = <Game>(<unknown>this);
         game.designModule.redo();
-      },
-      onForceMouseUp: function() {
-        let game = <Game>(<unknown>this);
-        // game.ecs.getEntity("global").Global.inputs.setMouseUp();
-        game.inputs.setMouseUp();
       },
       onResetMap: function() {
         let game = <Game>(<unknown>this);
@@ -590,13 +586,6 @@ class GameModeMachine {
         action: function() {
           let gmm = <GameModeMachine>(<unknown>this);
           gmm.customActions.onRedo();
-        },
-      },
-      {
-        name: "forceMouseUp",
-        action: function() {
-          let gmm = <GameModeMachine>(<unknown>this);
-          gmm.customActions.onForceMouseUp();
         },
       },
       {
