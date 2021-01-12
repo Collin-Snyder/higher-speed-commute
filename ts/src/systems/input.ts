@@ -141,18 +141,6 @@ export class InputSystem extends ECS.System {
     return potentials;
   }
 
-  handlePauseResume(mode: string) {
-    let spaceDown = this.keyPressMap[keyCodes.SPACE];
-    if (spaceDown && !this.lastSpaceDown) {
-      mode === "paused"
-        ? this.global.game.publish("resume")
-        : this.global.game.publish("pause");
-      this.lastSpaceDown = spaceDown;
-    } else if (!spaceDown && this.lastSpaceDown) {
-      this.lastSpaceDown = spaceDown;
-    }
-  }
-
   handleGameplayKeypress(mode: "paused" | "playing") {
     let { game } = this.global;
     this.debounceKeypress(
