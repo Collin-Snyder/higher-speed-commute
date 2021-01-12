@@ -660,6 +660,9 @@ class InputEvents {
   public mouseY: number;
   public mouseDown: boolean;
   public dragging: boolean;
+  public shift: boolean;
+  public ctrl: boolean;
+  public cmd: boolean;
   public keyPressMap: { [keyCode: number]: boolean };
 
   constructor() {
@@ -669,6 +672,10 @@ class InputEvents {
     this.mouseDown = false;
     this.keyPressMap = {};
     this.dragging = false;
+    this.shift = false;
+    this.ctrl = false;
+    this.cmd = false;
+
 
     for (let keyName in keyCodes) {
       this.keyPressMap[keyCodes[keyName]] = false;
@@ -708,6 +715,10 @@ class InputEvents {
   };
 
   private handleKeypress = (e: KeyboardEvent) => {
+    this.shift = e.getModifierState("Shift");
+    this.ctrl = e.getModifierState("Control");
+    this.cmd = e.getModifierState("Meta");
+
     switch (e.type) {
       case "keydown":
         this.keyPressMap[e.keyCode] = true;

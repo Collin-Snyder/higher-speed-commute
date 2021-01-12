@@ -11,6 +11,7 @@ export class InputSystem extends ECS.System {
   public lastMousedown: boolean;
   public lastSpaceDown: boolean;
   public lastMDown: boolean;
+  public lastBDown: boolean;
   public startMouseX: number;
   public startMouseY: number;
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -25,6 +26,7 @@ export class InputSystem extends ECS.System {
     this.lastMousedown = false;
     this.lastSpaceDown = false;
     this.lastMDown = false;
+    this.lastBDown = false;
     this.startMouseX = 0;
     this.startMouseY = 0;
   }
@@ -106,17 +108,9 @@ export class InputSystem extends ECS.System {
       const playerEntity = entities.values().next().value;
       playerEntity.Velocity.altVectors = this.getPotentialVectors();
       this.handleMapView();
-      if (
-        this.keyPressMap[keyCodes.B] &&
-        this.global.game.focusView !== "boss"
-      ) {
-        this.global.game.focusView = "boss";
-      } else if (
-        !this.keyPressMap[keyCodes.B] &&
-        this.global.game.focusView !== "player"
-      ) {
-        this.global.game.focusView = "player";
-      }
+      this.handleBossView();
+    } else if (this.global.game.mode === "designing") {
+      //all the modifier key events
     }
   }
 
@@ -163,6 +157,16 @@ export class InputSystem extends ECS.System {
       this.lastSpaceDown = spaceDown;
     } else if (!spaceDown && this.lastSpaceDown) {
       this.lastSpaceDown = spaceDown;
+    }
+  }
+
+  handleBossView() {
+    let bDown = this.keyPressMap[keyCodes.B];
+    if (bDown && !this.lastBDown) {
+      this.global.game.focusView = this.global.game.focusView === "boss" ? "player" : "boss";
+      this.lastBDown = bDown;
+    } else if (!bDown && this.lastBDown) {
+      this.lastBDown = bDown;
     }
   }
 
