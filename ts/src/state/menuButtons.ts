@@ -18,8 +18,19 @@ export class MenuButtons {
       play: {
         name: "play",
         onClick: function() {
-          game.publish("leaveMenu");
+          // game.publish("leaveMenu");
+          game.playMode = "arcade";
           game.publish("start", game.firstLevel);
+        },
+        height: 75,
+        width: 200,
+        tags: ["menu", "main"],
+      },
+      playSaved: {
+        name: "playSaved",
+        onClick: function() {
+          game.playMode = "custom";
+          game.publish("loadSaved");
         },
         height: 75,
         width: 200,
@@ -32,7 +43,16 @@ export class MenuButtons {
         },
         height: 75,
         width: 200,
-        tags: ["menu", "gameplay", "won"],
+        tags: ["menu", "gameplay", "won", "arcade"],
+      },
+      newMap: {
+        name: "newMap",
+        onClick: function() {
+          game.publish("loadSaved");
+        },
+        height: 75,
+        width: 200,
+        tags: ["menu", "gameplay", "won", "lost", "crash", "custom"],
       },
       resume: {
         name: "resume",
@@ -50,7 +70,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 200,
-        tags: ["menu", "gameplay", "paused", "won", "lost", "crash"],
+        tags: ["menu", "gameplay", "paused", "won", "lost", "crash", "arcade", "custom"],
       },
       quit: {
         name: "quit",
@@ -59,7 +79,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 200,
-        tags: ["menu", "gameplay", "paused", "won", "lost", "crash"],
+        tags: ["menu", "gameplay", "paused", "won", "lost", "crash", "arcade", "custom"],
       },
       design: {
         name: "design",

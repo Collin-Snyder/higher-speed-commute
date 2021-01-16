@@ -2,10 +2,7 @@ import React, { useContext, useState, useEffect } from "react";
 import OptionList, { ModalOption } from "./optionList";
 import { ModalInputContext } from "./modalInputContext";
 import { loadAllUserMaps } from "../state/localDb";
-
-interface LoadMapContentProps {
-  userMaps: any[];
-}
+import Game from "../main";
 
 const LoadMapContent = () => {
   let [inputState, dispatch] = useContext(ModalInputContext);
@@ -15,7 +12,10 @@ const LoadMapContent = () => {
     dispatch({
       type: "SET_SUBMIT_FUNC",
       payload: (id: number) => {
-        window.game.designModule.loadSaved(id);
+        let { playMode, designModule } = window.game;
+
+        if (playMode === "custom") window.game.publish("start", id);
+        else designModule.loadSaved(id);
       },
     });
   }, []);
@@ -32,9 +32,6 @@ const LoadMapContent = () => {
       .catch((err) => console.error(err));
   }, []);
 
-  // let options = userMaps.map((m) => {
-  //   return { value: m.id, label: m.name };
-  // });
   if (!mapOptions.length) return <p>You have no saved maps</p>;
   return <OptionList listName="loadMap" options={mapOptions} />;
 };

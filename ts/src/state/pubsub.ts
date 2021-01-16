@@ -404,6 +404,8 @@ class GameModeMachine {
         //hide game canvas
         let game = <Game>(<unknown>this);
 
+        game.playMode = "";
+        
         if (game.mode === "designing") {
           let designMenuButtons = game.ecs.queryEntities({
             has: ["menu", "design"],

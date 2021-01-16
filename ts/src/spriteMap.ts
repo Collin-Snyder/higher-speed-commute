@@ -32,9 +32,10 @@ const spriteMap = {
   redLight: { X: 450, Y: 0 },
   greenLight: { X: 475, Y: 25 },
   yellowLight: { X: 475, Y: 0 },
-  designLight: {X: 50, Y: 25},
+  designLight: { X: 50, Y: 25 },
   coffee: { X: 250, Y: 0 },
   playButton: { X: 0, Y: 50 },
+  playSavedButton: { X: 500, Y: 0 },
   designButton: { X: 0, Y: 125 },
   playerHomeButton: { X: 200, Y: 125 },
   bossHomeButton: { X: 275, Y: 125 },
@@ -55,6 +56,7 @@ const spriteMap = {
   restartButton: { X: 0, Y: 575 },
   quitButton: { X: 0, Y: 650 },
   nextLevelButton: { X: 0, Y: 725 },
+  newMapButton: { X: 500, Y: 75 },
   countdown3: { X: 200, Y: 275 },
   countdown2: { X: 275, Y: 275 },
   countdown1: { X: 350, Y: 275 },
@@ -65,7 +67,7 @@ const spriteMap = {
   pausedGraphic: { X: 200, Y: 425 },
   shine: { X: 200, Y: 350 },
   shiny: { X: 275, Y: 350 },
-  badShiny: {X: 350, Y: 350 }
+  badShiny: { X: 350, Y: 350 },
 };
 
 export default spriteMap;

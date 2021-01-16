@@ -43,7 +43,8 @@ import {
   RenderTopLevelGraphics,
   RenderBorders,
 } from "./systems/render";
-import { loadArcadeLevel } from "./state/localDb";
+import { loadArcadeLevel, loadCustomLevel } from "./state/localDb";
+import { textChangeRangeIsUnchanged } from "typescript";
 
 declare global {
   interface Window {
@@ -81,6 +82,7 @@ export class Game {
   private tickTimes: number[];
   public inputs: InputEvents;
   public mode: Mode;
+  public playMode: "arcade" | "custom" | "";
   public modeMachine: GameModeMachine;
   public subscribers: { [key: string]: Function[] };
   public spritesheet: HTMLImageElement;
@@ -126,6 +128,7 @@ export class Game {
     this.frameElapsedTime = 0;
     this.tickTimes = [];
     this.mode = "init";
+    this.playMode = "";
     this.modeMachine = new GameModeMachine("init");
     this.ecs = new EntityComponentSystem.ECS();
     this.firstLevel = 8;
@@ -453,29 +456,60 @@ export class Game {
     this.publish("ready");
   }
 
-  loadLevel(num: number): void {
-    loadArcadeLevel(num)
-      .then((result) => {
-        if (result === "end of game") {
-          this.publish("endOfGame");
-          return;
-        }
+  async loadLevel(
+    level: number /*can be either level number if arcade mode or level id if custom mode*/
+  ) {
+    console.log("THIS: ", this)
+    try {
+      let loadFunc = loadArcadeLevel;
+      if (this.playMode === "custom") loadFunc = loadCustomLevel;
 
-        let { id, name, levelNumber, description, mapInfo } = result;
-        this.currentLevel = {
-          id,
-          name,
-          number: levelNumber,
-          description,
-        };
-        let mapEntity = this.ecs.getEntity("map");
-        mapEntity.Map.mapId = id;
-        mapEntity.Map.map = ArcadeMap.fromMapObject(mapInfo);
-        this.publish("chooseDifficulty");
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+      let result = await loadFunc(level);
+
+      if (result === "end of game") {
+        this.publish("endOfGame");
+        return;
+      }
+
+      let { id, name, levelNumber, description, mapInfo } = <any>result;
+      this.currentLevel = {
+        id,
+        name,
+        number: levelNumber,
+        description,
+      };
+      let mapEntity = this.ecs.getEntity("map");
+      mapEntity.Map.mapId = id;
+      mapEntity.Map.map = ArcadeMap.fromMapObject(mapInfo);
+      this.publish("chooseDifficulty");
+    } catch (err) {
+      console.error(err);
+    }
+    // if (this.playMode === "arcade") {
+    //   loadArcadeLevel(level)
+    //     .then((result) => {
+    //       if (result === "end of game") {
+    //         this.publish("endOfGame");
+    //         return;
+    //       }
+
+    //       let { id, name, levelNumber, description, mapInfo } = result;
+    //       this.currentLevel = {
+    //         id,
+    //         name,
+    //         number: levelNumber,
+    //         description,
+    //       };
+    //       let mapEntity = this.ecs.getEntity("map");
+    //       mapEntity.Map.mapId = id;
+    //       mapEntity.Map.map = ArcadeMap.fromMapObject(mapInfo);
+    //       this.publish("chooseDifficulty");
+    //     })
+    //     .catch((err) => {
+    //       console.error(err);
+    //     });
+    // } else if (this.playMode === "custom") {
+    // }
   }
 
   loadLevelFromBackend(num: number): void {
@@ -714,6 +748,8 @@ export class InputEvents {
   };
 
   private handleKeypress = (e: KeyboardEvent) => {
+    if ((e.target as HTMLElement)?.tagName == 'INPUT') return;
+
     this.shift = e.getModifierState("Shift");
     this.ctrl = e.getModifierState("Control");
 

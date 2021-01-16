@@ -112,6 +112,42 @@ export async function loadArcadeLevel(levelNum: number) {
   };
 }
 
+export async function loadCustomLevel(levelId: number) {
+  let level = await db.userMaps.get(Number(levelId));
+
+  if (!level) throw new Error(`There is no user level with id ${levelId}`);
+
+  let {
+    id,
+    name,
+    boardHeight,
+    boardWidth,
+    playerHome,
+    bossHome,
+    office,
+    squares,
+    lights,
+    coffees,
+  } = level;
+
+  return {
+    id,
+    levelNumber: 0,
+    name,
+    description: "",
+    mapInfo: {
+      boardHeight,
+      boardWidth,
+      playerHome,
+      bossHome,
+      office,
+      squares,
+      lights,
+      coffees,
+    },
+  };
+}
+
 export async function loadUserMap(levelId: number) {
   return db.userMaps.get(levelId);
 }

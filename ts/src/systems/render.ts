@@ -1,4 +1,5 @@
 import EntityComponentSystem, { Entity, ECS, BaseComponent } from "@fritzy/ecs";
+import { Game } from "../main";
 import {
   centerWithin,
   getCenterPoint,
@@ -394,7 +395,6 @@ export class RenderSandbox extends EntityComponentSystem.System {
     let { game, spriteMap, spriteSheet } = this.ecs.getEntity("global").Global;
     let { mode, designModule } = game;
 
-    
     if (mode !== "designing") return;
     // console.log("RenderSandbox update is running");
 
@@ -824,11 +824,12 @@ export class RenderMenus extends EntityComponentSystem.System {
 
   update(tick: number, entities: Set<Entity>) {
     let global = this.ecs.getEntity("global").Global;
-    let mode = global.game.mode;
+    let game = <Game>global.game;
+    let { mode, playMode } = game;
 
     //calculate coordinates for buttons using button spacing logic and current state/size of game
     if (!this.modeNames.includes(mode)) return;
-    this.buttonEntities = this.selectButtons(mode);
+    this.buttonEntities = this.selectButtons(mode, playMode);
     let { pixelWidth, pixelHeight } = global.map.Map.map ?? {
       pixelHeight: 0,
       pixelWidth: 0,
@@ -853,10 +854,14 @@ export class RenderMenus extends EntityComponentSystem.System {
     }
   }
 
-  selectButtons(mode: string) {
-    return [
+  selectButtons(mode: string, playMode: "arcade" | "custom" | "") {
+    let btns = [
       ...this.ecs.queryEntities({ has: ["menu", ...this.menuTags[mode]] }),
     ];
+    if (mode === "won" && playMode) {
+      btns = btns.filter((b) => b.has(playMode));
+    }
+    return btns;
   }
 
   positionButtons(
