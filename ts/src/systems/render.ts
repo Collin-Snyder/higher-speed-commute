@@ -834,7 +834,13 @@ export class RenderMenus extends EntityComponentSystem.System {
       pixelHeight: 0,
       pixelWidth: 0,
     };
+    let {weight} = global.map.Border ?? {weight: 0};
     let { X, Y } = global.map.Coordinates ?? { X: 0, Y: 0 };
+
+    let borderX = X - weight;
+    let borderY = Y - weight;
+    let borderWidth = pixelWidth + (weight * 2);
+    let borderHeight = pixelHeight + (weight * 2);
 
     switch (mode) {
       case "menu":
@@ -844,10 +850,10 @@ export class RenderMenus extends EntityComponentSystem.System {
       case "won":
       case "lost":
       case "crash":
-        this.renderGameplayMenu(mode, X, Y, pixelWidth, pixelHeight);
+        this.renderGameplayMenu(mode, borderX, borderY, borderWidth, borderHeight);
         return;
       case "designing":
-        this.renderDesignMenus(X, Y, pixelWidth, pixelHeight);
+        this.renderDesignMenus(borderX, borderY, borderWidth, borderHeight);
         return;
       default:
         return;
@@ -1184,7 +1190,7 @@ export class RenderMenus extends EntityComponentSystem.System {
     mapWidth: number,
     mapHeight: number
   ) {
-    let formattedBtns = this.formatDesignAdminButtons(adminBtns);
+    // let formattedBtns = this.formatDesignAdminButtons(adminBtns);
     this.positionButtons(
       mapX + mapWidth,
       (window.innerHeight - mapHeight) / 2,
@@ -1193,11 +1199,31 @@ export class RenderMenus extends EntityComponentSystem.System {
       200,
       75,
       "vertical",
-      formattedBtns,
+      adminBtns,
       "spaceEvenly"
     );
     this.drawButtons(adminBtns);
   }
+
+  renderDesignConfigMenu(configBtns: Entity[],
+    mapX: number,
+    mapY: number,
+    mapWidth: number,
+    mapHeight: number){
+      let formattedBtns = this.formatDesignConfigButtons(configBtns);
+      this.positionButtons(
+        0,
+        (window.innerHeight - mapHeight) / 2,
+        (window.innerWidth - mapWidth) / 2,
+        mapHeight,
+        200,
+        75,
+        "vertical",
+        formattedBtns,
+        "spaceEvenly"
+      );
+      this.drawButtons(configBtns);
+    }
 
   renderDesignMenus(
     mapX: number,
@@ -1207,22 +1233,27 @@ export class RenderMenus extends EntityComponentSystem.System {
   ) {
     const toolbarBtns = this.buttonEntities.filter((e) => e.has("toolbar"));
     const adminBtns = this.buttonEntities.filter((e) => e.has("admin"));
-    // const configBtns = this.buttonEntities.filter(e => e.has("config"));
+    const configBtns = this.buttonEntities.filter(e => e.has("config"));
 
     this.renderDesignToolbarMenu(toolbarBtns, mapX, mapY, mapWidth, mapHeight);
     this.renderDesignAdminMenu(adminBtns, mapX, mapY, mapWidth, mapHeight);
+    this.renderDesignConfigMenu(configBtns, mapX, mapY, mapWidth, mapHeight);
   }
 
-  formatDesignAdminButtons(adminBtns: Entity[]) {
-    const undoredo = adminBtns.filter(
-      (b) => b.Button.name === "undo" || b.Button.name === "redo"
+  formatDesignConfigButtons(configBtns: Entity[]) {
+    const undoredo = configBtns.filter(
+      (b:Entity) => b.Button.name === "undo" || b.Button.name === "redo"
     );
-    const erasereset = adminBtns.filter(
-      (b) => b.Button.name === "eraser" || b.Button.name === "reset"
-    );
-    let btns: Array<Entity | Array<Entity>> = adminBtns.slice();
-    btns.splice(4, 2, undoredo);
-    btns.splice(5, 2, erasereset);
+    // const erasereset = adminBtns.filter(
+    //   (b) => b.Button.name === "eraser" || b.Button.name === "reset"
+    // );
+    let btns: Array<Entity | Array<Entity>> = configBtns.slice();
+    btns.splice(0, 2, undoredo);
+    btns = btns.map((b) => {
+      if (!Array.isArray(b)) return [b];
+      else return b;
+    })
+    // btns.splice(5, 2, erasereset);
 
     return btns;
   }

@@ -199,7 +199,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "admin"],
+        tags: ["menu", "design", "config"],
       },
       redo: {
         name: "redo",
@@ -208,7 +208,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "admin"],
+        tags: ["menu", "design", "config"],
       },
       erase: {
         name: "eraser",
@@ -217,7 +217,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "admin"],
+        tags: ["menu", "design", "config"],
       },
       reset: {
         name: "reset",
@@ -226,7 +226,16 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "admin"],
+        tags: ["menu", "design", "config"],
+      },
+      test: {
+        name: "test",
+        onClick: function() {
+          console.log("you clicked test!")
+        },
+        height: 75,
+        width: 200,
+        tags: ["menu", "design", "admin"]
       },
       issues: {
         name: "issues",
@@ -249,13 +258,13 @@ export class MenuButtons {
         width: 0,
         tags: ["menu", "design", "config"],
       },
-      test: {
-        name: "test",
-        onClick: function() {},
-        height: 0,
-        width: 0,
-        tags: ["menu", "design", "config"],
-      },
+      // test: {
+      //   name: "test",
+      //   onClick: function() {},
+      //   height: 0,
+      //   width: 0,
+      //   tags: ["menu", "design", "config"],
+      // },
     };
 
     // MenuButtons.bindButtons(buttons, game);
