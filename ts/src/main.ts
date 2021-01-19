@@ -61,7 +61,7 @@ declare global {
 
 window.makeSeedData = function() {
   axios
-    .post("/generate_arcade_map_json")
+    .post("/generate_seed_data")
     .then((result) => console.log(result))
     .catch((err) => console.error(err));
 };
@@ -459,7 +459,6 @@ export class Game {
   async loadLevel(
     level: number /*can be either level number if arcade mode or level id if custom mode*/
   ) {
-    console.log("THIS: ", this)
     try {
       let loadFunc = loadArcadeLevel;
       if (this.playMode === "custom") loadFunc = loadCustomLevel;

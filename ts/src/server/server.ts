@@ -222,7 +222,7 @@ app.post("/convert_legacy_levels", async (req, res) => {
 });
 
 //@ts-ignore
-app.post("/generate_arcade_map_json", async (req, res) => {
+app.post("/generate_seed_data", async (req, res) => {
   try {
     let levelData = await db.query(
       "SELECT * FROM levels WHERE id IN (SELECT level_id FROM next_levels) order by level_name"
@@ -238,7 +238,7 @@ app.post("/generate_arcade_map_json", async (req, res) => {
     })
 
     let arcadeMaps = levelData.rows;
-    fs.writeFile("ts/src/state/seedData.json", JSON.stringify(arcadeMaps), (err: any) => {
+    fs.writeFile("ts/src/state/seedData.ts", `const seedData = '${JSON.stringify(arcadeMaps)}';\nexport default seedData;`, (err: any) => {
       if (err) {
         console.error(err);
         return;

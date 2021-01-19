@@ -1,7 +1,8 @@
 import Dexie from "dexie";
 import { ArcadeMap, SandboxMap } from "./map";
 //@ts-ignore
-import seedData from "./seedData.json";
+import seedData from "./seedData.ts";
+import { extraMinify, minify } from "./levelCompression";
 
 export class LocalDB extends Dexie {
   userMaps: Dexie.Table<SandboxMap>;
@@ -23,7 +24,7 @@ export class LocalDB extends Dexie {
 const db = new LocalDB();
 
 db.on("populate", async function() {
-  let arcadeMaps = seedData.map(
+  let arcadeMaps = JSON.parse(seedData).map(
     ({
       level_number,
       name,
@@ -149,7 +150,14 @@ export async function loadCustomLevel(levelId: number) {
 }
 
 export async function loadUserMap(levelId: number) {
-  return db.userMaps.get(levelId);
+  let map = await db.userMaps.get(levelId);
+  let miniMap = minify(map);
+  let extraMiniMap = extraMinify(map);
+  console.log("Regular map string length: ", JSON.stringify(map).length);
+  console.log("Mini map string length: ", miniMap.length);
+  console.log("Extra mini map string length: ", extraMiniMap.length);
+  console.log("Extra mini map: ", extraMiniMap);
+  return map;
 }
 
 export async function loadAllUserMaps() {
@@ -157,11 +165,11 @@ export async function loadAllUserMaps() {
 }
 
 export async function updateUserMap(map: SandboxMap) {
-    return db.userMaps.put(map);
+  return db.userMaps.put(map);
 }
 
 export async function saveNewUserMap(mapData: any) {
-    return db.userMaps.add(mapData);
+  return db.userMaps.add(mapData);
 }
 
 /////////////////////////////////
