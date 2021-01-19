@@ -58,6 +58,7 @@ const spriteMap = {
   nextLevelButton: { X: 0, Y: 725 },
   newMapButton: { X: 500, Y: 75 },
   testButton: {X: 500, Y: 150},
+  exportButton: {X: 500, Y: 225},
   countdown3: { X: 200, Y: 275 },
   countdown2: { X: 275, Y: 275 },
   countdown1: { X: 350, Y: 275 },

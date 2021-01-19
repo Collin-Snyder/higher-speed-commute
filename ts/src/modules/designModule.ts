@@ -146,7 +146,10 @@ class DesignModule {
       //     console.error(err);
       //   });
       // userMap.id = map.mapId;
-      map.map.saveMapAsync().catch((err: Error) => console.error(err));
+      map.map
+        .saveMapAsync()
+        .then((result: any) => (this.saved = true))
+        .catch((err: Error) => console.error(err));
     } else {
       this.openSaveAsModal();
     }
@@ -183,6 +186,7 @@ class DesignModule {
         .saveNewMapAsync(name)
         .then((x: any) => {
           map.name = name;
+          this.saved = true;
         })
         .catch((err: Error) => console.error(err));
     }
@@ -212,12 +216,13 @@ class DesignModule {
         if (!savedMap)
           throw new Error(`There is no user map with id ${levelId}`);
         let decompressed = savedMap.decompress();
-        let mapEntity = global.map;
+        let mapEntity = this._game.ecs.getEntity("map");
+        console.log("Game objects are equal: ", window.game === this._game);
         mapEntity.Map.mapId = levelId;
         mapEntity.Map.name = decompressed.name;
         // mapEntity.Map.map = SandboxMap.fromUserMapObject(decompressed);
         mapEntity.Map.map = decompressed;
-        mapEntity.TileMap.tiles = global.map.Map.map.generateDesignTileMap();
+        mapEntity.TileMap.tiles = mapEntity.Map.map.generateDesignTileMap();
         this._editor.restart();
       } catch (err) {
         console.error(err);

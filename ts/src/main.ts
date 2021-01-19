@@ -349,6 +349,7 @@ export class Game {
       let onbefore = this.modeMachine.defaultActions[`onbefore${event.name}`];
       let on = this.modeMachine.defaultActions[`on${event.name}`];
       let onNewState = this.modeMachine.defaultActions[`on${event.to}`];
+      this.subscribe(event.name, () => {console.log(`Attempting event "${event.name}"`)})
       this.subscribe(event.name, validate.bind(this, event.name, event.from));
       this.subscribe(event.name, () => {
         let onleave = this.modeMachine.defaultActions[`onleave${this.mode}`];
@@ -509,6 +510,14 @@ export class Game {
     //     });
     // } else if (this.playMode === "custom") {
     // }
+  }
+
+  testCurrentSandboxMap() {
+    let mapEntity = this.ecs.getEntity("map");
+    console.log("Current map: ", mapEntity.Map);
+    let mapInfo = mapEntity.Map.map.exportMapObject();
+    mapEntity.Map.map = ArcadeMap.fromMapObject(mapInfo);
+    this.publish("chooseDifficulty");
   }
 
   loadLevelFromBackend(num: number): void {

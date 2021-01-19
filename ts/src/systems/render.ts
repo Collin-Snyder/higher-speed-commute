@@ -394,6 +394,7 @@ export class RenderSandbox extends EntityComponentSystem.System {
   update(tick: number, entities: Set<Entity>) {
     let { game, spriteMap, spriteSheet } = this.ecs.getEntity("global").Global;
     let { mode, designModule } = game;
+    if (this.changes.length > 0 ) console.log(this.changes);
 
     if (mode !== "designing") return;
     // console.log("RenderSandbox update is running");
@@ -405,7 +406,6 @@ export class RenderSandbox extends EntityComponentSystem.System {
 
     this.ctx.fillStyle = "lightgray";
     this.ctx.fillRect(X, Y, map.pixelWidth, map.pixelHeight);
-
     drawTileMap(
       TileMap.tiles,
       map.width,
@@ -830,17 +830,20 @@ export class RenderMenus extends EntityComponentSystem.System {
     //calculate coordinates for buttons using button spacing logic and current state/size of game
     if (!this.modeNames.includes(mode)) return;
     this.buttonEntities = this.selectButtons(mode, playMode);
+    this.buttonEntities.forEach(e => {
+      if (e.has("NI")) e.removeTag("NI");
+    })
     let { pixelWidth, pixelHeight } = global.map.Map.map ?? {
       pixelHeight: 0,
       pixelWidth: 0,
     };
-    let {weight} = global.map.Border ?? {weight: 0};
+    let { weight } = global.map.Border ?? { weight: 0 };
     let { X, Y } = global.map.Coordinates ?? { X: 0, Y: 0 };
 
     let borderX = X - weight;
     let borderY = Y - weight;
-    let borderWidth = pixelWidth + (weight * 2);
-    let borderHeight = pixelHeight + (weight * 2);
+    let borderWidth = pixelWidth + weight * 2;
+    let borderHeight = pixelHeight + weight * 2;
 
     switch (mode) {
       case "menu":
@@ -850,10 +853,17 @@ export class RenderMenus extends EntityComponentSystem.System {
       case "won":
       case "lost":
       case "crash":
-        this.renderGameplayMenu(mode, borderX, borderY, borderWidth, borderHeight);
+        this.renderGameplayMenu(
+          mode,
+          borderX,
+          borderY,
+          borderWidth,
+          borderHeight
+        );
         return;
       case "designing":
-        this.renderDesignMenus(borderX, borderY, borderWidth, borderHeight);
+        let {saved} = game.designModule;
+        this.renderDesignMenus(borderX, borderY, borderWidth, borderHeight, saved);
         return;
       default:
         return;
@@ -1205,35 +1215,44 @@ export class RenderMenus extends EntityComponentSystem.System {
     this.drawButtons(adminBtns);
   }
 
-  renderDesignConfigMenu(configBtns: Entity[],
-    mapX: number,
-    mapY: number,
-    mapWidth: number,
-    mapHeight: number){
-      let formattedBtns = this.formatDesignConfigButtons(configBtns);
-      this.positionButtons(
-        0,
-        (window.innerHeight - mapHeight) / 2,
-        (window.innerWidth - mapWidth) / 2,
-        mapHeight,
-        200,
-        75,
-        "vertical",
-        formattedBtns,
-        "spaceEvenly"
-      );
-      this.drawButtons(configBtns);
-    }
-
-  renderDesignMenus(
+  renderDesignConfigMenu(
+    configBtns: Entity[],
     mapX: number,
     mapY: number,
     mapWidth: number,
     mapHeight: number
   ) {
+    let formattedBtns = this.formatDesignConfigButtons(configBtns);
+    this.positionButtons(
+      0,
+      (window.innerHeight - mapHeight) / 2,
+      (window.innerWidth - mapWidth) / 2,
+      mapHeight,
+      200,
+      75,
+      "vertical",
+      formattedBtns,
+      "spaceEvenly"
+    );
+    this.drawButtons(configBtns);
+  }
+
+  renderDesignMenus(
+    mapX: number,
+    mapY: number,
+    mapWidth: number,
+    mapHeight: number,
+    saved: boolean
+  ) {
     const toolbarBtns = this.buttonEntities.filter((e) => e.has("toolbar"));
-    const adminBtns = this.buttonEntities.filter((e) => e.has("admin"));
-    const configBtns = this.buttonEntities.filter(e => e.has("config"));
+    const adminBtns = this.buttonEntities.filter((e) => {
+      if (!saved) return e.has("admin");
+      
+      let visible = e.has("admin") && !/save/.test(e.id);
+      if (!visible && !e.has("NI")) e.addTag("NI");
+      return visible;
+    });
+    const configBtns = this.buttonEntities.filter((e) => e.has("config"));
 
     this.renderDesignToolbarMenu(toolbarBtns, mapX, mapY, mapWidth, mapHeight);
     this.renderDesignAdminMenu(adminBtns, mapX, mapY, mapWidth, mapHeight);
@@ -1242,7 +1261,7 @@ export class RenderMenus extends EntityComponentSystem.System {
 
   formatDesignConfigButtons(configBtns: Entity[]) {
     const undoredo = configBtns.filter(
-      (b:Entity) => b.Button.name === "undo" || b.Button.name === "redo"
+      (b: Entity) => b.Button.name === "undo" || b.Button.name === "redo"
     );
     // const erasereset = adminBtns.filter(
     //   (b) => b.Button.name === "eraser" || b.Button.name === "reset"
@@ -1252,7 +1271,7 @@ export class RenderMenus extends EntityComponentSystem.System {
     btns = btns.map((b) => {
       if (!Array.isArray(b)) return [b];
       else return b;
-    })
+    });
     // btns.splice(5, 2, erasereset);
 
     return btns;

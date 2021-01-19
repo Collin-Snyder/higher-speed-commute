@@ -153,10 +153,10 @@ export async function loadUserMap(levelId: number) {
   let map = await db.userMaps.get(levelId);
   let miniMap = minify(map);
   let extraMiniMap = extraMinify(map);
-  console.log("Regular map string length: ", JSON.stringify(map).length);
-  console.log("Mini map string length: ", miniMap.length);
-  console.log("Extra mini map string length: ", extraMiniMap.length);
-  console.log("Extra mini map: ", extraMiniMap);
+  // console.log("Regular map string length: ", JSON.stringify(map).length);
+  // console.log("Mini map string length: ", miniMap.length);
+  // console.log("Extra mini map string length: ", extraMiniMap.length);
+  // console.log("Extra mini map: ", extraMiniMap);
   return map;
 }
 

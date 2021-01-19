@@ -95,7 +95,7 @@ class GameModeMachine {
         if (game.mode !== "menu") return;
         let entities = game.ecs.queryEntities({ has: ["menu", "main"] });
         for (let entity of entities) {
-          entity.removeTag("noninteractive");
+          entity.removeTag("NI");
         }
         console.log("menu loaded");
       },
@@ -103,7 +103,7 @@ class GameModeMachine {
         let game = <Game>(<unknown>this);
         let entities = game.ecs.queryEntities({ has: ["menu", "main"] });
         for (let entity of entities) {
-          entity.addTag("noninteractive");
+          entity.addTag("NI");
         }
       },
       onstart: function(level: number) {
@@ -155,7 +155,7 @@ class GameModeMachine {
           has: ["menu", "gameplay", "won"],
         });
         for (let button of buttons) {
-          button.removeTag("noninteractive");
+          button.removeTag("NI");
         }
 
         let graphic = game.ecs.getEntity("wonGraphic");
@@ -206,7 +206,7 @@ class GameModeMachine {
           has: ["menu", "gameplay", "lost"],
         });
         for (let button of buttons) {
-          button.removeTag("noninteractive");
+          button.removeTag("NI");
         }
 
         if (game.recordRaceData) game.saveRaceData("loss");
@@ -238,7 +238,7 @@ class GameModeMachine {
           has: ["menu", "gameplay", "lost"],
         });
         for (let button of buttons) {
-          button.removeTag("noninteractive");
+          button.removeTag("NI");
         }
         let graphic = game.ecs.getEntity("crashGraphic");
 
@@ -275,7 +275,7 @@ class GameModeMachine {
           has: ["menu", "gameplay", "paused"],
         });
         for (let entity of entities) {
-          entity.removeTag("noninteractive");
+          entity.removeTag("NI");
         }
 
         mapEntity.Renderable.bgColor = "lightgray";
@@ -293,7 +293,7 @@ class GameModeMachine {
           has: ["menu", "gameplay", "paused"],
         });
         for (let entity of entities) {
-          if (!entity.has("noninteractive")) entity.addTag("noninteractive");
+          if (!entity.has("NI")) entity.addTag("NI");
         }
         mapEntity.Renderable.bgColor = "#81c76d";
         game.mapView = false;
@@ -302,7 +302,7 @@ class GameModeMachine {
         let game = <Game>(<unknown>this);
         let entities = game.ecs.queryEntities({ has: ["menu", "gameplay"] });
         for (let entity of entities) {
-          if (!entity.has("noninteractive")) entity.addTag("noninteractive");
+          if (!entity.has("NI")) entity.addTag("NI");
         }
         // game.ecs.runSystemGroup("map");
         game.publish("chooseDifficulty");
@@ -313,7 +313,7 @@ class GameModeMachine {
 
         let entities = game.ecs.queryEntities({ has: ["menu", "gameplay"] });
         for (let entity of entities) {
-          entity.addTag("noninteractive");
+          entity.addTag("NI");
         }
 
         game.publish("start", next);
@@ -352,7 +352,7 @@ class GameModeMachine {
 
         let entities = game.ecs.queryEntities({ has: ["menu", "design"] });
         for (let entity of entities) {
-          entity.removeTag("noninteractive");
+          entity.removeTag("NI");
         }
 
         game.designModule.setDesignTool("street");
@@ -380,11 +380,11 @@ class GameModeMachine {
           // }
 
           //reset map entity
-          mapEntity.Map.map = null;
-          mapEntity.TileMap.tiles = [];
-          mapEntity.Coordinates.X = 0;
-          mapEntity.Coordinates.Y = 0;
-          mapEntity.removeComponentByType("Clickable");
+          // mapEntity.Map.map = null;
+          // mapEntity.TileMap.tiles = [];
+          // mapEntity.Coordinates.X = 0;
+          // mapEntity.Coordinates.Y = 0;
+          // mapEntity.removeComponentByType("Clickable");
 
           //change mode
         }
@@ -394,8 +394,10 @@ class GameModeMachine {
         //if map issue present, prompt user to confirm
       },
       ontest: function() {
-        //load current state of map into game as Map
+        //load current state of map into game as ArcadeMap
         //do not save automatically
+        let game = <Game>(<unknown>this);
+        game.testCurrentSandboxMap();
       },
       onbeforequit: function() {
         //if state is currently playing/paused, prompt "Are you sure you want to quit?"
@@ -411,14 +413,14 @@ class GameModeMachine {
             has: ["menu", "design"],
           });
           for (let entity of designMenuButtons) {
-            if (!entity.has("noninteractive")) entity.addTag("noninteractive");
+            if (!entity.has("NI")) entity.addTag("NI");
           }
         } else {
           let gameplayMenuButtons = game.ecs.queryEntities({
             has: ["menu", "gameplay"],
           });
           for (let entity of gameplayMenuButtons) {
-            if (!entity.has("noninteractive")) entity.addTag("noninteractive");
+            if (!entity.has("NI")) entity.addTag("NI");
           }
         }
 
@@ -436,7 +438,7 @@ class GameModeMachine {
           has: ["menu", "gameplay", "won"],
         });
         for (let entity of entities) {
-          entity.addTag("noninteractive");
+          entity.addTag("NI");
         }
         mapEntity.Renderable.visible = false;
       },
@@ -498,7 +500,7 @@ class GameModeMachine {
       },
       {
         name: "chooseDifficulty",
-        from: ["loadLevel", "paused", "won", "lost", "crash"],
+        from: ["loadLevel", "paused", "won", "lost", "crash", "designing"],
         to: "chooseDifficulty",
       },
       {

@@ -738,6 +738,21 @@ export class SandboxMap extends ArcadeMap {
     return save;
   }
 
+  exportMapObject(): IMapObject {
+    const mapObj = {
+      boardHeight: this.height,
+      boardWidth: this.width,
+      playerHome: this.playerHome,
+      bossHome: this.bossHome,
+      office: this.office,
+      squares: this.squares,
+      lights: this.lights,
+      coffees: this.coffees,
+      name: this.name ? this.name : "Untitled map",
+    };
+    return mapObj;
+  }
+
   saveMapAsync(): Promise<any> {
     return updateUserMap(this).then((id) => (this.id = id));
   }
@@ -746,7 +761,7 @@ export class SandboxMap extends ArcadeMap {
     let newSandboxMap; 
     if (this.id) {
       //if this map has already been saved
-      //update new map name for storage, but do not change this map object's name or id
+      //update new map's name for storage purposes, but do not change this map object's name or id
       newSandboxMap = <SandboxMap>this.exportForLocalSaveAs();
       newSandboxMap.name = name;
       return saveNewUserMap(newSandboxMap);

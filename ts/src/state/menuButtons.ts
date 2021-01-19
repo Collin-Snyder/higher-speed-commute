@@ -163,6 +163,15 @@ export class MenuButtons {
         width: 200,
         tags: ["menu", "design", "admin"],
       },
+      loadSaved: {
+        name: "loadSaved",
+        onClick: function() {
+          game.publish("loadSaved");
+        },
+        width: 200,
+        height: 75,
+        tags: ["menu", "design", "admin"],
+      },
       save: {
         name: "save",
         onClick: function() {
@@ -182,16 +191,26 @@ export class MenuButtons {
         width: 200,
         tags: ["menu", "design", "admin"],
       },
-      loadSaved: {
-        name: "loadSaved",
+      test: {
+        name: "test",
         onClick: function() {
-          game.publish("loadSaved");
+          console.log("you clicked test!");
+          game.playMode = "custom";
+          game.publish("test");
         },
-        width: 200,
         height: 75,
-        tags: ["menu", "design", "admin"],
+        width: 200,
+        tags: ["menu", "design", "admin"]
       },
-
+      export: {
+        name: "export",
+        onClick: function() {
+          console.log("you clicked export!");
+        },
+        height: 75,
+        width: 200,
+        tags: ["menu", "design", "admin"]
+      },
       undo: {
         name: "undo",
         onClick: function() {
@@ -228,15 +247,7 @@ export class MenuButtons {
         width: 75,
         tags: ["menu", "design", "config"],
       },
-      test: {
-        name: "test",
-        onClick: function() {
-          console.log("you clicked test!")
-        },
-        height: 75,
-        width: 200,
-        tags: ["menu", "design", "admin"]
-      },
+     
       issues: {
         name: "issues",
         onClick: function() {},
@@ -302,7 +313,7 @@ export class MenuButtons {
         entity.addTag(tag);
       }
 
-      entity.addTag("noninteractive");
+      entity.addTag("NI");
     }
   }
 }
