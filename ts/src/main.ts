@@ -178,7 +178,6 @@ export class Game {
     this.registerComponents();
     this.registerTags();
     this.registerSubscribers();
-    // this.registerSounds();
 
     this.globalEntity = this.ecs.createEntity({
       id: "global",

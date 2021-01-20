@@ -7,6 +7,7 @@ import { extraMinify, minify } from "./levelCompression";
 export class LocalDB extends Dexie {
   userMaps: Dexie.Table<SandboxMap>;
   arcadeMaps: Dexie.Table<any>;
+  mapTestData: Dexie.Table<any>
 
   constructor() {
     super("LocalDB");
@@ -14,10 +15,12 @@ export class LocalDB extends Dexie {
     this.version(1).stores({
       userMaps: "++id, &name",
       arcadeMaps: "++id, &name, &levelNumber",
+      mapTestData: "++id, levelId, outcome, difficulty, duration, date, coffeesConsumedCount, redLightsHitCount, timeInSchoolZone"
     });
 
     this.userMaps = this.table("userMaps");
     this.arcadeMaps = this.table("arcadeMaps");
+    this.mapTestData = this.table("mapTestData");
   }
 }
 
@@ -170,6 +173,10 @@ export async function updateUserMap(map: SandboxMap) {
 
 export async function saveNewUserMap(mapData: any) {
   return db.userMaps.add(mapData);
+}
+
+export async function saveTestData(mapTestDataObj: any) {
+  return db.mapTestData.add(mapTestDataObj);
 }
 
 /////////////////////////////////
