@@ -36,6 +36,19 @@ export interface IMapObject {
   coffees: { [key: string]: boolean };
 }
 
+export interface IMiniMapObject {
+  i: number,
+  n: string,
+  h: number,
+  w: number, 
+  p: number,
+  b: number,
+  o: number,
+  l: {[key: string]: number},
+  c: number[],
+  s: any[]
+}
+
 export interface ISquare {
   id: number;
   row: number;
@@ -128,6 +141,29 @@ export class ArcadeMap implements IArcadeMap {
       newMap.squares[i].drivable = squares[i].drivable;
       newMap.squares[i].schoolZone = squares[i].schoolZone;
     }
+    return newMap;
+  }
+
+  static fromMiniMapObject(miniMapObj: IMiniMapObject): ArcadeMap {
+    let {h, w, p, b, o, l, c, s} = miniMapObj;
+    let coffees = <{[key: string]: boolean}>{};
+    c.forEach(id => coffees[id] = true);
+
+    const newMap = new this(w, h);
+
+    newMap.playerHome = p;
+    newMap.bossHome = b;
+    newMap.office = o;
+    newMap.lights = l;
+    newMap.coffees = coffees;
+
+    s.forEach((s: any) => {
+      let {i, d, z} = s;
+      let id = Number(i);
+      newMap.setSquare(id, "drivable", !!d);
+      newMap.setSquare(id, "schoolZone", !!z);
+    })
+    
     return newMap;
   }
 
@@ -702,6 +738,21 @@ export class SandboxMap extends ArcadeMap {
     return save;
   }
 
+  exportMapObject(): IMapObject {
+    const mapObj = {
+      boardHeight: this.height,
+      boardWidth: this.width,
+      playerHome: this.playerHome,
+      bossHome: this.bossHome,
+      office: this.office,
+      squares: this.squares,
+      lights: this.lights,
+      coffees: this.coffees,
+      name: this.name ? this.name : "Untitled map",
+    };
+    return mapObj;
+  }
+
   saveMapAsync(): Promise<any> {
     return updateUserMap(this).then((id) => (this.id = id));
   }
@@ -710,7 +761,7 @@ export class SandboxMap extends ArcadeMap {
     let newSandboxMap; 
     if (this.id) {
       //if this map has already been saved
-      //update new map name for storage, but do not change this map object's name or id
+      //update new map's name for storage purposes, but do not change this map object's name or id
       newSandboxMap = <SandboxMap>this.exportForLocalSaveAs();
       newSandboxMap.name = name;
       return saveNewUserMap(newSandboxMap);

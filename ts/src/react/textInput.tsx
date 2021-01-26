@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, KeyboardEvent } from "react";
 import { ModalInputContext } from "./modalInputContext";
 
 const TextInput = () => {
@@ -10,7 +10,7 @@ const TextInput = () => {
       onChange={(e) => {
         dispatch({ type: "SET_INPUT_VALUE", payload: e.target.value });
       }}
-      onKeyPress={(e) => {
+      onKeyPress={(e: KeyboardEvent) => {
           if (e.key === "Enter" && inputState.inputValue) {
             let input = inputState.inputValue === "" ? e : inputState.inputValue;
             inputState.submitInput(input);

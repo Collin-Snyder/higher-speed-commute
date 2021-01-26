@@ -134,4 +134,45 @@ class LogTimers {
   }
 }
 
+interface ILoggerOptions {
+  oneTimeLog?: boolean;
+  interval?: number;
+  intervalUnit?: "ms" | "ticks";
+}
+
+class LogTimerNew implements ILoggerOptions {
+  public oneTimeLog: boolean;
+  public interval: number;
+  public intervalUnit: "ms" | "ticks";
+
+  constructor(options: ILoggerOptions) {
+    this.oneTimeLog = options.oneTimeLog ?? false;
+    this.interval = options.interval ?? 1000;
+    this.intervalUnit = options.intervalUnit ?? "ms";
+  }
+}
+
+class Logger {
+  private timers: Map<number, LogTimerNew>
+  private lastTimerId: number;
+  constructor(private _game: Game) {
+    this.timers = new Map();
+    this.lastTimerId = 0;
+
+
+  }
+
+  addTimer(options: ILoggerOptions) {
+    let id =++this.lastTimerId
+    this.timers.set(id, new LogTimerNew(options));
+    return id;
+  }
+
+  log(){}
+
+  cancelLogger(timerId: number) {
+    this.timers.delete(timerId);
+  }
+}
+
 export default LogTimers;

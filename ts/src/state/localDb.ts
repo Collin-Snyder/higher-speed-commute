@@ -1,11 +1,13 @@
 import Dexie from "dexie";
 import { ArcadeMap, SandboxMap } from "./map";
 //@ts-ignore
-import seedData from "./seedData.json";
+import seedData from "./seedData.ts";
+import { extraMinify, minify } from "./levelCompression";
 
 export class LocalDB extends Dexie {
   userMaps: Dexie.Table<SandboxMap>;
   arcadeMaps: Dexie.Table<any>;
+  mapTestData: Dexie.Table<any>
 
   constructor() {
     super("LocalDB");
@@ -13,17 +15,19 @@ export class LocalDB extends Dexie {
     this.version(1).stores({
       userMaps: "++id, &name",
       arcadeMaps: "++id, &name, &levelNumber",
+      mapTestData: "++id, levelId, outcome, difficulty, duration, date, coffeesConsumedCount, redLightsHitCount, timeInSchoolZone"
     });
 
     this.userMaps = this.table("userMaps");
     this.arcadeMaps = this.table("arcadeMaps");
+    this.mapTestData = this.table("mapTestData");
   }
 }
 
 const db = new LocalDB();
 
 db.on("populate", async function() {
-  let arcadeMaps = seedData.map(
+  let arcadeMaps = JSON.parse(seedData).map(
     ({
       level_number,
       name,
@@ -112,8 +116,51 @@ export async function loadArcadeLevel(levelNum: number) {
   };
 }
 
+export async function loadCustomLevel(levelId: number) {
+  let level = await db.userMaps.get(Number(levelId));
+
+  if (!level) throw new Error(`There is no user level with id ${levelId}`);
+
+  let {
+    id,
+    name,
+    boardHeight,
+    boardWidth,
+    playerHome,
+    bossHome,
+    office,
+    squares,
+    lights,
+    coffees,
+  } = level;
+
+  return {
+    id,
+    levelNumber: 0,
+    name,
+    description: "",
+    mapInfo: {
+      boardHeight,
+      boardWidth,
+      playerHome,
+      bossHome,
+      office,
+      squares,
+      lights,
+      coffees,
+    },
+  };
+}
+
 export async function loadUserMap(levelId: number) {
-  return db.userMaps.get(levelId);
+  let map = await db.userMaps.get(levelId);
+  let miniMap = minify(map);
+  let extraMiniMap = extraMinify(map);
+  // console.log("Regular map string length: ", JSON.stringify(map).length);
+  // console.log("Mini map string length: ", miniMap.length);
+  // console.log("Extra mini map string length: ", extraMiniMap.length);
+  // console.log("Extra mini map: ", extraMiniMap);
+  return map;
 }
 
 export async function loadAllUserMaps() {
@@ -121,11 +168,15 @@ export async function loadAllUserMaps() {
 }
 
 export async function updateUserMap(map: SandboxMap) {
-    return db.userMaps.put(map);
+  return db.userMaps.put(map);
 }
 
 export async function saveNewUserMap(mapData: any) {
-    return db.userMaps.add(mapData);
+  return db.userMaps.add(mapData);
+}
+
+export async function saveTestData(mapTestDataObj: any) {
+  return db.mapTestData.add(mapTestDataObj);
 }
 
 /////////////////////////////////

@@ -43,7 +43,8 @@ import {
   RenderTopLevelGraphics,
   RenderBorders,
 } from "./systems/render";
-import { loadArcadeLevel } from "./state/localDb";
+import { loadArcadeLevel, loadCustomLevel } from "./state/localDb";
+import { textChangeRangeIsUnchanged } from "typescript";
 
 declare global {
   interface Window {
@@ -60,7 +61,7 @@ declare global {
 
 window.makeSeedData = function() {
   axios
-    .post("/generate_arcade_map_json")
+    .post("/generate_seed_data")
     .then((result) => console.log(result))
     .catch((err) => console.error(err));
 };
@@ -81,6 +82,7 @@ export class Game {
   private tickTimes: number[];
   public inputs: InputEvents;
   public mode: Mode;
+  public playMode: "arcade" | "custom" | "testing" | "";
   public modeMachine: GameModeMachine;
   public subscribers: { [key: string]: Function[] };
   public spritesheet: HTMLImageElement;
@@ -126,6 +128,7 @@ export class Game {
     this.frameElapsedTime = 0;
     this.tickTimes = [];
     this.mode = "init";
+    this.playMode = "";
     this.modeMachine = new GameModeMachine("init");
     this.ecs = new EntityComponentSystem.ECS();
     this.firstLevel = 8;
@@ -175,7 +178,6 @@ export class Game {
     this.registerComponents();
     this.registerTags();
     this.registerSubscribers();
-    // this.registerSounds();
 
     this.globalEntity = this.ecs.createEntity({
       id: "global",
@@ -346,6 +348,7 @@ export class Game {
       let onbefore = this.modeMachine.defaultActions[`onbefore${event.name}`];
       let on = this.modeMachine.defaultActions[`on${event.name}`];
       let onNewState = this.modeMachine.defaultActions[`on${event.to}`];
+      this.subscribe(event.name, () => {console.log(`Attempting event "${event.name}"`)})
       this.subscribe(event.name, validate.bind(this, event.name, event.from));
       this.subscribe(event.name, () => {
         let onleave = this.modeMachine.defaultActions[`onleave${this.mode}`];
@@ -453,29 +456,41 @@ export class Game {
     this.publish("ready");
   }
 
-  loadLevel(num: number): void {
-    loadArcadeLevel(num)
-      .then((result) => {
-        if (result === "end of game") {
-          this.publish("endOfGame");
-          return;
-        }
+  async loadLevel(
+    level: number /*can be either level number if arcade mode or level id if custom mode*/
+  ) {
+    try {
+      let loadFunc = loadArcadeLevel;
+      if (this.playMode === "custom") loadFunc = loadCustomLevel;
 
-        let { id, name, levelNumber, description, mapInfo } = result;
-        this.currentLevel = {
-          id,
-          name,
-          number: levelNumber,
-          description,
-        };
-        let mapEntity = this.ecs.getEntity("map");
-        mapEntity.Map.mapId = id;
-        mapEntity.Map.map = ArcadeMap.fromMapObject(mapInfo);
-        this.publish("chooseDifficulty");
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+      let result = await loadFunc(level);
+
+      if (result === "end of game") {
+        this.publish("endOfGame");
+        return;
+      }
+
+      let { id, name, levelNumber, description, mapInfo } = <any>result;
+      this.currentLevel = {
+        id,
+        name,
+        number: levelNumber,
+        description,
+      };
+      let mapEntity = this.ecs.getEntity("map");
+      mapEntity.Map.mapId = id;
+      mapEntity.Map.map = ArcadeMap.fromMapObject(mapInfo);
+      this.publish("chooseDifficulty");
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  testCurrentSandboxMap() {
+    let mapEntity = this.ecs.getEntity("map");
+    let mapInfo = mapEntity.Map.map.exportMapObject();
+    mapEntity.Map.map = ArcadeMap.fromMapObject(mapInfo);
+    this.publish("chooseDifficulty");
   }
 
   loadLevelFromBackend(num: number): void {
@@ -714,6 +729,8 @@ export class InputEvents {
   };
 
   private handleKeypress = (e: KeyboardEvent) => {
+    if ((e.target as HTMLElement)?.tagName == 'INPUT') return;
+
     this.shift = e.getModifierState("Shift");
     this.ctrl = e.getModifierState("Control");
 

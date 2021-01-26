@@ -6,9 +6,6 @@ export function generateModalTitles(modalName: string, levelNum: number): {title
   let output = {title: "", subtitle: ""};
   if (modalName === "levelStart") {
     let {name, description} = window.game.currentLevel;
-    console.log("current level: ", window.game.currentLevel)
-    console.log("Name: ", name)
-    console.log("Description: ", description)
     output.title = name;
     output.subtitle = description;
   }

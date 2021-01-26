@@ -56,9 +56,7 @@ export class CollisionSystem extends ECS.System {
     let mapCollision = this.detectMapCollision(entity);
     switch (mapCollision) {
       case "boundary":
-        // console.log("NEW COLLISION")
         do {
-          // if (entity.id === "player") console.log(entity.Velocity.vector);
           this.revert(entity);
           if (!entity.Velocity.altVectors.length) break;
           // entity.Velocity.prevVector = entity.Velocity.vector;
@@ -97,35 +95,6 @@ export class CollisionSystem extends ECS.System {
           entity.removeComponentByType("SchoolZone");
         }
     }
-    // if (entity.id === "boss" && mapCollision) {
-    //   this.game.logTimers.addTimerIfNotExisting("bossCollision", "ms", 300);
-    //   this.game.logTimers.logIfReady(
-    //     "bossCollision",
-    //     "Boss collision: ",
-    //     mapCollision,
-    //     window.performance.now()
-    //   );
-    // }
-
-    // if (entity.id === "boss") {
-    //   this.game.logTimers.addTimerIfNotExisting("bossXY", "ms", 300);
-    //   this.game.logTimers.logIfReady(
-    //     "bossXY",
-    //     "Boss coords: ",
-    //     {X: entity.Coordinates.X, Y: entity.Coordinates.Y},
-    //     window.performance.now()
-    //   );
-    // }
-
-    // if (entity.id === "boss" && entity.has("SchoolZone") && !mapCollision) {
-    //   this.game.logTimers.addTimerIfNotExisting("bossSZ", "ms", 300);
-    //   this.game.logTimers.logIfReady(
-    //     "bossSZ",
-    //     "Boss has schoolzone with no collision ",
-    //     // entity.SchoolZone,
-    //     window.performance.now()
-    //   );
-    // }
   }
 
   detectMapCollision(
@@ -185,12 +154,6 @@ export class CollisionSystem extends ECS.System {
     let collisions = this.detectEntityCollisions(entity);
     for (let c of collisions) {
       if (c.has("Car") && this.game.mode !== "lost") {
-        // console.log(entity.id);
-        // console.log(entity.Coordinates);
-        // console.log(entity.Collision.hb);
-        // console.log(collisions[0].id);
-        // console.log(collisions[0].Coordinates);
-        // console.log(collisions[0].Collision.hb);
         this.game.publish("crash");
       }
       if (c.has("Timer") && c.has("Color") && c.Color.color === "red") {
@@ -235,8 +198,8 @@ export class CollisionSystem extends ECS.System {
   }
 
   checkForValidLightCollision(entity: Entity, lightEntity: Entity) {
-    if (entity.Velocity.vector.X === 0 && entity.Velocity.vector.Y === 0)
-      return false;
+    let { X, Y } = entity.Velocity.vector;
+    if (X === 0 && Y === 0) return false;
     const speedConstant = calculateSpeedConstant(entity);
     let prevEnt = {
       ...entity,
@@ -302,7 +265,8 @@ export class CollisionSystem extends ECS.System {
     );
     entity.Coordinates.X = X;
     entity.Coordinates.Y = Y;
-    if (entity.Velocity.prevVector) entity.Velocity.vector = entity.Velocity.prevVector;
+    if (entity.Velocity.prevVector)
+      entity.Velocity.vector = entity.Velocity.prevVector;
     // entity.Velocity.prevVector = null;
     let deg = findDegFromVector(entity.Velocity.vector);
     if (deg >= 0) entity.Renderable.degrees = deg;

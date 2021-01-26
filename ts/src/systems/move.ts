@@ -33,19 +33,6 @@ export class MovementSystem extends ECS.System {
 
   handlePlayerMovement(entity: Entity): void {
     const playerSpeedConstant = calculateSpeedConstant(entity);
-    // const oldVector = entity.Velocity.vector;
-    // const vectors = entity.Velocity.altVectors;
-    // if (vectors.length > 1) {
-    //   let firstAlt = vectors[0];
-    //   entity.Velocity.vector = normalize(vectors);
-    //   if (oldVector.X === firstAlt.X && oldVector.Y === firstAlt.Y) {
-    //     vectors[0] = vectors[1];
-    //     vectors[1] = firstAlt;
-    //   }
-    // } else {
-    //   entity.Velocity.vector = vectors[0];
-    //   entity.Velocity.altVectors.pop();
-    // }
     entity.Velocity.prevVector = entity.Velocity.vector;
     entity.Velocity.vector = entity.Velocity.altVectors.shift();
     entity.Coordinates.X += entity.Velocity.vector.X * playerSpeedConstant;
@@ -68,7 +55,7 @@ export class MovementSystem extends ECS.System {
       let [newX, newY] = path[path.length - 2];
       let Xdiff = newX - X;
       let Ydiff = newY - Y;
-      entity.Velocity.prevVector = entity.Velocity.vector;
+      // entity.Velocity.prevVector = entity.Velocity.vector;
       if (Math.abs(Xdiff) > Math.abs(Ydiff)) {
         entity.Velocity.vector = { X: Math.sign(Xdiff), Y: 0 };
       } else {

@@ -1,4 +1,5 @@
 import EntityComponentSystem, { Entity, ECS, BaseComponent } from "@fritzy/ecs";
+import { Game } from "../main";
 import {
   centerWithin,
   getCenterPoint,
@@ -393,8 +394,8 @@ export class RenderSandbox extends EntityComponentSystem.System {
   update(tick: number, entities: Set<Entity>) {
     let { game, spriteMap, spriteSheet } = this.ecs.getEntity("global").Global;
     let { mode, designModule } = game;
+    if (this.changes.length > 0 ) console.log(this.changes);
 
-    
     if (mode !== "designing") return;
     // console.log("RenderSandbox update is running");
 
@@ -405,7 +406,6 @@ export class RenderSandbox extends EntityComponentSystem.System {
 
     this.ctx.fillStyle = "lightgray";
     this.ctx.fillRect(X, Y, map.pixelWidth, map.pixelHeight);
-
     drawTileMap(
       TileMap.tiles,
       map.width,
@@ -824,16 +824,26 @@ export class RenderMenus extends EntityComponentSystem.System {
 
   update(tick: number, entities: Set<Entity>) {
     let global = this.ecs.getEntity("global").Global;
-    let mode = global.game.mode;
+    let game = <Game>global.game;
+    let { mode, playMode } = game;
 
     //calculate coordinates for buttons using button spacing logic and current state/size of game
     if (!this.modeNames.includes(mode)) return;
-    this.buttonEntities = this.selectButtons(mode);
+    this.buttonEntities = this.selectButtons(mode, playMode);
+    this.buttonEntities.forEach(e => {
+      if (e.has("NI")) e.removeTag("NI");
+    })
     let { pixelWidth, pixelHeight } = global.map.Map.map ?? {
       pixelHeight: 0,
       pixelWidth: 0,
     };
+    let { weight } = global.map.Border ?? { weight: 0 };
     let { X, Y } = global.map.Coordinates ?? { X: 0, Y: 0 };
+
+    let borderX = X - weight;
+    let borderY = Y - weight;
+    let borderWidth = pixelWidth + weight * 2;
+    let borderHeight = pixelHeight + weight * 2;
 
     switch (mode) {
       case "menu":
@@ -843,20 +853,34 @@ export class RenderMenus extends EntityComponentSystem.System {
       case "won":
       case "lost":
       case "crash":
-        this.renderGameplayMenu(mode, X, Y, pixelWidth, pixelHeight);
+        this.renderGameplayMenu(
+          mode,
+          borderX,
+          borderY,
+          borderWidth,
+          borderHeight
+        );
         return;
       case "designing":
-        this.renderDesignMenus(X, Y, pixelWidth, pixelHeight);
+        let {saved} = game.designModule;
+        this.renderDesignMenus(borderX, borderY, borderWidth, borderHeight, saved);
         return;
       default:
         return;
     }
   }
 
-  selectButtons(mode: string) {
-    return [
+  selectButtons(mode: string, playMode: "arcade" | "custom" | "testing" | "") {
+    let btns = [
       ...this.ecs.queryEntities({ has: ["menu", ...this.menuTags[mode]] }),
     ];
+    if (playMode) {
+      if (mode === "won" || playMode === "testing") btns = btns.filter((b) => b.has(playMode));
+    }
+    if (mode === "won" && playMode) {
+      btns = btns.filter((b) => b.has(playMode));
+    }
+    return btns;
   }
 
   positionButtons(
@@ -1179,9 +1203,31 @@ export class RenderMenus extends EntityComponentSystem.System {
     mapWidth: number,
     mapHeight: number
   ) {
-    let formattedBtns = this.formatDesignAdminButtons(adminBtns);
+    // let formattedBtns = this.formatDesignAdminButtons(adminBtns);
     this.positionButtons(
       mapX + mapWidth,
+      (window.innerHeight - mapHeight) / 2,
+      (window.innerWidth - mapWidth) / 2,
+      mapHeight,
+      200,
+      75,
+      "vertical",
+      adminBtns,
+      "spaceEvenly"
+    );
+    this.drawButtons(adminBtns);
+  }
+
+  renderDesignConfigMenu(
+    configBtns: Entity[],
+    mapX: number,
+    mapY: number,
+    mapWidth: number,
+    mapHeight: number
+  ) {
+    let formattedBtns = this.formatDesignConfigButtons(configBtns);
+    this.positionButtons(
+      0,
       (window.innerHeight - mapHeight) / 2,
       (window.innerWidth - mapWidth) / 2,
       mapHeight,
@@ -1191,33 +1237,45 @@ export class RenderMenus extends EntityComponentSystem.System {
       formattedBtns,
       "spaceEvenly"
     );
-    this.drawButtons(adminBtns);
+    this.drawButtons(configBtns);
   }
 
   renderDesignMenus(
     mapX: number,
     mapY: number,
     mapWidth: number,
-    mapHeight: number
+    mapHeight: number,
+    saved: boolean
   ) {
     const toolbarBtns = this.buttonEntities.filter((e) => e.has("toolbar"));
-    const adminBtns = this.buttonEntities.filter((e) => e.has("admin"));
-    // const configBtns = this.buttonEntities.filter(e => e.has("config"));
+    const adminBtns = this.buttonEntities.filter((e) => {
+      if (!saved) return e.has("admin");
+      
+      let visible = e.has("admin") && !/save/.test(e.id);
+      if (!visible && !e.has("NI")) e.addTag("NI");
+      return visible;
+    });
+    const configBtns = this.buttonEntities.filter((e) => e.has("config"));
 
     this.renderDesignToolbarMenu(toolbarBtns, mapX, mapY, mapWidth, mapHeight);
     this.renderDesignAdminMenu(adminBtns, mapX, mapY, mapWidth, mapHeight);
+    this.renderDesignConfigMenu(configBtns, mapX, mapY, mapWidth, mapHeight);
   }
 
-  formatDesignAdminButtons(adminBtns: Entity[]) {
-    const undoredo = adminBtns.filter(
-      (b) => b.Button.name === "undo" || b.Button.name === "redo"
+  formatDesignConfigButtons(configBtns: Entity[]) {
+    const undoredo = configBtns.filter(
+      (b: Entity) => b.Button.name === "undo" || b.Button.name === "redo"
     );
-    const erasereset = adminBtns.filter(
-      (b) => b.Button.name === "eraser" || b.Button.name === "reset"
-    );
-    let btns: Array<Entity | Array<Entity>> = adminBtns.slice();
-    btns.splice(4, 2, undoredo);
-    btns.splice(5, 2, erasereset);
+    // const erasereset = adminBtns.filter(
+    //   (b) => b.Button.name === "eraser" || b.Button.name === "reset"
+    // );
+    let btns: Array<Entity | Array<Entity>> = configBtns.slice();
+    btns.splice(0, 2, undoredo);
+    btns = btns.map((b) => {
+      if (!Array.isArray(b)) return [b];
+      else return b;
+    });
+    // btns.splice(5, 2, erasereset);
 
     return btns;
   }

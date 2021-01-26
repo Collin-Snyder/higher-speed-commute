@@ -36,7 +36,7 @@ export class InputSystem extends ECS.System {
     //handle mouse inputs
     let clickable = this.ecs.queryEntities({
       has: ["Clickable", "Coordinates"],
-      hasnt: ["noninteractive"],
+      hasnt: ["NI"],
     });
     let cursor = "default";
     let clicked;

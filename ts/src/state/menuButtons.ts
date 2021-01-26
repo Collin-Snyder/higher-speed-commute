@@ -18,8 +18,19 @@ export class MenuButtons {
       play: {
         name: "play",
         onClick: function() {
-          game.publish("leaveMenu");
+          // game.publish("leaveMenu");
+          game.playMode = "arcade";
           game.publish("start", game.firstLevel);
+        },
+        height: 75,
+        width: 200,
+        tags: ["menu", "main"],
+      },
+      playSaved: {
+        name: "playSaved",
+        onClick: function() {
+          game.playMode = "custom";
+          game.publish("loadSaved");
         },
         height: 75,
         width: 200,
@@ -32,7 +43,16 @@ export class MenuButtons {
         },
         height: 75,
         width: 200,
-        tags: ["menu", "gameplay", "won"],
+        tags: ["menu", "gameplay", "won", "arcade"],
+      },
+      newMap: {
+        name: "newMap",
+        onClick: function() {
+          game.publish("loadSaved");
+        },
+        height: 75,
+        width: 200,
+        tags: ["menu", "gameplay", "won", "lost", "crash", "custom"],
       },
       resume: {
         name: "resume",
@@ -50,7 +70,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 200,
-        tags: ["menu", "gameplay", "paused", "won", "lost", "crash"],
+        tags: ["menu", "gameplay", "paused", "won", "lost", "crash", "arcade", "custom", "testing"],
       },
       quit: {
         name: "quit",
@@ -59,8 +79,15 @@ export class MenuButtons {
         },
         height: 75,
         width: 200,
-        tags: ["menu", "gameplay", "paused", "won", "lost", "crash"],
+        tags: ["menu", "gameplay", "paused", "won", "lost", "crash", "arcade", "custom"],
       },
+      // backToDesign: {
+      //   name: "backToDesign",
+      //   onClick: function() {},
+      //   height: 75,
+      //   width: 200,
+      //   tags: ["menu", "gameplay", "paused", "won", "lost", "crash", "arcade", "custom"]
+      // },
       design: {
         name: "design",
         onClick: function() {
@@ -143,6 +170,15 @@ export class MenuButtons {
         width: 200,
         tags: ["menu", "design", "admin"],
       },
+      loadSaved: {
+        name: "loadSaved",
+        onClick: function() {
+          game.publish("loadSaved");
+        },
+        width: 200,
+        height: 75,
+        tags: ["menu", "design", "admin"],
+      },
       save: {
         name: "save",
         onClick: function() {
@@ -162,16 +198,26 @@ export class MenuButtons {
         width: 200,
         tags: ["menu", "design", "admin"],
       },
-      loadSaved: {
-        name: "loadSaved",
-        onClick: function() {
-          game.publish("loadSaved");
-        },
-        width: 200,
-        height: 75,
-        tags: ["menu", "design", "admin"],
-      },
-
+      // test: {
+      //   name: "test",
+      //   onClick: function() {
+      //     console.log("you clicked test!");
+      //     game.playMode = "test";
+      //     game.publish("test");
+      //   },
+      //   height: 75,
+      //   width: 200,
+      //   tags: ["menu", "design", "admin"]
+      // },
+      // export: {
+      //   name: "export",
+      //   onClick: function() {
+      //     console.log("you clicked export!");
+      //   },
+      //   height: 75,
+      //   width: 200,
+      //   tags: ["menu", "design", "admin"]
+      // },
       undo: {
         name: "undo",
         onClick: function() {
@@ -179,7 +225,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "admin"],
+        tags: ["menu", "design", "config"],
       },
       redo: {
         name: "redo",
@@ -188,7 +234,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "admin"],
+        tags: ["menu", "design", "config"],
       },
       erase: {
         name: "eraser",
@@ -197,7 +243,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "admin"],
+        tags: ["menu", "design", "config"],
       },
       reset: {
         name: "reset",
@@ -206,7 +252,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "admin"],
+        tags: ["menu", "design", "config"],
       },
       issues: {
         name: "issues",
@@ -224,13 +270,6 @@ export class MenuButtons {
       },
       stoplights: {
         name: "stoplights",
-        onClick: function() {},
-        height: 0,
-        width: 0,
-        tags: ["menu", "design", "config"],
-      },
-      test: {
-        name: "test",
         onClick: function() {},
         height: 0,
         width: 0,
@@ -273,7 +312,7 @@ export class MenuButtons {
         entity.addTag(tag);
       }
 
-      entity.addTag("noninteractive");
+      entity.addTag("NI");
     }
   }
 }
