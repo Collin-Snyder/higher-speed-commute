@@ -70,7 +70,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 200,
-        tags: ["menu", "gameplay", "paused", "won", "lost", "crash", "arcade", "custom"],
+        tags: ["menu", "gameplay", "paused", "won", "lost", "crash", "arcade", "custom", "testing"],
       },
       quit: {
         name: "quit",
@@ -81,6 +81,13 @@ export class MenuButtons {
         width: 200,
         tags: ["menu", "gameplay", "paused", "won", "lost", "crash", "arcade", "custom"],
       },
+      // backToDesign: {
+      //   name: "backToDesign",
+      //   onClick: function() {},
+      //   height: 75,
+      //   width: 200,
+      //   tags: ["menu", "gameplay", "paused", "won", "lost", "crash", "arcade", "custom"]
+      // },
       design: {
         name: "design",
         onClick: function() {
@@ -191,26 +198,26 @@ export class MenuButtons {
         width: 200,
         tags: ["menu", "design", "admin"],
       },
-      test: {
-        name: "test",
-        onClick: function() {
-          console.log("you clicked test!");
-          game.playMode = "custom";
-          game.publish("test");
-        },
-        height: 75,
-        width: 200,
-        tags: ["menu", "design", "admin"]
-      },
-      export: {
-        name: "export",
-        onClick: function() {
-          console.log("you clicked export!");
-        },
-        height: 75,
-        width: 200,
-        tags: ["menu", "design", "admin"]
-      },
+      // test: {
+      //   name: "test",
+      //   onClick: function() {
+      //     console.log("you clicked test!");
+      //     game.playMode = "test";
+      //     game.publish("test");
+      //   },
+      //   height: 75,
+      //   width: 200,
+      //   tags: ["menu", "design", "admin"]
+      // },
+      // export: {
+      //   name: "export",
+      //   onClick: function() {
+      //     console.log("you clicked export!");
+      //   },
+      //   height: 75,
+      //   width: 200,
+      //   tags: ["menu", "design", "admin"]
+      // },
       undo: {
         name: "undo",
         onClick: function() {
@@ -247,7 +254,6 @@ export class MenuButtons {
         width: 75,
         tags: ["menu", "design", "config"],
       },
-     
       issues: {
         name: "issues",
         onClick: function() {},
@@ -269,13 +275,6 @@ export class MenuButtons {
         width: 0,
         tags: ["menu", "design", "config"],
       },
-      // test: {
-      //   name: "test",
-      //   onClick: function() {},
-      //   height: 0,
-      //   width: 0,
-      //   tags: ["menu", "design", "config"],
-      // },
     };
 
     // MenuButtons.bindButtons(buttons, game);

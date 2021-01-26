@@ -870,10 +870,13 @@ export class RenderMenus extends EntityComponentSystem.System {
     }
   }
 
-  selectButtons(mode: string, playMode: "arcade" | "custom" | "") {
+  selectButtons(mode: string, playMode: "arcade" | "custom" | "testing" | "") {
     let btns = [
       ...this.ecs.queryEntities({ has: ["menu", ...this.menuTags[mode]] }),
     ];
+    if (playMode) {
+      if (mode === "won" || playMode === "testing") btns = btns.filter((b) => b.has(playMode));
+    }
     if (mode === "won" && playMode) {
       btns = btns.filter((b) => b.has(playMode));
     }

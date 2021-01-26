@@ -93,6 +93,7 @@ class GameModeMachine {
       onmenu: function() {
         let game = <Game>(<unknown>this);
         if (game.mode !== "menu") return;
+        game.playMode = "";
         let entities = game.ecs.queryEntities({ has: ["menu", "main"] });
         for (let entity of entities) {
           entity.removeTag("NI");
@@ -359,6 +360,10 @@ class GameModeMachine {
         // game.designModule.createDesignMenus();
 
         //(eventually) if first time, play walk-through
+      },
+      ondesigning: function () {
+         let game = <Game>(<unknown>this);
+         game.playMode = "";
       },
       onbeforeleaveDesign: function() {
         //if design state is unsaved, prompt to save

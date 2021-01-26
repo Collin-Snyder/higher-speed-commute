@@ -1,5 +1,5 @@
 const tagGroups: { [group: string]: string[] } = {
-  menu: ["menu", "main", "gameplay", "design", "toolbar", "admin", "config", "paused", "won", "lost", "crash", "arcade", "custom"],
+  menu: ["menu", "main", "gameplay", "design", "toolbar", "admin", "config", "paused", "won", "lost", "crash", "arcade", "custom", "testing"],
   interactibility: ["NI"],
   animation: ["anim", "bg"]
 };

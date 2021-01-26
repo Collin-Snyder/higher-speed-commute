@@ -82,7 +82,7 @@ export class Game {
   private tickTimes: number[];
   public inputs: InputEvents;
   public mode: Mode;
-  public playMode: "arcade" | "custom" | "";
+  public playMode: "arcade" | "custom" | "testing" | "";
   public modeMachine: GameModeMachine;
   public subscribers: { [key: string]: Function[] };
   public spritesheet: HTMLImageElement;
@@ -484,36 +484,10 @@ export class Game {
     } catch (err) {
       console.error(err);
     }
-    // if (this.playMode === "arcade") {
-    //   loadArcadeLevel(level)
-    //     .then((result) => {
-    //       if (result === "end of game") {
-    //         this.publish("endOfGame");
-    //         return;
-    //       }
-
-    //       let { id, name, levelNumber, description, mapInfo } = result;
-    //       this.currentLevel = {
-    //         id,
-    //         name,
-    //         number: levelNumber,
-    //         description,
-    //       };
-    //       let mapEntity = this.ecs.getEntity("map");
-    //       mapEntity.Map.mapId = id;
-    //       mapEntity.Map.map = ArcadeMap.fromMapObject(mapInfo);
-    //       this.publish("chooseDifficulty");
-    //     })
-    //     .catch((err) => {
-    //       console.error(err);
-    //     });
-    // } else if (this.playMode === "custom") {
-    // }
   }
 
   testCurrentSandboxMap() {
     let mapEntity = this.ecs.getEntity("map");
-    console.log("Current map: ", mapEntity.Map);
     let mapInfo = mapEntity.Map.map.exportMapObject();
     mapEntity.Map.map = ArcadeMap.fromMapObject(mapInfo);
     this.publish("chooseDifficulty");
