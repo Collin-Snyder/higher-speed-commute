@@ -50,6 +50,7 @@ export class MapSystem extends EntityComponentSystem.System {
   }
 
   updateDriverEntities(newMap: any) {
+    let game = window.game;
     let playerEntity = this.ecs.getEntity("player");
     let bossEntity = this.ecs.getEntity("boss");
 
@@ -67,7 +68,8 @@ export class MapSystem extends EntityComponentSystem.System {
     bossEntity.Coordinates.X = bossCoords.X;
     bossEntity.Coordinates.Y = bossCoords.Y;
 
-    this.findBossPath(bossEntity, newMap);
+    this.findDriverPath(bossEntity, newMap);
+    if (game.autopilot) this.findDriverPath(playerEntity, newMap);
   }
 
   createLightEntities(newMap: any) {
@@ -100,7 +102,7 @@ export class MapSystem extends EntityComponentSystem.System {
           spriteY: spriteMap.greenLight.Y,
           renderWidth: rw,
           renderHeight: rh,
-          visible: false
+          visible: false,
         },
         Collision: {
           hb: getTileHitbox(X, Y, rw, rh),
@@ -139,7 +141,7 @@ export class MapSystem extends EntityComponentSystem.System {
           spriteY: 0,
           renderWidth: rw,
           renderHeight: rh,
-          visible: false
+          visible: false,
         },
         Collision: {
           hb: getTileHitbox(X, Y, rw, rh),
@@ -158,12 +160,14 @@ export class MapSystem extends EntityComponentSystem.System {
     }
   }
 
-  findBossPath(bossEntity: Entity, newMap: any) {
-    bossEntity.Path.path = newMap.findPath(
-      newMap.getSquare(newMap.bossHome).coordinates.X,
-      newMap.getSquare(newMap.bossHome).coordinates.Y,
-      newMap.getSquare(newMap.office).coordinates.X,
-      newMap.getSquare(newMap.office).coordinates.Y
+  findDriverPath(driverEntity: Entity, newMap: any) {
+    let homeCoords = newMap.getKeySquare(`${driverEntity.id}Home`).coordinates;
+    let officeCoords = newMap.getKeySquare("office").coordinates;
+    driverEntity.Path.path = newMap.findPath(
+      homeCoords.X,
+      homeCoords.Y,
+      officeCoords.X,
+      officeCoords.Y
     );
   }
 

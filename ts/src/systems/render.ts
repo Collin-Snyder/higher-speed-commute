@@ -802,6 +802,9 @@ export class RenderMenus extends EntityComponentSystem.System {
   private modeNames: string[];
   private buttonEntities: Entity[];
   private global: Entity;
+  private menuText: { [key: string]: string };
+  private menuFont: FontFace;
+  private fontReady: boolean;
 
   constructor(ecs: ECS, ctx: CanvasRenderingContext2D) {
     super(ecs);
@@ -817,10 +820,32 @@ export class RenderMenus extends EntityComponentSystem.System {
       won: ["gameplay", "won"],
       lost: ["gampeplay", "lost"],
       crash: ["gameplay", "crash"],
-      end: ["end"]
+      end: ["end"],
     };
     this.modeNames = Object.keys(this.menuTags);
     this.buttonEntities = [];
+    this.menuText = {
+      won: "Nice work!\nYour boss will never know.",
+      lost: "Ouch, you're late.\nJust don't let it happen again.",
+      crash: "You hit your boss??\nYou'll never work in this town again!",
+      end:
+        "Congratulations!\nYou formed a habit AND made employee of the quarter.\nNow - time for some PTO.",
+    };
+    // this.menuFont = new FontFace("8-bit-pusab-regular", "url('../../8-bit-pusab.ttf')");
+    this.fontReady = false;
+    this.menuFont = new FontFace(
+      "8-bit-pusab-regular",
+      "url('../../8-bit-pusab.ttf')"
+    );
+    document.fonts.add(this.menuFont);
+    this.menuFont.loaded.then(this.logFontLoaded);
+
+    this.menuFont
+      .load()
+      .then((f) => document.fonts.add(f))
+      .then((f) => document.fonts.ready)
+      .then((r) => (this.fontReady = true))
+      .catch((err) => console.error(err));
   }
 
   update(tick: number, entities: Set<Entity>) {
@@ -878,6 +903,11 @@ export class RenderMenus extends EntityComponentSystem.System {
         return;
     }
   }
+
+  logFontLoaded = () => {
+    console.log(this.menuFont.family, "loaded successfully.");
+    this.fontReady = true;
+  };
 
   selectButtons(mode: string, playMode: "arcade" | "custom" | "testing" | "") {
     let btns = [
@@ -1013,16 +1043,15 @@ export class RenderMenus extends EntityComponentSystem.System {
   }
 
   drawShine(
-    menu: "paused" | "won" | "lost" | "crash",
+    menu: "paused" | "won" | "lost" | "crash" | "end",
     graphicX: number,
     graphicY: number,
     graphicW: number,
     graphicH: number
   ) {
-    let graphic = this.global.Global.game.ecs.getEntity(`${menu}Graphic`);
-    let { degOffset } = graphic.Animation;
-    let shineCoords =
-      menu === "won" ? this.spriteMap.shiny : this.spriteMap.badShiny;
+    let graphic = window.game.ecs.getEntity(`${menu}Graphic`);
+    let { degOffset, startSprite } = graphic.Animation;
+    let shineCoords = startSprite;
     let spriteW = 75;
     let spriteH = 75;
     let radians = (degOffset * Math.PI) / 180;
@@ -1083,6 +1112,58 @@ export class RenderMenus extends EntityComponentSystem.System {
 
     //return position/dimensions of inner trophy graphic
     return { ix: graphicX, iy: graphicY, iw: graphicW, ih: graphicH };
+  }
+
+  drawMenuText(
+    menu: "won" | "lost" | "crash" | "end",
+    textY: number,
+    textH: number,
+    maxW: number
+  ): number {
+    let textSegments = this.menuText[menu].split(`\n`);
+    let totalH = 0;
+    let bigTextH = textH * 1.5;
+    let topGap = bigTextH * 0.5;
+    let lineGap = bigTextH * 0.5;
+    let l1Y = textY + topGap;
+    let l2Y = l1Y + bigTextH + lineGap;
+    let l3Y = l2Y + textH + lineGap;
+
+    let fontStr = `${Math.floor(bigTextH)}px ${
+      this.fontReady ? `'8-bit-pusab-regular'` : `sans-serif`
+    }`;
+
+    this.ctx.save();
+    this.ctx.font = fontStr;
+    this.ctx.textAlign = "center";
+    this.ctx.textBaseline = "top";
+    this.ctx.fillStyle = menu === "end" ? "black" : "white";
+
+    // console.log(`Drawing segment "${textSegments[0]}" at Y ${l1Y}`)
+    this.ctx.fillText(textSegments[0], window.innerWidth / 2, l1Y, maxW);
+    totalH += topGap + bigTextH;
+
+    if (textSegments[1]) {
+      fontStr = fontStr.replace(/\d+(?=px)/, `${textH}`);
+      this.ctx.font = fontStr;
+      // console.log(`Drawing segment "${textSegments[1]}" at Y ${l2Y}`)
+      this.ctx.fillText(textSegments[1], window.innerWidth / 2, l2Y, maxW);
+      totalH += lineGap + textH;
+    }
+
+    if (textSegments[2]) {
+      // console.log("text height for line 3: ", textH)
+      // fontStr = fontStr.replace(/\d+(?=px)/, `${textH}`);
+      // console.log("font str: ", fontStr)
+      // this.ctx.font = fontStr;
+      // console.log(`Drawing segment "${textSegments[2]}" at Y ${l3Y}`)
+      this.ctx.fillText(textSegments[2], window.innerWidth / 2, l3Y, maxW);
+      totalH += lineGap + textH;
+    }
+
+    totalH += topGap;
+    this.ctx.restore();
+    return totalH;
   }
 
   drawGameplayMenuGraphic(
@@ -1169,6 +1250,15 @@ export class RenderMenus extends EntityComponentSystem.System {
     );
     let menuY = mapY + containerH;
     let menuH = (mapHeight / 2.5) * 2 - mapHeight / 4;
+
+    //if the menu has text, draw it and retain size/position
+    if (menu !== "paused") {
+      let textH = mapHeight / 32;
+      // let textH = 75;
+      let totalH = this.drawMenuText(menu, menuY, textH, mapWidth);
+      menuY += totalH;
+      menuH -= totalH;
+    }
 
     //position and draw buttons based on location/size of menu graphic
     this.positionButtons(
@@ -1295,19 +1385,10 @@ export class RenderMenus extends EntityComponentSystem.System {
     let spriteW = 75;
     let spriteH = 75;
     let renderH = window.innerHeight / 3;
-    let renderW = renderH * (spriteW / spriteH);
+    let renderW = renderH;
 
-    let { x, y } = centerWithin(
-      0,
-      0,
-      window.innerWidth,
-      window.innerHeight / 2,
-      renderW,
-      renderH,
-      1,
-      "vertical",
-      "spaceEvenly"
-    );
+    let x = window.innerWidth / 2 - renderW / 2;
+    let y = window.innerHeight / 12;
 
     this.ctx.drawImage(
       this.spriteSheet,
@@ -1315,8 +1396,8 @@ export class RenderMenus extends EntityComponentSystem.System {
       spriteCoords.Y,
       spriteW,
       spriteH,
-      x.start,
-      window.innerHeight / 6,
+      x,
+      y,
       renderW,
       renderH
     );
@@ -1326,12 +1407,20 @@ export class RenderMenus extends EntityComponentSystem.System {
 
   renderEndOfGameMenu() {
     let { graphicY, graphicHeight } = this.drawEndOfGameGraphic();
-    let menuY = graphicY + graphicHeight;
-    let menuH = window.innerHeight / 2;
+    let textY = graphicY + graphicHeight;
+
+    let textH = this.drawMenuText(
+      "end",
+      window.innerHeight / 2,
+      window.innerHeight / 32,
+      window.innerWidth
+    );
+    let menuY = textY + textH;
+    let menuH = window.innerHeight / 2 - textH;
     this.positionButtons(
-      window.innerWidth / 2 - window.innerWidth / 4,
+      0,
       menuY,
-      window.innerWidth / 2,
+      window.innerWidth,
       menuH,
       200,
       75,

@@ -446,6 +446,7 @@ class GameModeMachine {
         for (let entity of entities) {
           entity.addTag("NI");
         }
+      
         mapEntity.Renderable.visible = false;
       },
     };

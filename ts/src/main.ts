@@ -121,6 +121,7 @@ export class Game {
   public currentZoom: number;
   public defaultGameZoom: number;
   public logTimers: LogTimers;
+  public autopilot: boolean;
 
   constructor() {
     this.start = this.timestamp();
@@ -132,8 +133,8 @@ export class Game {
     this.playMode = "";
     this.modeMachine = new GameModeMachine("init");
     this.ecs = new EntityComponentSystem.ECS();
-    this.firstLevel = 2;
-    this.arcadeLevels = 2;
+    this.firstLevel = 9;
+    this.arcadeLevels = 9;
     this.currentLevel = {
       id: null,
       number: null,
@@ -170,6 +171,7 @@ export class Game {
     this.spriteSheetIsLoaded = false;
     this.backgroundIsLoaded = false;
     this.spriteMap = spriteMap;
+    this.autopilot = false;
 
     this.background.src = "../bgsheet-sm.png";
     this.spritesheet.src = "../spritesheet.png";
@@ -320,6 +322,8 @@ export class Game {
     this.ecs.addSystem("animations", new Animation(this.ecs));
 
     this.loadMap = this.loadMap.bind(this);
+
+    this.enableAutopilot();
   }
 
   timestamp(): number {
@@ -350,7 +354,9 @@ export class Game {
       let onbefore = this.modeMachine.defaultActions[`onbefore${event.name}`];
       let on = this.modeMachine.defaultActions[`on${event.name}`];
       let onNewState = this.modeMachine.defaultActions[`on${event.to}`];
-      this.subscribe(event.name, () => {console.log(`Attempting event "${event.name}"`)})
+      this.subscribe(event.name, () => {
+        console.log(`Attempting event "${event.name}"`);
+      });
       this.subscribe(event.name, validate.bind(this, event.name, event.from));
       this.subscribe(event.name, () => {
         let onleave = this.modeMachine.defaultActions[`onleave${this.mode}`];
@@ -363,7 +369,7 @@ export class Game {
         this.subscribe(event.name, on.bind(this));
       }
       this.subscribe(event.name, () => {
-        if (event.to === "playing") console.log("CHANGING MODE TO PLAYING")
+        if (event.to === "playing") console.log("CHANGING MODE TO PLAYING");
         this.mode = event.to;
       });
       if (onNewState) {
@@ -670,6 +676,27 @@ export class Game {
     };
     bossEntity.Velocity.speedConstant = speedConstants[d];
   }
+
+  enableAutopilot() {
+    if (this.autopilot) return true;
+    let p = this.ecs.getEntity("player");
+    if (!p.has("Path")) p.addComponent("Path", { driver: "player" });
+    let map = this.ecs.getEntity("map").Map.map;
+    if (map && !p.Path.length) {
+      let currentSquareCoords = map.getSquareByCoords(p.Coordinates.X, p.Coordinates.Y).coordinates;
+      let officeCoords = map.getKeySquare("office").coordinates;
+      p.Path.path = map.findPath(currentSquareCoords.X, currentSquareCoords.Y, officeCoords.X, officeCoords.Y)
+    }
+    this.autopilot = true;
+    return this.autopilot;
+  }
+
+  disableAutopilot() {
+    let p = this.ecs.getEntity("player");
+    if (p.has("Path")) p.removeComponentByType("Path");
+    this.autopilot = false;
+    return this.autopilot;
+  }
 }
 
 export class InputEvents {
@@ -732,7 +759,7 @@ export class InputEvents {
   };
 
   private handleKeypress = (e: KeyboardEvent) => {
-    if ((e.target as HTMLElement)?.tagName == 'INPUT') return;
+    if ((e.target as HTMLElement)?.tagName == "INPUT") return;
 
     this.shift = e.getModifierState("Shift");
     this.ctrl = e.getModifierState("Control");
