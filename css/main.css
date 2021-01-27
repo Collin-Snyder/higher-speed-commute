@@ -9,7 +9,8 @@
 html,
 body,
 h1,
-h3, p {
+h3,
+p {
   margin: 0;
   font-family: "8-bit-pusab-regular", "Courier New", monospace;
 }
@@ -170,7 +171,6 @@ h1.modal-title {
   min-height: 100%;
   position: absolute;
   top: 0;
-  
 }
 
 #modal-options.columns {
@@ -212,7 +212,11 @@ h1.modal-title {
   left: 0;
   width: 100%;
   height: 100%;
-  border: 2px solid black;
+  /* border: 2px solid black; */
+  border: none;
+  background-color: #fff;
+  box-shadow: -4px -4px rgb(194, 194, 194) inset, 0 -4px black, 4px 0 black,
+    0 4px black, -4px 0 black;
   justify-content: center;
   align-items: center;
 }
@@ -255,4 +259,28 @@ h1.modal-title {
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
+}
+
+#map-name-input {
+  width: 90%;
+  height: 9%;
+  min-height: 36px;
+  border: none;
+  background-color: #fff;
+  box-shadow: -4px -4px rgb(194, 194, 194) inset, 0 -4px black, 4px 0 black,
+    0 4px black, -4px 0 black;
+  font-size: 1em;
+  font-family: "8-bit-pusab-regular";
+  padding-left: 20px;
+  cursor: text;
+  margin: 20px auto;
+}
+
+#map-name-input:focus {
+  outline: none;
+}
+
+#map-name-input::placeholder {
+  font-family: "8-bit-pusab-regular";
+  color: lightgray;
 }

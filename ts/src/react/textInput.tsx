@@ -6,6 +6,7 @@ const TextInput = () => {
   let {toggleModal} = window;
   return (
     <input
+      id="map-name-input"
       type="text"
       onChange={(e) => {
         dispatch({ type: "SET_INPUT_VALUE", payload: e.target.value });

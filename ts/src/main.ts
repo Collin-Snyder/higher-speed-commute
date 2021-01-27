@@ -323,7 +323,7 @@ export class Game {
 
     this.loadMap = this.loadMap.bind(this);
 
-    this.enableAutopilot();
+    // this.enableAutopilot();
   }
 
   timestamp(): number {
