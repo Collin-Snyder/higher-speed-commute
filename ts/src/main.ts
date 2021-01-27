@@ -98,6 +98,7 @@ export class Game {
   private osectx: CanvasRenderingContext2D;
   public ecs: ECS;
   public firstLevel: number;
+  public arcadeLevels: number;
   public currentLevel: {
     id: number | null;
     number: number | null;
@@ -131,7 +132,8 @@ export class Game {
     this.playMode = "";
     this.modeMachine = new GameModeMachine("init");
     this.ecs = new EntityComponentSystem.ECS();
-    this.firstLevel = 8;
+    this.firstLevel = 2;
+    this.arcadeLevels = 2;
     this.currentLevel = {
       id: null,
       number: null,
@@ -361,6 +363,7 @@ export class Game {
         this.subscribe(event.name, on.bind(this));
       }
       this.subscribe(event.name, () => {
+        if (event.to === "playing") console.log("CHANGING MODE TO PLAYING")
         this.mode = event.to;
       });
       if (onNewState) {

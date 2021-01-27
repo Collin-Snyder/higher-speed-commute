@@ -308,17 +308,18 @@ class GameModeMachine {
         // game.ecs.runSystemGroup("map");
         game.publish("chooseDifficulty");
       },
-      onnextLevel: function() {
-        let game = <Game>(<unknown>this);
-        let next = game.currentLevel.number ? game.currentLevel.number + 1 : 1;
+      // onnextLevel: function() {
+      //   let game = <Game>(<unknown>this);
+      //   let next = game.currentLevel.number ? game.currentLevel.number + 1 : 1;
 
-        let entities = game.ecs.queryEntities({ has: ["menu", "gameplay"] });
-        for (let entity of entities) {
-          entity.addTag("NI");
-        }
+      //   let entities = game.ecs.queryEntities({ has: ["menu", "gameplay"] });
+      //   for (let entity of entities) {
+      //     entity.addTag("NI");
+      //   }
 
-        game.publish("start", next);
-      },
+      //   if (next > game.arcadeLevels) game.publish("endOfGame");
+      //   else game.publish("start", next);
+      // },
       ondesign: function() {
         let game = <Game>(<unknown>this);
         let UICanvas = <HTMLCanvasElement>document.getElementById("ui");
@@ -449,6 +450,18 @@ class GameModeMachine {
       },
     };
     this.customActions = {
+      onNextLevel: function () {
+        let game = <Game>(<unknown>this);
+        let next = game.currentLevel.number ? game.currentLevel.number + 1 : 1;
+
+        let entities = game.ecs.queryEntities({ has: ["menu", "gameplay"] });
+        for (let entity of entities) {
+          entity.addTag("NI");
+        }
+
+        if (next > game.arcadeLevels) game.publish("endOfGame");
+        else game.publish("start", next);
+      },
       onSetDesignTool: function(tool: Tool) {
         let game = <Game>(<unknown>this);
         game.designModule.setDesignTool(tool);
@@ -533,7 +546,7 @@ class GameModeMachine {
         from: ["paused", "won", "lost", "crash", "designing"],
         to: "menu",
       },
-      { name: "nextLevel", from: "won", to: "playing" },
+      // { name: "nextLevel", from: "won", to: "playing" },
       { name: "design", from: "menu", to: "designing" },
       { name: "test", from: "designing", to: "starting" },
       // { name: "leaveDesign", from: "designing", to: "menu" },
@@ -541,6 +554,13 @@ class GameModeMachine {
       { name: "endOfGame", from: "won", to: "end" },
     ];
     this.customEvents = [
+      {
+        name: "nextLevel",
+        action: function () {
+          let gmm = <GameModeMachine>(<unknown>this);
+          gmm.customActions.onNextLevel();
+        }
+      },
       {
         name: "redLight",
         action: function(driver: Entity, light: Entity) {

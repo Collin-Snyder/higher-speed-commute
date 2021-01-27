@@ -79,7 +79,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 200,
-        tags: ["menu", "gameplay", "paused", "won", "lost", "crash", "arcade", "custom"],
+        tags: ["menu", "gameplay", "paused", "won", "lost", "crash", "arcade", "custom", "end"],
       },
       // backToDesign: {
       //   name: "backToDesign",

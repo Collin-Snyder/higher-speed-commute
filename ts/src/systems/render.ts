@@ -394,7 +394,7 @@ export class RenderSandbox extends EntityComponentSystem.System {
   update(tick: number, entities: Set<Entity>) {
     let { game, spriteMap, spriteSheet } = this.ecs.getEntity("global").Global;
     let { mode, designModule } = game;
-    if (this.changes.length > 0 ) console.log(this.changes);
+    if (this.changes.length > 0) console.log(this.changes);
 
     if (mode !== "designing") return;
     // console.log("RenderSandbox update is running");
@@ -817,6 +817,7 @@ export class RenderMenus extends EntityComponentSystem.System {
       won: ["gameplay", "won"],
       lost: ["gampeplay", "lost"],
       crash: ["gameplay", "crash"],
+      end: ["end"]
     };
     this.modeNames = Object.keys(this.menuTags);
     this.buttonEntities = [];
@@ -830,9 +831,9 @@ export class RenderMenus extends EntityComponentSystem.System {
     //calculate coordinates for buttons using button spacing logic and current state/size of game
     if (!this.modeNames.includes(mode)) return;
     this.buttonEntities = this.selectButtons(mode, playMode);
-    this.buttonEntities.forEach(e => {
+    this.buttonEntities.forEach((e) => {
       if (e.has("NI")) e.removeTag("NI");
-    })
+    });
     let { pixelWidth, pixelHeight } = global.map.Map.map ?? {
       pixelHeight: 0,
       pixelWidth: 0,
@@ -862,9 +863,17 @@ export class RenderMenus extends EntityComponentSystem.System {
         );
         return;
       case "designing":
-        let {saved} = game.designModule;
-        this.renderDesignMenus(borderX, borderY, borderWidth, borderHeight, saved);
+        let { saved } = game.designModule;
+        this.renderDesignMenus(
+          borderX,
+          borderY,
+          borderWidth,
+          borderHeight,
+          saved
+        );
         return;
+      case "end":
+        this.renderEndOfGameMenu();
       default:
         return;
     }
@@ -875,7 +884,8 @@ export class RenderMenus extends EntityComponentSystem.System {
       ...this.ecs.queryEntities({ has: ["menu", ...this.menuTags[mode]] }),
     ];
     if (playMode) {
-      if (mode === "won" || playMode === "testing") btns = btns.filter((b) => b.has(playMode));
+      if (mode === "won" || playMode === "testing")
+        btns = btns.filter((b) => b.has(playMode));
     }
     if (mode === "won" && playMode) {
       btns = btns.filter((b) => b.has(playMode));
@@ -1250,7 +1260,7 @@ export class RenderMenus extends EntityComponentSystem.System {
     const toolbarBtns = this.buttonEntities.filter((e) => e.has("toolbar"));
     const adminBtns = this.buttonEntities.filter((e) => {
       if (!saved) return e.has("admin");
-      
+
       let visible = e.has("admin") && !/save/.test(e.id);
       if (!visible && !e.has("NI")) e.addTag("NI");
       return visible;
@@ -1278,6 +1288,58 @@ export class RenderMenus extends EntityComponentSystem.System {
     // btns.splice(5, 2, erasereset);
 
     return btns;
+  }
+
+  drawEndOfGameGraphic() {
+    let spriteCoords = this.spriteMap.endGraphic;
+    let spriteW = 75;
+    let spriteH = 75;
+    let renderH = window.innerHeight / 3;
+    let renderW = renderH * (spriteW / spriteH);
+
+    let { x, y } = centerWithin(
+      0,
+      0,
+      window.innerWidth,
+      window.innerHeight / 2,
+      renderW,
+      renderH,
+      1,
+      "vertical",
+      "spaceEvenly"
+    );
+
+    this.ctx.drawImage(
+      this.spriteSheet,
+      spriteCoords.X,
+      spriteCoords.Y,
+      spriteW,
+      spriteH,
+      x.start,
+      window.innerHeight / 6,
+      renderW,
+      renderH
+    );
+
+    return { graphicY: window.innerHeight / 6, graphicHeight: renderH };
+  }
+
+  renderEndOfGameMenu() {
+    let { graphicY, graphicHeight } = this.drawEndOfGameGraphic();
+    let menuY = graphicY + graphicHeight;
+    let menuH = window.innerHeight / 2;
+    this.positionButtons(
+      window.innerWidth / 2 - window.innerWidth / 4,
+      menuY,
+      window.innerWidth / 2,
+      menuH,
+      200,
+      75,
+      "vertical",
+      this.buttonEntities,
+      "spaceEvenly"
+    );
+    this.drawButtons(this.buttonEntities);
   }
 }
 
