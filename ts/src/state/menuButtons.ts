@@ -16,7 +16,7 @@ export class MenuButtons {
   static createEntities(game: any) {
     const buttons = {
       play: {
-        name: "play",
+        name: "playArcade",
         onClick: function() {
           // game.publish("leaveMenu");
           game.playMode = "arcade";

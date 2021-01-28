@@ -45,6 +45,7 @@ import {
 } from "./systems/render";
 import { loadArcadeLevel, loadCustomLevel } from "./state/localDb";
 import { textChangeRangeIsUnchanged } from "typescript";
+import { Canvas } from "./components/map";
 
 declare global {
   interface Window {
@@ -65,6 +66,8 @@ window.makeSeedData = function() {
     .then((result) => console.log(result))
     .catch((err) => console.error(err));
 };
+
+
 
 interface InputEventsInterface {
   mouseX: number;
@@ -122,6 +125,8 @@ export class Game {
   public defaultGameZoom: number;
   public logTimers: LogTimers;
   public autopilot: boolean;
+  public windowWidth: number;
+  public windowHeight: number;
 
   constructor() {
     this.start = this.timestamp();
@@ -172,6 +177,8 @@ export class Game {
     this.backgroundIsLoaded = false;
     this.spriteMap = spriteMap;
     this.autopilot = false;
+    this.windowWidth = window.innerWidth;
+    this.windowHeight = window.innerHeight;
 
     this.background.src = "../bgsheet-sm.png";
     this.spritesheet.src = "../spritesheet.png";
@@ -182,6 +189,19 @@ export class Game {
     this.registerComponents();
     this.registerTags();
     this.registerSubscribers();
+
+    window.addEventListener("resize", (e) => {
+      console.log("Resizing window")
+      let newW = window.innerWidth;
+      let newH = window.innerHeight;
+      let xr = newW / this.windowWidth;
+      let yr = newH / this.windowHeight;
+      this.UICanvas.width = newW;
+      this.UICanvas.height = newH;
+      this.uictx.scale(xr, yr);
+      this.windowWidth = newW;
+      this.windowHeight = newH;
+    }) 
 
     this.globalEntity = this.ecs.createEntity({
       id: "global",
