@@ -265,25 +265,33 @@ class DesignModule {
   resetMap(resetChoice: "save" | "overwrite") {
     let mapEntity = this._game.ecs.getEntity("map");
 
-    mapEntity.Map.map.clear(this._editor);
-    mapEntity.TileMap.tiles = mapEntity.Map.map.generateDesignTileMap();
-
-    if (resetChoice === "overwrite") this.save();
-    else {
-      mapEntity.Map.mapId = null;
-      mapEntity.Map.name = "";
+    if (resetChoice === "save") {
+      this.save();
+      this.clearMap();
     }
 
-    console.log(mapEntity.Map);
+    if (resetChoice === "overwrite") {
+      if (mapEntity.Map.mapId) this.deleteMap(mapEntity.Map.mapId);
+      else this.clearMap();
+    }
 
     this._editor.restart();
     this.saved = true;
   }
 
+  clearMap() {
+    let mapEntity = this._game.ecs.getEntity("map");
+    mapEntity.Map.map.clear(this._editor);
+    mapEntity.TileMap.tiles = mapEntity.Map.map.generateDesignTileMap();
+
+    mapEntity.Map.mapId = null;
+    mapEntity.Map.name = "";
+  }
+
   deleteMap(id: number) {
     deleteUserMap(id)
       .then((r) => {
-        this.resetMap("save");
+        this.clearMap();
       })
       .catch((err) => console.error(err));
   }
