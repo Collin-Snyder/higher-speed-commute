@@ -11,12 +11,14 @@ const options = [
 ];
 
 const ResetMapContent = () => {
-  let [inputState, dispatch] = useContext(ModalInputContext);
+  let [, dispatch] = useContext(ModalInputContext);
   useEffect(() => {
     dispatch({
-      type: "SET_SUBMIT_FUNC",
-      payload: (resetChoice: "save" | "overwrite") => {
-        window.game.designModule.resetMap(resetChoice);
+      type: "SET_SUBMIT_ACTIONS",
+      payload: {
+        reset: (resetChoice: "save" | "overwrite") => {
+          window.game.designModule.resetMap(resetChoice);
+        },
       },
     });
   }, []);

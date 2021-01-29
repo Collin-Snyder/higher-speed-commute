@@ -182,6 +182,10 @@ export async function saveNewUserMap(mapData: any) {
   return db.userMaps.add(mapData);
 }
 
+export async function deleteUserMap(levelId: number) {
+  return db.userMaps.delete(Number(levelId));
+}
+
 export async function saveTestData(mapTestDataObj: any) {
   return db.mapTestData.add(mapTestDataObj);
 }

@@ -2,10 +2,9 @@ import React, { useContext, useState, useEffect } from "react";
 import OptionList, { ModalOption } from "../optionList";
 import { ModalInputContext } from "../modalInputContext";
 import { loadAllUserMaps, loadCompletedLevels } from "../../state/localDb";
-import Game from "../../main";
 
 const LoadMapContent = () => {
-  let [inputState, dispatch] = useContext(ModalInputContext);
+  let [, dispatch] = useContext(ModalInputContext);
   let [mapOptions, setMapOptions] = useState<ModalOption[]>([]);
   let [playMode, setPlayMode] = useState<string>("");
 
@@ -15,19 +14,26 @@ const LoadMapContent = () => {
 
   useEffect(() => {
     dispatch({
-      type: "SET_SUBMIT_FUNC",
-      payload: (id: number) => {
-        let { playMode, designModule } = window.game;
+      type: "SET_SUBMIT_ACTIONS",
+      payload: {
+        load: (id: number) => {
+          let { playMode, designModule } = window.game;
 
-        if (playMode === "custom" || playMode === "arcade") window.game.publish("start", id);
-        else designModule.loadSaved(id);
+          if (playMode === "custom" || playMode === "arcade")
+            window.game.publish("start", id);
+          else designModule.loadSaved(id);
+        },
+        delete: (id: number) => {
+          window.game.designModule.deleteMap(id);
+        },
       },
     });
   }, []);
 
   useEffect(() => {
-    let loadFunc = playMode === "arcade" ? loadCompletedLevels : loadAllUserMaps;
-    
+    let loadFunc =
+      playMode === "arcade" ? loadCompletedLevels : loadAllUserMaps;
+
     loadFunc()
       .then((um) => {
         let options = um.map((m) => {
@@ -39,7 +45,12 @@ const LoadMapContent = () => {
       .catch((err) => console.error(err));
   }, [playMode]);
 
-  if (!mapOptions.length) return <p>You have no {playMode === "arcade" ? "completed levels" : "custom maps"}</p>;
+  if (!mapOptions.length)
+    return (
+      <p>
+        You have no {playMode === "arcade" ? "completed levels" : "custom maps"}
+      </p>
+    );
   return <OptionList listName="loadMap" options={mapOptions} />;
 };
 

@@ -29,6 +29,7 @@ const modalButtons: { [key: string]: ModalButton[] } = {
       type: "submit",
       name: "load",
     },
+    { type: "submit", name: "delete" },
   ],
   reset: [
     { type: "cancel", name: "cancel" },
@@ -47,9 +48,9 @@ const modalButtons: { [key: string]: ModalButton[] } = {
     { type: "submit", name: "go" },
   ],
   quitGameConfirmation: [
-    {type: "cancel", name: "cancel"},
-    {type: "submit", name: "ok"}
-  ]
+    { type: "cancel", name: "cancel" },
+    { type: "submit", name: "ok" },
+  ],
 };
 
 const ModalButtonContainer = ({
@@ -64,7 +65,9 @@ const ModalButtonContainer = ({
     <div id="modal-button-container">
       {buttons.map(({ type, name }: ModalButton) => {
         let action = noOp;
-        if (type === "submit") action = inputState.submitInput;
+        if (type === "submit")
+          action = inputState.submitActions[name] || action;
+        console.log("passing action to button " + name + ": ", action.name);
         return (
           <ActionButton
             buttonName={name}

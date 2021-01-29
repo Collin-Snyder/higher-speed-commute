@@ -5,19 +5,26 @@ const LevelStartContent = () => {
   let [, dispatch] = useContext(ModalInputContext);
   useEffect(() => {
     dispatch({
-      type: "SET_SUBMIT_FUNC",
-      payload: function(e: PointerEvent) {
-        //@ts-ignore
-        let buttonId = e.target?.id;
-        let difficulty = buttonId.match(/(?<=play)(.+)(?=-)/)[0].toLowerCase();
-        window.game.setDifficulty(difficulty);
-        window.game.publish("startingAnimation");
+      type: "SET_SUBMIT_ACTIONS",
+      payload: {
+        playEasy: (e: PointerEvent) => {
+          window.game.setDifficulty("easy");
+          window.game.publish("startingAnimation");
+        },
+        playMedium: (e: PointerEvent) => {
+          window.game.setDifficulty("medium");
+          window.game.publish("startingAnimation");
+        },
+        playHard: (e: PointerEvent) => {
+          window.game.setDifficulty("hard");
+          window.game.publish("startingAnimation");
+        }
       },
     });
     dispatch({
       type: "SET_INPUT_VALUE",
-      payload: "useEvent"
-    })
+      payload: "useEvent",
+    });
   }, []);
 
   return (

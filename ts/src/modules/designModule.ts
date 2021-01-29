@@ -7,7 +7,7 @@ import Editor, { commands } from "./editor";
 import { DisabledButtons } from "../buttonModifiers";
 import { DesignMenuName, ButtonInterface } from "../state/menuButtons";
 import Game from "../main";
-import { loadUserMap } from "../state/localDb";
+import { deleteUserMap, loadUserMap } from "../state/localDb";
 
 export type Tool =
   | ""
@@ -217,7 +217,6 @@ class DesignModule {
           throw new Error(`There is no user map with id ${levelId}`);
         let decompressed = savedMap.decompress();
         let mapEntity = this._game.ecs.getEntity("map");
-        console.log("Game objects are equal: ", window.game === this._game);
         mapEntity.Map.mapId = levelId;
         mapEntity.Map.name = decompressed.name;
         // mapEntity.Map.map = SandboxMap.fromUserMapObject(decompressed);
@@ -270,10 +269,23 @@ class DesignModule {
     mapEntity.TileMap.tiles = mapEntity.Map.map.generateDesignTileMap();
 
     if (resetChoice === "overwrite") this.save();
-    else mapEntity.Map.mapId = null;
+    else {
+      mapEntity.Map.mapId = null;
+      mapEntity.Map.name = "";
+    }
+
+    console.log(mapEntity.Map);
 
     this._editor.restart();
     this.saved = true;
+  }
+
+  deleteMap(id: number) {
+    deleteUserMap(id)
+      .then((r) => {
+        this.resetMap("save");
+      })
+      .catch((err) => console.error(err));
   }
 }
 

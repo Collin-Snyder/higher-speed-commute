@@ -14,13 +14,15 @@ const ArcadeStartContent = () => {
   let [inputState, dispatch] = useContext(ModalInputContext);
   useEffect(() => {
     dispatch({
-      type: "SET_SUBMIT_FUNC",
-      payload: (choice: "continue" | "playCompleted") => {
-        if (choice === "continue")
-          window.game.publish("start", window.game.lastCompletedLevel + 1);
-        if (choice === "playCompleted") {
-          window.toggleModal(true, "loadMap");
-        }
+      type: "SET_SUBMIT_ACTIONS",
+      payload: {
+        go: (choice: "continue" | "playCompleted") => {
+          if (choice === "continue")
+            window.game.publish("start", window.game.lastCompletedLevel + 1);
+          if (choice === "playCompleted") {
+            window.toggleModal(true, "loadMap");
+          }
+        },
       },
     });
   }, []);

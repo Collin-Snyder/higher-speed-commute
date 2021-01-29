@@ -28,13 +28,15 @@ const buttonImages: { [key: string]: any } = {
   goDepressed: { x: 650, y: 500, w: 150, h: 60 },
   ok: { x: 500, y: 560, w: 150, h: 60 },
   okDepressed: { x: 650, y: 560, w: 150, h: 60 },
+  delete: {x: 500, y: 620, w: 150, h: 60},
+  deleteDepressed: {x: 650, y: 620, w: 150, h: 60},
 };
 
 const ActionButton = ({
   buttonName,
   toggleModal,
   buttonAction,
-  buttonType
+  buttonType,
 }: ActionButtonProps) => {
   const [inputState, dispatch] = useContext(ModalInputContext);
   const [depressed, setDepressed] = useState(false);
@@ -74,11 +76,14 @@ const ActionButton = ({
         );
 
         if (pointerOnButton) {
-          if (inputState.inputValue === null && buttonType === "submit") return;
-          let input = inputState.inputValue === "useEvent" ? e : inputState.inputValue;
+          if ((inputState.inputValue === null || inputState.inputValue === "") && buttonType === "submit") return;
+          let input =
+            inputState.inputValue === "useEvent" ? e : inputState.inputValue;
           toggleModal(false);
+          console.log("Input value: ", inputState.inputValue);
           buttonAction(input);
-          dispatch({ type: "SET_INPUT_VALUE", payload: null });
+          dispatch({ type: "SET_INPUT_VALUE", payload: "" });
+          dispatch({ type: "SET_SUBMIT_ACTIONS", payload: {} });
         }
       }}
     ></i>

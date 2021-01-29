@@ -14,14 +14,16 @@ const QuitGameConfirmationContent = () => {
   let [, dispatch] = useContext(ModalInputContext);
   useEffect(() => {
     dispatch({
-      type: "SET_SUBMIT_FUNC",
-      payload: (choice: "save" | "dontSave") => {
-        if (choice === "save") {
-          window.game.publish("saveProgress");
-        } else {
-          window.game.resetLastCompletedLevel();
-        }
-        window.game.publish("quit");
+      type: "SET_SUBMIT_ACTIONS",
+      payload: {
+        ok: (choice: "save" | "dontSave") => {
+          if (choice === "save") {
+            window.game.publish("saveProgress");
+          } else {
+            window.game.resetLastCompletedLevel();
+          }
+          window.game.publish("quit");
+        },
       },
     });
   }, []);

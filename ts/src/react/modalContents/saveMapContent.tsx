@@ -7,16 +7,17 @@ const SaveMapContent = () => {
 
   useEffect(() => {
     dispatch({
-      type: "SET_SUBMIT_FUNC",
-      payload: (name: string) => {
-        window.game.designModule.saveAs(name);
+      type: "SET_SUBMIT_ACTIONS",
+      payload: {
+        save: (name: string) => {
+          console.log("Saving map with name: ", name)
+          window.game.designModule.saveAs(name);
+        },
       },
     });
   }, []);
 
-  return (
-    <TextInput />
-  );
+  return <TextInput />;
 };
 
 export default SaveMapContent;
