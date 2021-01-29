@@ -4,7 +4,7 @@ import axios from "axios";
 import Modal from "./modal";
 import ModalButtons from "./modalButtons";
 import ModalContent from "./modalContent";
-import LoadMapContent from "./loadMapContent";
+import LoadMapContent from "./modalContents/loadMapContent";
 import { ModalInputContextProvider } from "./modalInputContext";
 
 let toggleModal = (isOpen: boolean, modalName: string) => {

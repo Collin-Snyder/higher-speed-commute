@@ -1,6 +1,6 @@
 import React, { useContext, useEffect } from "react";
-import { ModalInputContext } from "./modalInputContext";
-import TextInput from "./textInput";
+import { ModalInputContext } from "../modalInputContext";
+import TextInput from "../textInput";
 
 const SaveMapContent = () => {
   let [, dispatch] = useContext(ModalInputContext);

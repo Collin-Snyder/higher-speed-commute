@@ -7,7 +7,8 @@ import { extraMinify, minify } from "./levelCompression";
 export class LocalDB extends Dexie {
   userMaps: Dexie.Table<SandboxMap>;
   arcadeMaps: Dexie.Table<any>;
-  mapTestData: Dexie.Table<any>
+  mapTestData: Dexie.Table<any>;
+  userInfo: Dexie.Table<any>;
 
   constructor() {
     super("LocalDB");
@@ -15,12 +16,15 @@ export class LocalDB extends Dexie {
     this.version(1).stores({
       userMaps: "++id, &name",
       arcadeMaps: "++id, &name, &levelNumber",
-      mapTestData: "++id, levelId, outcome, difficulty, duration, date, coffeesConsumedCount, redLightsHitCount, timeInSchoolZone"
+      mapTestData:
+        "++id, levelId, outcome, difficulty, duration, date, coffeesConsumedCount, redLightsHitCount, timeInSchoolZone",
+      userInfo: "id",
     });
 
     this.userMaps = this.table("userMaps");
     this.arcadeMaps = this.table("arcadeMaps");
     this.mapTestData = this.table("mapTestData");
+    this.userInfo = this.table("userInfo");
   }
 }
 
@@ -74,11 +78,17 @@ export default db;
 ///////////////////////////
 
 export async function loadArcadeLevel(levelNum: number) {
+  levelNum = Number(levelNum)
   let lastLevel = await db.arcadeMaps
     .orderBy("levelNumber")
     .last(({ levelNumber }) => levelNumber);
 
   if (levelNum > lastLevel) return "end of game";
+
+  let map = await db.arcadeMaps
+  .where("levelNumber")
+  .equals(levelNum)
+  .first();
 
   let {
     id,
@@ -93,10 +103,7 @@ export async function loadArcadeLevel(levelNum: number) {
     squares,
     lights,
     coffees,
-  } = await db.arcadeMaps
-    .where("levelNumber")
-    .equals(levelNum)
-    .first();
+  } = map;
 
   return {
     id,
@@ -177,6 +184,37 @@ export async function saveNewUserMap(mapData: any) {
 
 export async function saveTestData(mapTestDataObj: any) {
   return db.mapTestData.add(mapTestDataObj);
+}
+
+export async function createUser() {
+  let user = await getUserInfo();
+  if (!user) {
+    await db.userInfo.add({ id: 1, color: "blue", lastCompletedLevel: 0 });
+    user = await getUserInfo();
+  }
+  return user;
+}
+
+export async function getUserInfo() {
+  return db.userInfo.get(1);
+}
+
+export async function loadCompletedLevels() {
+  let user = await db.userInfo.get(1);
+  let { lastCompletedLevel } = user;
+  return db.arcadeMaps
+    .where("levelNumber")
+    .belowOrEqual(lastCompletedLevel)
+    .toArray();
+}
+
+export async function updateLastCompletedLevel(levelNum: number) {
+  return db.userInfo.update(1, {lastCompletedLevel: levelNum});
+}
+
+export async function getLastCompletedLevel() {
+  let user = await db.userInfo.get(1);
+  return user.lastCompletedLevel;
 }
 
 /////////////////////////////////

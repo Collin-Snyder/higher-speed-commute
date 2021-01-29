@@ -42,6 +42,14 @@ const modalButtons: { [key: string]: ModalButton[] } = {
     { type: "submit", name: "playMedium" },
     { type: "submit", name: "playHard" },
   ],
+  arcadeStart: [
+    { type: "cancel", name: "cancel" },
+    { type: "submit", name: "go" },
+  ],
+  quitGameConfirmation: [
+    {type: "cancel", name: "cancel"},
+    {type: "submit", name: "ok"}
+  ]
 };
 
 const ModalButtonContainer = ({

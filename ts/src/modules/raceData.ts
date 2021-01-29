@@ -75,7 +75,7 @@ class Race {
     this.coffeesConsumed.push(id);
   }
 
-  exportForSave(outcome: "win" | "loss" | "crash"): RaceDataExportInterface {
+  exportForSave(outcome: "won" | "lost" | "crash"): RaceDataExportInterface {
     let save = {
       outcome,
       coffeesConsumed: this.coffeesConsumed,

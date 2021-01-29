@@ -43,7 +43,14 @@ import {
   RenderTopLevelGraphics,
   RenderBorders,
 } from "./systems/render";
-import { loadArcadeLevel, loadCustomLevel } from "./state/localDb";
+import {
+  loadArcadeLevel,
+  loadCustomLevel,
+  loadCompletedLevels,
+  getUserInfo,
+  createUser,
+  getLastCompletedLevel,
+} from "./state/localDb";
 import { textChangeRangeIsUnchanged } from "typescript";
 import { Canvas } from "./components/map";
 
@@ -67,8 +74,6 @@ window.makeSeedData = function() {
     .catch((err) => console.error(err));
 };
 
-
-
 interface InputEventsInterface {
   mouseX: number;
   mouseY: number;
@@ -77,31 +82,51 @@ interface InputEventsInterface {
 }
 
 export class Game {
+  // GAME TIME //
   public start: number;
   public lastTick: number;
   public totalElapsedTime: number;
   public frameElapsedTime: number;
   public step: number = 1000 / 60; //17; //1/60s
   private tickTimes: number[];
-  public inputs: InputEvents;
+
+  // MODE //
   public mode: Mode;
   public playMode: "arcade" | "custom" | "testing" | "";
   public modeMachine: GameModeMachine;
+
+  // EVENTS //
+  public inputs: InputEvents;
   public subscribers: { [key: string]: Function[] };
-  public spritesheet: HTMLImageElement;
-  public background: HTMLImageElement;
-  public spriteMap: { [entity: string]: { X: number; Y: number } };
-  public spriteSheetIsLoaded: boolean;
-  public backgroundIsLoaded: boolean;
+
+  // GRAPHICS //
   private UICanvas: HTMLCanvasElement;
   private uictx: CanvasRenderingContext2D;
   private OSMapCanvas: HTMLCanvasElement;
   private osmctx: CanvasRenderingContext2D;
   private OSEntCanvas: HTMLCanvasElement;
   private osectx: CanvasRenderingContext2D;
+  public spritesheet: HTMLImageElement;
+  public background: HTMLImageElement;
+  public spriteMap: { [entity: string]: { X: number; Y: number } };
+  public spriteSheetIsLoaded: boolean;
+  public backgroundIsLoaded: boolean;
+
+  // ECS //
   public ecs: ECS;
+  public globalEntity: Entity;
+  private mapEntity: Entity;
+  private playerEntity: Entity;
+  private bossEntity: Entity;
+
+  // LEVELS //
   public firstLevel: number;
   public arcadeLevels: number;
+
+  // USER //
+  public lastCompletedLevel: number;
+
+  // GAMEPLAY //
   public currentLevel: {
     id: number | null;
     number: number | null;
@@ -109,20 +134,20 @@ export class Game {
     description: string;
     nextLevelId?: number | null;
   };
-  public currentRace: Race | null;
-  public recordRaceData: boolean;
-  public globalEntity: Entity;
-  private mapEntity: Entity;
-  public designModule: DesignModule;
-  private playerEntity: Entity;
-  private bossEntity: Entity;
   private map: IArcadeMap;
   public difficulty: "easy" | "medium" | "hard" | null;
   public focusView: "player" | "boss";
   public mapView: boolean;
+  public defaultGameZoom: number;
   public zoomFactor: number;
   public currentZoom: number;
-  public defaultGameZoom: number;
+  public currentRace: Race | null;
+  public recordRaceData: boolean;
+
+  // DESIGN //
+  public designModule: DesignModule;
+
+  // DEV HELPERS //
   public logTimers: LogTimers;
   public autopilot: boolean;
   public windowWidth: number;
@@ -138,7 +163,7 @@ export class Game {
     this.playMode = "";
     this.modeMachine = new GameModeMachine("init");
     this.ecs = new EntityComponentSystem.ECS();
-    this.firstLevel = 9;
+    this.firstLevel = 1;
     this.arcadeLevels = 9;
     this.currentLevel = {
       id: null,
@@ -148,13 +173,14 @@ export class Game {
       description: "",
     };
     this.currentRace = null;
-    this.recordRaceData = true;
+    this.recordRaceData = false;
     this.difficulty = null;
     this.focusView = "player";
     this.mapView = false;
     this.zoomFactor = 4;
     this.currentZoom = 1;
     this.defaultGameZoom = 4;
+    this.lastCompletedLevel = 0;
     this.inputs = new InputEvents();
     // this.sounds = new Sounds(this);
     this.UICanvas = <HTMLCanvasElement>document.getElementById("ui");
@@ -191,7 +217,7 @@ export class Game {
     this.registerSubscribers();
 
     window.addEventListener("resize", (e) => {
-      console.log("Resizing window")
+      console.log("Resizing window");
       let newW = window.innerWidth;
       let newH = window.innerHeight;
       let xr = newW / this.windowWidth;
@@ -201,7 +227,7 @@ export class Game {
       this.uictx.scale(xr, yr);
       this.windowWidth = newW;
       this.windowHeight = newH;
-    }) 
+    });
 
     this.globalEntity = this.ecs.createEntity({
       id: "global",
@@ -306,6 +332,14 @@ export class Game {
       },
       Collision: { hb, cp },
     });
+
+    createUser()
+      .then((user) => {
+        let { color, lastCompletedLevel } = user;
+        this.lastCompletedLevel = lastCompletedLevel;
+        this.ecs.getEntity("player").Car.color = color;
+      })
+      .catch((err) => console.error(err));
 
     this.playerEntity.Collision.currentHb = getCurrentHb.bind(
       this.playerEntity
@@ -498,7 +532,6 @@ export class Game {
         this.publish("endOfGame");
         return;
       }
-
       let { id, name, levelNumber, description, mapInfo } = <any>result;
       this.currentLevel = {
         id,
@@ -655,7 +688,13 @@ export class Game {
     this.currentRace = null;
   }
 
-  saveRaceData(outcome: "win" | "loss" | "crash") {
+  resetLastCompletedLevel() {
+    getLastCompletedLevel()
+      .then((l) => (this.lastCompletedLevel = Number(l)))
+      .catch((err) => console.error(err));
+  }
+
+  saveRaceData(outcome: "won" | "lost" | "crash") {
     if (!this.currentRace) return;
     let raceData = this.currentRace.exportForSave(outcome);
     axios
@@ -703,9 +742,17 @@ export class Game {
     if (!p.has("Path")) p.addComponent("Path", { driver: "player" });
     let map = this.ecs.getEntity("map").Map.map;
     if (map && !p.Path.length) {
-      let currentSquareCoords = map.getSquareByCoords(p.Coordinates.X, p.Coordinates.Y).coordinates;
+      let currentSquareCoords = map.getSquareByCoords(
+        p.Coordinates.X,
+        p.Coordinates.Y
+      ).coordinates;
       let officeCoords = map.getKeySquare("office").coordinates;
-      p.Path.path = map.findPath(currentSquareCoords.X, currentSquareCoords.Y, officeCoords.X, officeCoords.Y)
+      p.Path.path = map.findPath(
+        currentSquareCoords.X,
+        currentSquareCoords.Y,
+        officeCoords.X,
+        officeCoords.Y
+      );
     }
     this.autopilot = true;
     return this.autopilot;

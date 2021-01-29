@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from "react";
-import { ModalInputContext } from "./modalInputContext";
+import { ModalInputContext } from "../modalInputContext";
 
 const LevelStartContent = () => {
   let [, dispatch] = useContext(ModalInputContext);
@@ -11,10 +11,13 @@ const LevelStartContent = () => {
         let buttonId = e.target?.id;
         let difficulty = buttonId.match(/(?<=play)(.+)(?=-)/)[0].toLowerCase();
         window.game.setDifficulty(difficulty);
-        console.log("Chosen difficulty: ", difficulty);
         window.game.publish("startingAnimation");
       },
     });
+    dispatch({
+      type: "SET_INPUT_VALUE",
+      payload: "useEvent"
+    })
   }, []);
 
   return (

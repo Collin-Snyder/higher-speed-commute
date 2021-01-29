@@ -1,5 +1,6 @@
 import { Game } from "../main";
 import { toggleModal } from "../react/modalContainer";
+import { getLastCompletedLevel } from "./localDb";
 
 export interface ButtonInterface {
   name: string;
@@ -20,7 +21,8 @@ export class MenuButtons {
         onClick: function() {
           // game.publish("leaveMenu");
           game.playMode = "arcade";
-          game.publish("start", game.firstLevel);
+          if (game.lastCompletedLevel) window.toggleModal(true, "arcadeStart");
+          else game.publish("start", game.firstLevel);
         },
         height: 75,
         width: 200,
@@ -70,16 +72,45 @@ export class MenuButtons {
         },
         height: 75,
         width: 200,
-        tags: ["menu", "gameplay", "paused", "won", "lost", "crash", "arcade", "custom", "testing"],
+        tags: [
+          "menu",
+          "gameplay",
+          "paused",
+          "won",
+          "lost",
+          "crash",
+          "arcade",
+          "custom",
+          "testing",
+        ],
       },
       quit: {
         name: "quit",
         onClick: function() {
-          game.publish("quit");
+          getLastCompletedLevel()
+            .then((l) => {
+              if (
+                game.playMode === "arcade" &&
+                game.lastCompletedLevel > l
+              )
+                window.toggleModal(true, "quitGameConfirmation");
+              else game.publish("quit");
+            })
+            .catch((err) => console.error(err));
         },
         height: 75,
         width: 200,
-        tags: ["menu", "gameplay", "paused", "won", "lost", "crash", "arcade", "custom", "end"],
+        tags: [
+          "menu",
+          "gameplay",
+          "paused",
+          "won",
+          "lost",
+          "crash",
+          "arcade",
+          "custom",
+          "end",
+        ],
       },
       // backToDesign: {
       //   name: "backToDesign",

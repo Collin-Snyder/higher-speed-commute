@@ -5,6 +5,7 @@ import { findCenteredElementSpread, getCenterPoint } from "../modules/gameMath";
 import { ArcadeMap, SandboxMap } from "./map";
 import { Tool } from "../modules/designModule";
 import { DisabledButtons } from "../buttonModifiers";
+import { updateLastCompletedLevel } from "./localDb";
 export type Mode =
   | "init"
   | "menu"
@@ -142,22 +143,9 @@ class GameModeMachine {
         let game = <Game>(<unknown>this);
         console.log("YOU WIN!");
 
-        let caffeinated = game.ecs.queryEntities({
-          has: ["Car", "CaffeineBoost"],
-        });
-
-        if (caffeinated.size) {
-          for (let driver of caffeinated) {
-            driver.removeComponentByType("CaffeineBoost");
-          }
-        }
-
-        let buttons = game.ecs.queryEntities({
-          has: ["menu", "gameplay", "won"],
-        });
-        for (let button of buttons) {
-          button.removeTag("NI");
-        }
+        let currentLevel = game.currentLevel.number || 0;
+        if (game.playMode === "arcade" && game.lastCompletedLevel < currentLevel)
+          game.lastCompletedLevel = currentLevel;
 
         let graphic = game.ecs.getEntity("wonGraphic");
 
@@ -175,10 +163,6 @@ class GameModeMachine {
         } else {
           graphic.Renderable.visible = true;
         }
-
-        if (game.recordRaceData) game.saveRaceData("win");
-        game.currentZoom = 1;
-        game.focusView = "player";
       },
       onleavewon: function() {
         let game = <Game>(<unknown>this);
@@ -189,30 +173,7 @@ class GameModeMachine {
       },
       onlose: function() {
         let game = <Game>(<unknown>this);
-        let mapEntity = game.ecs.getEntity("map");
-
         console.log("YOU LOSE");
-
-        let caffeinated = game.ecs.queryEntities({
-          has: ["Car", "CaffeineBoost"],
-        });
-
-        if (caffeinated.size) {
-          for (let driver of caffeinated) {
-            driver.removeComponentByType("CaffeineBoost");
-          }
-        }
-
-        let buttons = game.ecs.queryEntities({
-          has: ["menu", "gameplay", "lost"],
-        });
-        for (let button of buttons) {
-          button.removeTag("NI");
-        }
-
-        if (game.recordRaceData) game.saveRaceData("loss");
-        game.currentZoom = 1;
-        game.focusView = "player";
       },
       onleavelost: function() {
         let game = <Game>(<unknown>this);
@@ -221,26 +182,8 @@ class GameModeMachine {
       },
       oncrash: function() {
         let game = <Game>(<unknown>this);
-        let mapEntity = game.ecs.getEntity("map");
-
         console.log("CRASH! YOU LOSE BIG TIME");
 
-        let caffeinated = game.ecs.queryEntities({
-          has: ["Car", "CaffeineBoost"],
-        });
-
-        if (caffeinated.size) {
-          for (let driver of caffeinated) {
-            driver.removeComponentByType("CaffeineBoost");
-          }
-        }
-
-        let buttons = game.ecs.queryEntities({
-          has: ["menu", "gameplay", "lost"],
-        });
-        for (let button of buttons) {
-          button.removeTag("NI");
-        }
         let graphic = game.ecs.getEntity("crashGraphic");
 
         if (!graphic) {
@@ -257,9 +200,6 @@ class GameModeMachine {
         } else {
           graphic.Renderable.visible = true;
         }
-        if (game.recordRaceData) game.saveRaceData("crash");
-        game.currentZoom = 1;
-        game.focusView = "player";
       },
       onleavecrash: function() {
         let game = <Game>(<unknown>this);
@@ -362,9 +302,9 @@ class GameModeMachine {
 
         //(eventually) if first time, play walk-through
       },
-      ondesigning: function () {
-         let game = <Game>(<unknown>this);
-         game.playMode = "";
+      ondesigning: function() {
+        let game = <Game>(<unknown>this);
+        game.playMode = "";
       },
       onbeforeleaveDesign: function() {
         //if design state is unsaved, prompt to save
@@ -384,14 +324,12 @@ class GameModeMachine {
           // for (let button of designButtons) {
           //   button.destroy();
           // }
-
           //reset map entity
           // mapEntity.Map.map = null;
           // mapEntity.TileMap.tiles = [];
           // mapEntity.Coordinates.X = 0;
           // mapEntity.Coordinates.Y = 0;
           // mapEntity.removeComponentByType("Clickable");
-
           //change mode
         }
       },
@@ -413,7 +351,7 @@ class GameModeMachine {
         let game = <Game>(<unknown>this);
 
         game.playMode = "";
-        
+
         if (game.mode === "designing") {
           let designMenuButtons = game.ecs.queryEntities({
             has: ["menu", "design"],
@@ -446,12 +384,46 @@ class GameModeMachine {
         for (let entity of entities) {
           entity.addTag("NI");
         }
-      
+
         mapEntity.Renderable.visible = false;
       },
     };
     this.customActions = {
-      onNextLevel: function () {
+      onRaceFinished: function(outcome: "won" | "lost" | "crash") {
+        let game = <Game>(<unknown>this);
+
+        //decaffeinate everybody
+        let caffeinated = game.ecs.queryEntities({
+          has: ["Car", "CaffeineBoost"],
+        });
+        if (caffeinated.size) {
+          for (let driver of caffeinated) {
+            driver.removeComponentByType("CaffeineBoost");
+          }
+        }
+
+        //make all upcoming menu buttons interactible
+        let buttons = game.ecs.queryEntities({
+          has: ["menu", "gameplay", outcome],
+        });
+        for (let button of buttons) {
+          button.removeTag("NI");
+        }
+
+        //reset the zoom and focus
+        game.currentZoom = 1;
+        game.focusView = "player";
+        game.mapView = false;
+
+        //save race data if applicable
+        if (game.recordRaceData) game.saveRaceData(outcome);
+
+        //fire outcome-specific event
+        if (outcome === "won") game.publish("win");
+        if (outcome === "lost") game.publish("lose");
+        if (outcome === "crash") game.publish("crash");
+      },
+      onNextLevel: function() {
         let game = <Game>(<unknown>this);
         let next = game.currentLevel.number ? game.currentLevel.number + 1 : 1;
 
@@ -462,6 +434,12 @@ class GameModeMachine {
 
         if (next > game.arcadeLevels) game.publish("endOfGame");
         else game.publish("start", next);
+      },
+      onSaveProgress: function() {
+        let game = <Game>(<unknown>this);
+        updateLastCompletedLevel(game.lastCompletedLevel).catch((err) =>
+          console.error(err)
+        );
       },
       onSetDesignTool: function(tool: Tool) {
         let game = <Game>(<unknown>this);
@@ -556,11 +534,25 @@ class GameModeMachine {
     ];
     this.customEvents = [
       {
+        name: "raceFinished",
+        action: function(outcome: "won" | "lost" | "crash") {
+          let gmm = <GameModeMachine>(<unknown>this);
+          gmm.customActions.onRaceFinished(outcome);
+        },
+      },
+      {
         name: "nextLevel",
-        action: function () {
+        action: function() {
           let gmm = <GameModeMachine>(<unknown>this);
           gmm.customActions.onNextLevel();
-        }
+        },
+      },
+      {
+        name: "saveProgress",
+        action: function() {
+          let gmm = <GameModeMachine>(<unknown>this);
+          gmm.customActions.onSaveProgress();
+        },
       },
       {
         name: "redLight",

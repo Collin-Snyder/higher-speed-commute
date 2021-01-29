@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
-import LoadMapContent from "./loadMapContent";
-import SaveMapContent from "./saveMapContent";
-import ResetMapContent from "./resetMapContent";
-import LevelStartContent from "./levelStartContent";
+import LoadMapContent from "./modalContents/loadMapContent";
+import SaveMapContent from "./modalContents/saveMapContent";
+import ResetMapContent from "./modalContents/resetMapContent";
+import LevelStartContent from "./modalContents/levelStartContent";
+import ArcadeStartContent from "./modalContents/arcadeStartContent";
+import QuitGameConfirmationContent from "./modalContents/quitGameConfirmationContent";
 
 interface ModalContentProps {
   modalName: string;
@@ -23,18 +25,12 @@ const ModalContent = ({ modalName }: ModalContentProps) => {
           modalName === "save" || modalName === "levelStart" ? "" : "border"
         }
       >
-        {modalName === "loadMap" ? (
-          <LoadMapContent />
-        ) : (
-          <></>
-        )}
+        {modalName === "loadMap" ? <LoadMapContent /> : <></>}
+        {modalName === "arcadeStart" ? <ArcadeStartContent /> : <></>}
         {modalName === "save" ? <SaveMapContent /> : <></>}
         {modalName === "reset" ? <ResetMapContent /> : <></>}
-        {modalName === "levelStart" ? (
-          <LevelStartContent />
-        ) : (
-          <></>
-        )}
+        {modalName === "levelStart" ? <LevelStartContent /> : <></>}
+        {modalName === "quitGameConfirmation" ? <QuitGameConfirmationContent /> : <></>}
       </div>
     </>
   );

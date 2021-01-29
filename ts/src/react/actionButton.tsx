@@ -24,6 +24,10 @@ const buttonImages: { [key: string]: any } = {
   resetDepressed: { x: 350, y: 620, w: 150, h: 60 },
   save: { x: 200, y: 560, w: 150, h: 60 },
   saveDepressed: { x: 350, y: 560, w: 150, h: 60 },
+  go: { x: 500, y: 500, w: 150, h: 60 },
+  goDepressed: { x: 650, y: 500, w: 150, h: 60 },
+  ok: { x: 500, y: 560, w: 150, h: 60 },
+  okDepressed: { x: 650, y: 560, w: 150, h: 60 },
 };
 
 const ActionButton = ({
@@ -70,10 +74,11 @@ const ActionButton = ({
         );
 
         if (pointerOnButton) {
-          let input = inputState.inputValue === "" ? e : inputState.inputValue;
-          buttonAction(input);
+          if (inputState.inputValue === null && buttonType === "submit") return;
+          let input = inputState.inputValue === "useEvent" ? e : inputState.inputValue;
           toggleModal(false);
-          dispatch({ type: "SET_INPUT_VALUE", payload: "" });
+          buttonAction(input);
+          dispatch({ type: "SET_INPUT_VALUE", payload: null });
         }
       }}
     ></i>

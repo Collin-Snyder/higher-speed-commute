@@ -3,7 +3,7 @@ import React, { createContext, useReducer } from "react";
 export const ModalInputContext = createContext<any[]>([]);
 
 const initialState = {
-  inputValue: "",
+  inputValue: null,
   submitInput: () => {},
 };
 

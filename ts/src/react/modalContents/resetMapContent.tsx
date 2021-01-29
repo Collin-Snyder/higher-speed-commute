@@ -1,6 +1,6 @@
 import React, { useContext, useEffect } from "react";
-import { ModalInputContext } from "./modalInputContext";
-import OptionList from "./optionList";
+import { ModalInputContext } from "../modalInputContext";
+import OptionList from "../optionList";
 
 const options = [
   { value: "save", label: "Save current map" },

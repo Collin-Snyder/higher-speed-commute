@@ -66,8 +66,8 @@ export class CollisionSystem extends ECS.System {
         } while (mapCollision === "boundary");
         break;
       case "office":
-        if (entity.id === "player") this.game.publish("win");
-        else if (entity.id === "boss") this.game.publish("lose");
+        if (entity.id === "player") this.game.publish("raceFinished", "won");
+        else if (entity.id === "boss") this.game.publish("raceFinished", "lost");
         break;
       case "schoolZone":
         if (!entity.SchoolZone) {
@@ -154,7 +154,7 @@ export class CollisionSystem extends ECS.System {
     let collisions = this.detectEntityCollisions(entity);
     for (let c of collisions) {
       if (c.has("Car") && this.game.mode !== "lost") {
-        this.game.publish("crash");
+        this.game.publish("raceFinished", "crash");
       }
       if (c.has("Timer") && c.has("Color") && c.Color.color === "red") {
         //if car is moving AND if car's pre-move location is NOT colliding with the light, then stop car
