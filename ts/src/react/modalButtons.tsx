@@ -1,4 +1,5 @@
 import React, { useContext } from "react";
+import Game from "../main";
 import ActionButton from "./actionButton";
 import { ModalInputContext } from "./modalInputContext";
 
@@ -25,11 +26,11 @@ const modalButtons: { [key: string]: ModalButton[] } = {
   ],
   loadMap: [
     { type: "cancel", name: "cancel" },
+    { type: "submit", name: "delete" },
     {
       type: "submit",
       name: "load",
     },
-    { type: "submit", name: "delete" },
   ],
   reset: [
     { type: "cancel", name: "cancel" },
@@ -61,13 +62,15 @@ const ModalButtonContainer = ({
 
   let buttons = modalButtons[modalName] || [];
 
+  if (modalName === "loadMap" && window.game.playMode)
+    buttons = buttons.filter((b) => b.name !== "delete");
+
   return (
     <div id="modal-button-container">
       {buttons.map(({ type, name }: ModalButton) => {
         let action = noOp;
         if (type === "submit")
           action = inputState.submitActions[name] || action;
-        console.log("passing action to button " + name + ": ", action.name);
         return (
           <ActionButton
             buttonName={name}
