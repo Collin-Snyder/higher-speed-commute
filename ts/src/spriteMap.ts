@@ -35,7 +35,7 @@ const spriteMap = {
   designLight: { X: 50, Y: 25 },
   coffee: { X: 250, Y: 0 },
   playArcadeButton: { X: 700, Y: 0 },
-  playSavedButton: { X: 500, Y: 0 },
+  playCustomButton: { X: 500, Y: 0 },
   designButton: { X: 0, Y: 125 },
   playerHomeButton: { X: 200, Y: 125 },
   bossHomeButton: { X: 275, Y: 125 },

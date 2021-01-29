@@ -28,8 +28,8 @@ export class MenuButtons {
         width: 200,
         tags: ["menu", "main"],
       },
-      playSaved: {
-        name: "playSaved",
+      playCustom: {
+        name: "playCustom",
         onClick: function() {
           game.playMode = "custom";
           game.publish("loadSaved");

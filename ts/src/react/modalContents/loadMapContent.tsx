@@ -39,7 +39,7 @@ const LoadMapContent = () => {
       .catch((err) => console.error(err));
   }, [playMode]);
 
-  if (!mapOptions.length) return <p>You have no {playMode === "arcade" ? "completed levels" : "saved maps"}</p>;
+  if (!mapOptions.length) return <p>You have no {playMode === "arcade" ? "completed levels" : "custom maps"}</p>;
   return <OptionList listName="loadMap" options={mapOptions} />;
 };
 
