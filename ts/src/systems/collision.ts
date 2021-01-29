@@ -19,6 +19,7 @@ import {
   VectorInterface,
   getTileHitbox,
 } from "../modules/gameMath";
+const {abs} = Math;
 
 export class CollisionSystem extends ECS.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -48,6 +49,7 @@ export class CollisionSystem extends ECS.System {
       if (entity.has("Car")) {
         this.handleMapCollisions(entity);
         this.handleEntityCollisions(entity);
+        entity.Collision.prevHb = entity.Collision.currentHb();
       }
     }
   }
@@ -144,7 +146,7 @@ export class CollisionSystem extends ECS.System {
     w2: number = 25,
     h2: number = 25
   ) {
-    if (x1 < x2 + w2 && x1 + w1 > x2 && y1 < y2 + h2 && y1 + h1 > y2) {
+    if (x1 + w1 >= x2 && x1 <= x2 + w2 && y1 + h1 >= y2 && y2 <= y2 + h2) {
       return true;
     }
     return false;
@@ -165,17 +167,12 @@ export class CollisionSystem extends ECS.System {
       }
       if (c.has("Caffeine")) {
         this.game.publish("caffeinate", entity, c);
-        // c.removeComponentByType("Renderable");
         this.collidables = this.collidables.filter((e) => e !== c);
-        // entity.addComponent("CaffeineBoost", c.Caffeine);
       }
     }
   }
 
   detectEntityCollisions(entity: Entity) {
-    // return this.collidables.filter(
-    //   (c: Entity) => entity !== c && this.checkEntityCollision(entity, c)
-    // );
     return this.collidables.filter(
       (c: Entity) =>
         entity !== c &&
@@ -183,35 +180,10 @@ export class CollisionSystem extends ECS.System {
     );
   }
 
-  checkEntityCollision(entity1: any, entity2: any) {
-    let fudge1 = entity1.Collision.fudgeFactor;
-    let fudge2 = entity2.Collision.fudgeFactor;
-    let x1 = entity1.Coordinates.X + fudge1;
-    let y1 = entity1.Coordinates.Y + fudge1;
-    let x2 = entity2.Coordinates.X + fudge2;
-    let y2 = entity2.Coordinates.Y + fudge2;
-    let w1 = entity1.Renderable.renderWidth - fudge1 * 2;
-    let h1 = entity1.Renderable.renderHeight - fudge1 * 2;
-    let w2 = entity2.Renderable.renderWidth - fudge2 * 2;
-    let h2 = entity2.Renderable.renderHeight - fudge2 * 2;
-    return this.checkTileCollision(x1, y1, x2, y2, w1, h1, w2, h2);
-  }
-
   checkForValidLightCollision(entity: Entity, lightEntity: Entity) {
     let { X, Y } = entity.Velocity.vector;
     if (X === 0 && Y === 0) return false;
-    const speedConstant = calculateSpeedConstant(entity);
-    let prevEnt = {
-      ...entity,
-      Coordinates: this.getPreviousCoordinate(
-        entity.Coordinates.X,
-        entity.Coordinates.Y,
-        entity.Velocity.vector.X,
-        entity.Velocity.vector.Y,
-        speedConstant
-      ),
-    };
-    let prevCollision = this.checkEntityCollision(prevEnt, lightEntity);
+    let prevCollision = checkCollision(entity.Collision.prevHb, lightEntity.Collision.currentHb())
     return !prevCollision;
   }
 
