@@ -561,15 +561,19 @@ export class SandboxMap extends ArcadeMap {
   ) {
     console.log(`Adding ${tool}!`);
     let id = square.id;
+    let keySquareId = this[tool];
     let tileChanges = [];
-    if (this[tool] === square.id) {
+    let isKeySquare = keySquareId === square.id;
+    let keySquareExists = keySquareId > 0;
+
+    if (isKeySquare) {
       editor.execute("makeNotDrivable", id);
       editor.execute("removeKeySquare", tool, id);
     } else {
-      if (this[tool] > 0) {
-        tileChanges.push(this[tool]);
-        editor.execute("makeNotDrivable", this[tool]);
-        editor.execute("removeKeySquare", tool, this[tool]);
+      if (keySquareExists) {
+        tileChanges.push(keySquareId);
+        editor.execute("makeNotDrivable", keySquareId);
+        editor.execute("removeKeySquare", tool, keySquareId);
       }
       if (!square.drivable) editor.execute("makeDrivable", id);
       editor.execute("makeKeySquare", tool, id);
@@ -581,23 +585,28 @@ export class SandboxMap extends ArcadeMap {
   handleStreetAction(editor: Editor, square: ISquare, drawing: boolean) {
     let id = square.id;
     let tileChanges = [];
+    let isPlayerHome = this.playerHome === id;
+    let isBossHome = this.bossHome === id;
+    let isOffice = this.office === id;
+    let hasLight = this.lights.hasOwnProperty(id);
+    let hasCoffee = this.coffees.hasOwnProperty(id);
 
-    if (this.playerHome === id) {
+    if (isPlayerHome) {
       editor.execute("removeKeySquare", "playerHome", id);
       editor.execute("makeNotDrivable", id);
     }
-    if (this.bossHome === id) {
+    if (isBossHome) {
       editor.execute("removeKeySquare", "bossHome", id);
       editor.execute("makeNotDrivable", id);
     }
-    if (this.office === id) {
+    if (isOffice) {
       editor.execute("removeKeySquare", "office", id);
       editor.execute("makeNotDrivable", id);
     }
-    if (this.lights.hasOwnProperty(id)) {
+    if (hasLight) {
       editor.execute("removeLight", id);
     }
-    if (this.coffees.hasOwnProperty(id)) {
+    if (hasCoffee) {
       editor.execute("removeCoffee", id);
     }
     if (square.drivable && square.schoolZone) {
@@ -629,17 +638,19 @@ export class SandboxMap extends ArcadeMap {
   }
 
   handleLightAction(editor: Editor, square: ISquare) {
-    console.log("Adding light");
     let id = square.id;
     let tileChanges = [];
+    let hasLight = this.lights.hasOwnProperty(id);
+    let hasCoffee = this.coffees.hasOwnProperty(id);
+    let isKeySquare = this.isKeySquare(id);
 
-    if (this.lights.hasOwnProperty(id)) {
+    if (hasLight) {
       editor.execute("removeLight", id);
     } else {
-      if (this.coffees.hasOwnProperty(id)) {
+      if (hasCoffee) {
         editor.execute("removeCoffee", id);
       }
-      if (!this.isKeySquare(id)) {
+      if (!isKeySquare) {
         editor.execute("addLight", id, randomNumBtwn(4, 12) * 1000);
       }
     }
@@ -652,19 +663,21 @@ export class SandboxMap extends ArcadeMap {
     console.log("Adding coffee");
     let id = square.id;
     let tileChanges = [];
+    let hasLight = this.lights.hasOwnProperty(id);
+    let hasCoffee = this.coffees.hasOwnProperty(id);
+    let isKeySquare = this.isKeySquare(id);
 
-    if (this.coffees.hasOwnProperty(id)) {
+    if (hasCoffee) {
       editor.execute("removeCoffee", id);
     } else {
-      if (this.lights.hasOwnProperty(id)) {
+      if (hasLight) {
         editor.execute("removeLight", id);
       }
-      if (!this.isKeySquare(id)) {
+      if (!isKeySquare) {
         editor.execute("addCoffee", id);
       }
     }
 
-    // editor.endGroup();
     tileChanges.push(id);
     return tileChanges;
   }
@@ -672,19 +685,24 @@ export class SandboxMap extends ArcadeMap {
   handleEraserAction(editor: Editor, square: ISquare) {
     let id = square.id;
     let tileChanges = [];
+    let isPlayerHome = this.playerHome === id;
+    let isBossHome = this.bossHome === id;
+    let isOffice = this.office === id;
+    let hasLight = this.lights.hasOwnProperty(id);
+    let hasCoffee = this.coffees.hasOwnProperty(id);
 
-    if (this.playerHome === id)
+    if (isPlayerHome)
       editor.execute("removeKeySquare", "playerHome", id);
-    else if (this.bossHome === id)
+    else if (isBossHome)
       editor.execute("removeKeySquare", "bossHome", id);
-    else if (this.office === id)
+    else if (isOffice)
       editor.execute("removeKeySquare", "office", id);
 
     if (square.schoolZone) editor.execute("makeNotSchoolZone", id);
     if (square.drivable) editor.execute("makeNotDrivable", id);
 
-    if (this.lights.hasOwnProperty(id)) editor.execute("removeLight", id);
-    if (this.coffees.hasOwnProperty(id)) editor.execute("removeCoffee", id);
+    if (hasLight) editor.execute("removeLight", id);
+    if (hasCoffee) editor.execute("removeCoffee", id);
 
     tileChanges.push(id);
     return tileChanges;

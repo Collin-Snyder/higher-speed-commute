@@ -115,12 +115,6 @@ class DesignModule {
       if (oldTile !== newTile) {
         tiles[index].type = newTile;
         this.saved = false;
-        let saveBtn = this._game.ecs.getEntity("saveButton");
-
-        if (saveBtn.has("Disabled")) {
-          console.log("Re-enabling save button");
-          saveBtn.removeComponentByType("Disabled");
-        }
       }
     });
     this.lastEditedSquare = square.id;
