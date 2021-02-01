@@ -1,3 +1,9 @@
+export const MapData = {
+  properties: {
+    map: null
+  }
+}
+
 export const Map = {
   properties: {
     mapId: null,
@@ -22,7 +28,6 @@ export const Tile = {
   properties: {
     type: "",
     alpha: 1,
-    
   }
 }
 
