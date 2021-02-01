@@ -335,6 +335,7 @@ export class ArcadeMap implements IArcadeMap {
     let row = Y / 25;
     let col = X / 25 + 1;
     let id = row * 40 + col;
+    if (row > 25 || col > 40) return null;
     return this.getSquare(id);
   }
 
