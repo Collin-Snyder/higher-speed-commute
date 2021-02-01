@@ -577,6 +577,7 @@ export class SandboxMap extends ArcadeMap {
         editor.execute("removeKeySquare", tool, keySquareId);
       }
       if (!square.drivable) editor.execute("makeDrivable", id);
+      if (square.schoolZone) editor.execute("makeNotSchoolZone", id);
       editor.execute("makeKeySquare", tool, id);
     }
     tileChanges.push(id);
@@ -625,10 +626,12 @@ export class SandboxMap extends ArcadeMap {
   handleSchoolZoneAction(editor: Editor, square: ISquare, drawing: boolean) {
     let id = square.id;
     let tileChanges = [];
+    let isKeySquare = this.isKeySquare(id);
+
     if (square.drivable && square.schoolZone && !drawing) {
       editor.execute("makeNotSchoolZone", id);
       editor.execute("makeNotDrivable", id);
-    } else if (square.drivable && !square.schoolZone) {
+    } else if (square.drivable && !square.schoolZone && !isKeySquare) {
       editor.execute("makeSchoolZone", id);
     } else if (!square.drivable && !square.schoolZone) {
       editor.execute("makeDrivable", id);
@@ -651,7 +654,7 @@ export class SandboxMap extends ArcadeMap {
       if (hasCoffee) {
         editor.execute("removeCoffee", id);
       }
-      if (!isKeySquare) {
+      if (!isKeySquare && square.drivable) {
         editor.execute("addLight", id, randomNumBtwn(4, 12) * 1000);
       }
     }
@@ -674,7 +677,7 @@ export class SandboxMap extends ArcadeMap {
       if (hasLight) {
         editor.execute("removeLight", id);
       }
-      if (!isKeySquare) {
+      if (!isKeySquare && square.drivable) {
         editor.execute("addCoffee", id);
       }
     }
