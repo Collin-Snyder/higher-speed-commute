@@ -174,8 +174,8 @@ export async function loadAllUserMaps() {
   return db.userMaps.toArray();
 }
 
-export async function updateUserMap(map: SandboxMap) {
-  return db.userMaps.put(map);
+export async function updateUserMap(mapData: any) {
+  return db.userMaps.put(mapData);
 }
 
 export async function saveNewUserMap(mapData: any) {

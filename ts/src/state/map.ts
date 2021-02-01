@@ -718,7 +718,11 @@ export class SandboxMap extends ArcadeMap {
           square.borders[dir] = borderId;
         }
         if (square.borders[dir] === undefined) {
-          console.log("Found undefined border data for square ", square.id);
+          console.log(
+            "Found undefined border data for square ",
+            square.id,
+            " during compression"
+          );
           debugger;
         }
       }
@@ -772,27 +776,23 @@ export class SandboxMap extends ArcadeMap {
     return mapObj;
   }
 
-  saveMapAsync(): Promise<any> {
-    return updateUserMap(this).then((id) => (this.id = id));
+  async saveMapAsync(): Promise<any> {
+    if (!this.id)
+      throw new Error(
+        "You are trying to use saveMapAsync to save a map that does not already have an associated id. Please use saveNewMapAsync instead"
+      );
+    let updatedMap = <SandboxMap>this.exportForLocalSaveAs();
+    updatedMap.id = this.id;
+    console.log("Current map with id ", this.id, " is being updated")
+    return updateUserMap(updatedMap);
   }
 
-  saveNewMapAsync(name: string): Promise<any> {
-    let newSandboxMap;
-    if (this.id) {
-      //if this map has already been saved
-      //update new map's name for storage purposes, but do not change this map object's name or id
-      newSandboxMap = <SandboxMap>this.exportForLocalSaveAs();
-      newSandboxMap.name = name;
-      return saveNewUserMap(newSandboxMap);
-    } else {
-      //if this is a totally new unsaved map
-      //update this map object's name and id to new values
-      this.name = name;
-      newSandboxMap = <SandboxMap>this.exportForLocalSaveAs();
-      return saveNewUserMap(newSandboxMap).then((id) => {
-        this.id = id;
-      });
-    }
+  async saveNewMapAsync(name: string): Promise<any> {
+    this.name = name;
+    let newSandboxMap = <SandboxMap>this.exportForLocalSaveAs();
+    let newId = await saveNewUserMap(newSandboxMap);
+    this.id = newId;
+    console.log(`This map is now called ${this.name} and was saved under id ${this.id}`)
   }
 
   compress() {
@@ -824,6 +824,14 @@ export class SandboxMap extends ArcadeMap {
         if (borderId !== null) {
           //@ts-ignore
           square.borders[dir] = this.squares[borderId - 1];
+        }
+        if (square.borders[dir] === undefined) {
+          console.log(
+            "Found undefined border data for square ",
+            square.id,
+            " during decompress"
+          );
+          debugger;
         }
       }
       return square;

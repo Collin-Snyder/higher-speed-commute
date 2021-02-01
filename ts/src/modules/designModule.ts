@@ -217,6 +217,7 @@ class DesignModule {
           throw new Error(`There is no user map with id ${levelId}`);
         let decompressed = savedMap.decompress();
         let mapEntity = this._game.ecs.getEntity("map");
+        console.log(decompressed.squares[0]);
         mapEntity.Map.mapId = levelId;
         mapEntity.Map.name = decompressed.name;
         // mapEntity.Map.map = SandboxMap.fromUserMapObject(decompressed);
