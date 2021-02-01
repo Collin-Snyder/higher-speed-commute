@@ -1350,9 +1350,10 @@ export class RenderMenus extends EntityComponentSystem.System {
   ) {
     const toolbarBtns = this.buttonEntities.filter((e) => e.has("toolbar"));
     const adminBtns = this.buttonEntities.filter((e) => {
-      if (!saved) return e.has("admin");
-
-      let visible = e.has("admin") && !/save/.test(e.id);
+      let isAdmin = e.has("admin");
+      if (!saved) return isAdmin;
+      if (!isAdmin) return false;
+      let visible = !/save/.test(e.id);
       if (!visible && !e.has("NI")) e.addTag("NI");
       return visible;
     });

@@ -128,7 +128,7 @@ class DesignModule {
     // let saved = map.map.exportForSave();
     // let userMap = map.map.exportForLocalSave();
 
-    if (map.mapId) {
+    if (map.map.id) {
       // axios
       //   .put(`/maps/${map.mapId}`, saved)
       //   .then((data: any) => {
