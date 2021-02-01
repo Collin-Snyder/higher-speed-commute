@@ -64,7 +64,6 @@ const ModalButtonContainer = ({
 }: ModalButtonContainerProps) => {
   let [inputState] = useContext(ModalInputContext);
 
-  
   let buttons = modalButtons[modalName] || [];
 
   if (modalName === "loadMap" && window.game.playMode)
@@ -73,7 +72,9 @@ const ModalButtonContainer = ({
   return (
     <div id="modal-button-container">
       {buttons.map(({ type, name }: ModalButton) => {
-        let action = noOp;
+        let action = () => {
+          window.toggleModal(false);
+        };
         if (type === "submit")
           action = inputState.submitActions[name] || action;
         return (

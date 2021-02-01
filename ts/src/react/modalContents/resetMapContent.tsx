@@ -18,6 +18,7 @@ const ResetMapContent = () => {
       payload: {
         reset: (resetChoice: "save" | "overwrite") => {
           window.game.designModule.resetMap(resetChoice);
+          window.toggleModal(false);
         },
       },
     });

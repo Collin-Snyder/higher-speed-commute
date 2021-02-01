@@ -23,6 +23,7 @@ const QuitGameConfirmationContent = () => {
             window.game.resetLastCompletedLevel();
           }
           window.game.publish("quit");
+          window.toggleModal(false);
         },
       },
     });

@@ -17,8 +17,10 @@ const ArcadeStartContent = () => {
       type: "SET_SUBMIT_ACTIONS",
       payload: {
         go: (choice: "continue" | "playCompleted") => {
-          if (choice === "continue")
+          if (choice === "continue") {
+            window.toggleModal(false);
             window.game.publish("start", window.game.lastCompletedLevel + 1);
+          }
           if (choice === "playCompleted") {
             window.toggleModal(true, "loadMap");
           }

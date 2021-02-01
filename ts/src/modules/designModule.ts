@@ -158,7 +158,7 @@ class DesignModule {
     window.toggleModal(true, "save");
   }
 
-  saveAs(name: string) {
+  async saveAsAsync(name: string) {
     let global = this._game.ecs.getEntity("global").Global;
     let map = global.map.Map;
     // let saved = map.map.exportForSave();
@@ -181,14 +181,12 @@ class DesignModule {
       // userMap.name = name;
 
       // map.map.name = name;
-      map.map
-        .saveNewMapAsync(name)
-        .then((x: any) => {
-          this.saved = true;
-          if (this.quitting) this._game.publish("quit");
-           else map.name = name;
-        })
-        .catch((err: Error) => console.error(err));
+      await map.map.saveNewMapAsync(name);
+
+      this.saved = true;
+      
+      if (this.quitting) this._game.publish("quit");
+      else map.name = name;
     }
   }
 

@@ -18,13 +18,14 @@ const LoadMapContent = () => {
       payload: {
         load: (id: number) => {
           let { playMode, designModule } = window.game;
-
+          window.toggleModal(false);
           if (playMode === "custom" || playMode === "arcade")
             window.game.publish("start", id);
           else designModule.loadSaved(id);
         },
         delete: (id: number) => {
           window.game.designModule.deleteMap(id);
+          window.toggleModal(false);
         },
       },
     });

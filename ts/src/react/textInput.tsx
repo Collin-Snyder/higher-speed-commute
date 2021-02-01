@@ -19,7 +19,6 @@ const TextInput = ({ submitAction }: ITextInputProps) => {
       }}
       onKeyPress={(e: KeyboardEvent) => {
         if (e.key === "Enter" && inputState.inputValue) {
-          toggleModal(false);
           submitActions[submitAction](inputValue);
         }
       }}

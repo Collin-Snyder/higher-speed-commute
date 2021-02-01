@@ -19,8 +19,12 @@ const QuitDesignConfirmationContent = () => {
         ok: (choice: "save" | "dontSave") => {
           if (choice === "save") {
             window.game.designModule.quitting = true;
+            window.toggleModal(false);
             window.game.publish("save");
-          } else window.game.publish("quit");
+          } else {
+            window.game.publish("quit");
+            window.toggleModal(false);
+          }
         },
       },
     });

@@ -9,14 +9,17 @@ const LevelStartContent = () => {
       payload: {
         playEasy: (e: PointerEvent) => {
           window.game.setDifficulty("easy");
+          window.toggleModal(false);
           window.game.publish("startingAnimation");
         },
         playMedium: (e: PointerEvent) => {
           window.game.setDifficulty("medium");
+          window.toggleModal(false);
           window.game.publish("startingAnimation");
         },
         playHard: (e: PointerEvent) => {
           window.game.setDifficulty("hard");
+          window.toggleModal(false);
           window.game.publish("startingAnimation");
         },
       },
