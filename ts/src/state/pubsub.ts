@@ -95,6 +95,8 @@ class GameModeMachine {
         let game = <Game>(<unknown>this);
         if (game.mode !== "menu") return;
         game.playMode = "";
+        //make map non-interactible and non-clickable
+
         let entities = game.ecs.queryEntities({ has: ["menu", "main"] });
         for (let entity of entities) {
           entity.removeTag("NI");
@@ -132,6 +134,7 @@ class GameModeMachine {
         game.ecs.runSystemGroup("map");
         game.currentZoom = 1;
         mapEntity.Renderable.bgColor = "#81c76d";
+        mapEntity.Renderable.alpha = 0;
         mapEntity.Renderable.visible = true;
       },
       onplay: function() {
@@ -144,7 +147,10 @@ class GameModeMachine {
         console.log("YOU WIN!");
 
         let currentLevel = game.currentLevel.number || 0;
-        if (game.playMode === "arcade" && game.lastCompletedLevel < currentLevel)
+        if (
+          game.playMode === "arcade" &&
+          game.lastCompletedLevel < currentLevel
+        )
           game.lastCompletedLevel = currentLevel;
 
         let graphic = game.ecs.getEntity("wonGraphic");
@@ -168,7 +174,6 @@ class GameModeMachine {
         let game = <Game>(<unknown>this);
         const mapEntity = game.ecs.getEntity("map");
         const wonGraphic = game.ecs.getEntity("wonGraphic");
-        mapEntity.Renderable.alpha = 0;
         if (wonGraphic) wonGraphic.Renderable.visible = false;
       },
       onlose: function() {
@@ -178,7 +183,6 @@ class GameModeMachine {
       onleavelost: function() {
         let game = <Game>(<unknown>this);
         const mapEntity = game.ecs.getEntity("map");
-        mapEntity.Renderable.alpha = 0;
       },
       oncrash: function() {
         let game = <Game>(<unknown>this);
@@ -205,7 +209,6 @@ class GameModeMachine {
         let game = <Game>(<unknown>this);
         const mapEntity = game.ecs.getEntity("map");
         const crashGraphic = game.ecs.getEntity("crashGraphic");
-        mapEntity.Renderable.alpha = 0;
         if (crashGraphic) crashGraphic.Renderable.visible = false;
       },
       onpause: function() {
@@ -224,7 +227,6 @@ class GameModeMachine {
       onleavepaused: function() {
         let game = <Game>(<unknown>this);
         const mapEntity = game.ecs.getEntity("map");
-        mapEntity.Renderable.alpha = 0;
       },
       onresume: function() {
         let game = <Game>(<unknown>this);
@@ -291,14 +293,14 @@ class GameModeMachine {
           "spaceEvenly"
         ).start;
         mapEntity.Renderable.visible = true;
+        if (mapEntity.has("NI")) mapEntity.removeTag("NI");
 
         let entities = game.ecs.queryEntities({ has: ["menu", "design"] });
         for (let entity of entities) {
-          entity.removeTag("NI");
+          if (entity.has("NI"))entity.removeTag("NI");
         }
 
         game.designModule.setDesignTool("street");
-        // game.designModule.createDesignMenus();
 
         //(eventually) if first time, play walk-through
       },
@@ -316,21 +318,15 @@ class GameModeMachine {
       onleavedesigning: function() {
         let game = <Game>(<unknown>this);
         let mapEntity = game.globalEntity.Global.map;
-        if (game.designModule.saved) {
-          //delete all design button entities
-          // let designButtons = game.ecs.queryEntities({
-          //   has: ["menu", "design"],
-          // });
-          // for (let button of designButtons) {
-          //   button.destroy();
-          // }
-          //reset map entity
-          // mapEntity.Map.map = null;
-          // mapEntity.TileMap.tiles = [];
-          // mapEntity.Coordinates.X = 0;
-          // mapEntity.Coordinates.Y = 0;
-          // mapEntity.removeComponentByType("Clickable");
-          //change mode
+        if (!game.designModule.saved) {
+          game.designModule.clearMap();
+          game.designModule.saved = true;
+        }
+        let designMenuButtons = game.ecs.queryEntities({
+          has: ["menu", "design"],
+        });
+        for (let entity of designMenuButtons) {
+          if (!entity.has("NI")) entity.addTag("NI");
         }
       },
       onbeforetest: function() {
@@ -352,26 +348,19 @@ class GameModeMachine {
 
         game.playMode = "";
 
-        if (game.mode === "designing") {
-          let designMenuButtons = game.ecs.queryEntities({
-            has: ["menu", "design"],
-          });
-          for (let entity of designMenuButtons) {
-            if (!entity.has("NI")) entity.addTag("NI");
-          }
-        } else {
-          let gameplayMenuButtons = game.ecs.queryEntities({
-            has: ["menu", "gameplay"],
-          });
-          for (let entity of gameplayMenuButtons) {
-            if (!entity.has("NI")) entity.addTag("NI");
-          }
+        let gameplayMenuButtons = game.ecs.queryEntities({
+          has: ["menu", "gameplay"],
+        });
+        for (let entity of gameplayMenuButtons) {
+          if (!entity.has("NI")) entity.addTag("NI");
         }
 
         let mapEntity = game.ecs.getEntity("map");
-        mapEntity.mapId = null;
-        mapEntity.map = null;
+        mapEntity.Map.mapId = null;
+        mapEntity.Map.name = "";
+        mapEntity.Map.map = null;
         mapEntity.Renderable.visible = false;
+        if (!mapEntity.has("NI")) mapEntity.addTag("NI");
       },
       onendOfGame: function() {
         let game = <Game>(<unknown>this);

@@ -3,7 +3,7 @@ import {
   randomNumBtwn,
 } from "../modules/gameMath";
 import Editor from "../modules/editor";
-import {updateUserMap, saveNewUserMap} from "./localDb";
+import { updateUserMap, saveNewUserMap } from "./localDb";
 
 export interface IArcadeMap {
   squares: ISquare[];
@@ -37,16 +37,16 @@ export interface IMapObject {
 }
 
 export interface IMiniMapObject {
-  i: number,
-  n: string,
-  h: number,
-  w: number, 
-  p: number,
-  b: number,
-  o: number,
-  l: {[key: string]: number},
-  c: number[],
-  s: any[]
+  i: number;
+  n: string;
+  h: number;
+  w: number;
+  p: number;
+  b: number;
+  o: number;
+  l: { [key: string]: number };
+  c: number[];
+  s: any[];
 }
 
 export interface ISquare {
@@ -145,9 +145,9 @@ export class ArcadeMap implements IArcadeMap {
   }
 
   static fromMiniMapObject(miniMapObj: IMiniMapObject): ArcadeMap {
-    let {h, w, p, b, o, l, c, s} = miniMapObj;
-    let coffees = <{[key: string]: boolean}>{};
-    c.forEach(id => coffees[id] = true);
+    let { h, w, p, b, o, l, c, s } = miniMapObj;
+    let coffees = <{ [key: string]: boolean }>{};
+    c.forEach((id) => (coffees[id] = true));
 
     const newMap = new this(w, h);
 
@@ -158,12 +158,12 @@ export class ArcadeMap implements IArcadeMap {
     newMap.coffees = coffees;
 
     s.forEach((s: any) => {
-      let {i, d, z} = s;
+      let { i, d, z } = s;
       let id = Number(i);
       newMap.setSquare(id, "drivable", !!d);
       newMap.setSquare(id, "schoolZone", !!z);
-    })
-    
+    });
+
     return newMap;
   }
 
@@ -691,12 +691,9 @@ export class SandboxMap extends ArcadeMap {
     let hasLight = this.lights.hasOwnProperty(id);
     let hasCoffee = this.coffees.hasOwnProperty(id);
 
-    if (isPlayerHome)
-      editor.execute("removeKeySquare", "playerHome", id);
-    else if (isBossHome)
-      editor.execute("removeKeySquare", "bossHome", id);
-    else if (isOffice)
-      editor.execute("removeKeySquare", "office", id);
+    if (isPlayerHome) editor.execute("removeKeySquare", "playerHome", id);
+    else if (isBossHome) editor.execute("removeKeySquare", "bossHome", id);
+    else if (isOffice) editor.execute("removeKeySquare", "office", id);
 
     if (square.schoolZone) editor.execute("makeNotSchoolZone", id);
     if (square.drivable) editor.execute("makeNotDrivable", id);
@@ -719,6 +716,10 @@ export class SandboxMap extends ArcadeMap {
           let borderId = square.borders[dir].id;
           //@ts-ignore
           square.borders[dir] = borderId;
+        }
+        if (square.borders[dir] === undefined) {
+          console.log("Found undefined border data for square ", square.id);
+          debugger;
         }
       }
       return square;
@@ -776,7 +777,7 @@ export class SandboxMap extends ArcadeMap {
   }
 
   saveNewMapAsync(name: string): Promise<any> {
-    let newSandboxMap; 
+    let newSandboxMap;
     if (this.id) {
       //if this map has already been saved
       //update new map's name for storage purposes, but do not change this map object's name or id
@@ -788,7 +789,9 @@ export class SandboxMap extends ArcadeMap {
       //update this map object's name and id to new values
       this.name = name;
       newSandboxMap = <SandboxMap>this.exportForLocalSaveAs();
-      return saveNewUserMap(newSandboxMap).then((id) => {this.id = id});
+      return saveNewUserMap(newSandboxMap).then((id) => {
+        this.id = id;
+      });
     }
   }
 

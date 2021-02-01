@@ -52,6 +52,10 @@ const modalButtons: { [key: string]: ModalButton[] } = {
     { type: "cancel", name: "cancel" },
     { type: "submit", name: "ok" },
   ],
+  quitDesignConfirmation: [
+    { type: "cancel", name: "cancel" },
+    { type: "submit", name: "ok" },
+  ]
 };
 
 const ModalButtonContainer = ({

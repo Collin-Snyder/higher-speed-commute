@@ -5,6 +5,7 @@ import ResetMapContent from "./modalContents/resetMapContent";
 import LevelStartContent from "./modalContents/levelStartContent";
 import ArcadeStartContent from "./modalContents/arcadeStartContent";
 import QuitGameConfirmationContent from "./modalContents/quitGameConfirmationContent";
+import QuitDesignConfirmationContent from "./modalContents/quitDesignConfirmationContent";
 
 interface ModalContentProps {
   modalName: string;
@@ -31,6 +32,7 @@ const ModalContent = ({ modalName }: ModalContentProps) => {
         {modalName === "reset" ? <ResetMapContent /> : <></>}
         {modalName === "levelStart" ? <LevelStartContent /> : <></>}
         {modalName === "quitGameConfirmation" ? <QuitGameConfirmationContent /> : <></>}
+        {modalName === "quitDesignConfirmation" ? <QuitDesignConfirmationContent /> : <></>}
       </div>
     </>
   );

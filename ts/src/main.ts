@@ -423,7 +423,6 @@ export class Game {
         this.subscribe(event.name, on.bind(this));
       }
       this.subscribe(event.name, () => {
-        if (event.to === "playing") console.log("CHANGING MODE TO PLAYING");
         this.mode = event.to;
       });
       if (onNewState) {

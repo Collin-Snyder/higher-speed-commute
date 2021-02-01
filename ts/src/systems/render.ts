@@ -82,7 +82,7 @@ export class RenderBorders extends EntityComponentSystem.System {
       const { X, Y } = entity.Coordinates;
       const { weight, radius } = entity.Border;
       this.ctx.globalAlpha = alpha;
-      if (!this.canvases[entity.id])
+      if (!this.canvases[entity.id]) {
         this.initializeCanvas(
           entity.id,
           renderWidth,
@@ -90,6 +90,7 @@ export class RenderBorders extends EntityComponentSystem.System {
           weight,
           radius
         );
+      }
       this.ctx.drawImage(
         this.canvases[entity.id],
         X - weight,
@@ -881,10 +882,10 @@ export class RenderMenus extends EntityComponentSystem.System {
       case "crash":
         this.renderGameplayMenu(
           mode,
-          borderX,
-          borderY,
-          borderWidth,
-          borderHeight
+          X,
+          Y,
+          pixelWidth,
+          pixelHeight
         );
         return;
       case "designing":

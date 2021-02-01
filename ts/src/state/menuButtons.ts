@@ -86,17 +86,15 @@ export class MenuButtons {
       },
       quit: {
         name: "quit",
-        onClick: function() {
-          getLastCompletedLevel()
-            .then((l) => {
-              if (
-                game.playMode === "arcade" &&
-                game.lastCompletedLevel > l
-              )
-                window.toggleModal(true, "quitGameConfirmation");
-              else game.publish("quit");
-            })
-            .catch((err) => console.error(err));
+        onClick: async function() {
+          try {
+            let l = await getLastCompletedLevel();
+            if (game.playMode === "arcade" && game.lastCompletedLevel > l) {
+              window.toggleModal(true, "quitGameConfirmation");
+            } else game.publish("quit");
+          } catch (err) {
+            console.error(err);
+          }
         },
         height: 75,
         width: 200,
@@ -195,7 +193,9 @@ export class MenuButtons {
       home: {
         name: "home",
         onClick: function() {
-          game.publish("quit");
+          if (!game.designModule.saved) {
+            window.toggleModal(true, "quitDesignConfirmation");
+          } else game.publish("quit");
         },
         height: 75,
         width: 200,

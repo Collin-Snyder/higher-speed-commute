@@ -29,6 +29,7 @@ class DesignModule {
   public selectedTool: Tool;
   public lastEditedSquare: number;
   public mapCursor: "default" | "pointer" | "cell";
+  public quitting: boolean;
 
   constructor(game: any) {
     this._game = game;
@@ -40,6 +41,7 @@ class DesignModule {
     this.gridLoaded = false;
     this.gridOverlay = new Image();
     this.gridOverlay.src = "../design-grid.png";
+    this.quitting = false;
 
     this.gridOverlay.onload = () => {
       this.gridLoaded = true;
@@ -142,7 +144,10 @@ class DesignModule {
       // userMap.id = map.mapId;
       map.map
         .saveMapAsync()
-        .then((result: any) => (this.saved = true))
+        .then((result: any) => {
+          this.saved = true;
+          if (this.quitting) this._game.publish("quit");
+        })
         .catch((err: Error) => console.error(err));
     } else {
       this.openSaveAsModal();
@@ -179,8 +184,9 @@ class DesignModule {
       map.map
         .saveNewMapAsync(name)
         .then((x: any) => {
-          map.name = name;
           this.saved = true;
+          if (this.quitting) this._game.publish("quit");
+           else map.name = name;
         })
         .catch((err: Error) => console.error(err));
     }

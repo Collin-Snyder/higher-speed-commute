@@ -3,14 +3,14 @@ import { ModalInputContext } from "../modalInputContext";
 import OptionList from "../optionList";
 
 const options = [
-  { value: "save", label: "Save your progress" },
+  { value: "save", label: "Save your changes" },
   {
     value: "dontSave",
     label: "Don't save",
   },
 ];
 
-const QuitGameConfirmationContent = () => {
+const QuitDesignConfirmationContent = () => {
   let [, dispatch] = useContext(ModalInputContext);
   useEffect(() => {
     dispatch({
@@ -18,16 +18,14 @@ const QuitGameConfirmationContent = () => {
       payload: {
         ok: (choice: "save" | "dontSave") => {
           if (choice === "save") {
-            window.game.publish("saveProgress");
-          } else {
-            window.game.resetLastCompletedLevel();
-          }
-          window.game.publish("quit");
+            window.game.designModule.quitting = true;
+            window.game.publish("save");
+          } else window.game.publish("quit");
         },
       },
     });
   }, []);
-  return <OptionList listName="quitGame" options={options} />;
+  return <OptionList listName="quitDesign" options={options} />;
 };
 
-export default QuitGameConfirmationContent;
+export default QuitDesignConfirmationContent;
