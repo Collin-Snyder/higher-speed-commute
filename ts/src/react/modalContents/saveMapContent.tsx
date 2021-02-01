@@ -21,7 +21,7 @@ const SaveMapContent = () => {
     console.log("INPUT VALUE AT MODAL OPEN: ", inputState.inputValue)
   }, [])
 
-  return <TextInput />;
+  return <TextInput submitAction="save" />;
 };
 
 export default SaveMapContent;

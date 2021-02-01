@@ -267,7 +267,7 @@ class DesignModule {
     let mapEntity = this._game.ecs.getEntity("map");
 
     if (resetChoice === "save") {
-      this.save();
+      if (!this.saved) this.save();
       this.clearMap();
     }
 
@@ -284,7 +284,8 @@ class DesignModule {
     let mapEntity = this._game.ecs.getEntity("map");
     mapEntity.Map.map.clear(this._editor);
     mapEntity.TileMap.tiles = mapEntity.Map.map.generateDesignTileMap();
-
+    mapEntity.Map.map.id = null;
+    mapEntity.Map.map.name = "";
     mapEntity.Map.mapId = null;
     mapEntity.Map.name = "";
   }

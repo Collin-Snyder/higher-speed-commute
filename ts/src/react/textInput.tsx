@@ -1,9 +1,15 @@
 import React, { useContext, KeyboardEvent } from "react";
 import { ModalInputContext } from "./modalInputContext";
 
-const TextInput = () => {
+interface ITextInputProps {
+  submitAction: string;
+}
+
+const TextInput = ({ submitAction }: ITextInputProps) => {
   let [inputState, dispatch] = useContext(ModalInputContext);
-  let {toggleModal} = window;
+  let { toggleModal } = window;
+  let { submitActions, inputValue } = inputState;
+
   return (
     <input
       id="map-name-input"
@@ -12,12 +18,10 @@ const TextInput = () => {
         dispatch({ type: "SET_INPUT_VALUE", payload: e.target.value });
       }}
       onKeyPress={(e: KeyboardEvent) => {
-          if (e.key === "Enter" && inputState.inputValue) {
-            let input = inputState.inputValue === "" ? e : inputState.inputValue;
-            inputState.submitInput(input);
-            toggleModal(false);
-            dispatch({ type: "SET_INPUT_VALUE", payload: "" }); 
-          }
+        if (e.key === "Enter" && inputState.inputValue) {
+          toggleModal(false);
+          submitActions[submitAction](inputValue);
+        }
       }}
       value={inputState.inputValue}
       placeholder="Enter a unique name for your map"
