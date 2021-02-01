@@ -3,7 +3,7 @@ import { ModalInputContext } from "../modalInputContext";
 import TextInput from "../textInput";
 
 const SaveMapContent = () => {
-  let [, dispatch] = useContext(ModalInputContext);
+  let [inputState, dispatch] = useContext(ModalInputContext);
 
   useEffect(() => {
     dispatch({
@@ -16,6 +16,10 @@ const SaveMapContent = () => {
       },
     });
   }, []);
+
+  useEffect(() => {
+    console.log("INPUT VALUE AT MODAL OPEN: ", inputState.inputValue)
+  }, [])
 
   return <TextInput />;
 };

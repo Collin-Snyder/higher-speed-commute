@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import Game from "../main";
 import ActionButton from "./actionButton";
 import { ModalInputContext } from "./modalInputContext";
@@ -55,7 +55,7 @@ const modalButtons: { [key: string]: ModalButton[] } = {
   quitDesignConfirmation: [
     { type: "cancel", name: "cancel" },
     { type: "submit", name: "ok" },
-  ]
+  ],
 };
 
 const ModalButtonContainer = ({
@@ -64,6 +64,7 @@ const ModalButtonContainer = ({
 }: ModalButtonContainerProps) => {
   let [inputState] = useContext(ModalInputContext);
 
+  
   let buttons = modalButtons[modalName] || [];
 
   if (modalName === "loadMap" && window.game.playMode)

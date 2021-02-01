@@ -18,7 +18,7 @@ const LevelStartContent = () => {
         playHard: (e: PointerEvent) => {
           window.game.setDifficulty("hard");
           window.game.publish("startingAnimation");
-        }
+        },
       },
     });
     dispatch({

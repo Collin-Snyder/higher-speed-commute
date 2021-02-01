@@ -18,6 +18,7 @@ export interface MapProperties {
 }
 
 const ModalContent = ({ modalName }: ModalContentProps) => {
+  console.log("Rendering modal content for modal: ", modalName)
   return (
     <>
       <div

@@ -4,13 +4,13 @@ import { ModalInputContext } from "../modalInputContext";
 import { loadAllUserMaps, loadCompletedLevels } from "../../state/localDb";
 
 const LoadMapContent = () => {
-  let [, dispatch] = useContext(ModalInputContext);
+  let [inputState, dispatch] = useContext(ModalInputContext);
   let [mapOptions, setMapOptions] = useState<ModalOption[]>([]);
   let [playMode, setPlayMode] = useState<string>("");
 
-  useEffect(() => {
-    setPlayMode(window.game.playMode);
-  }, []);
+  // useEffect(() => {
+  //   setPlayMode(window.game.playMode);
+  // }, []);
 
   useEffect(() => {
     dispatch({
@@ -32,7 +32,7 @@ const LoadMapContent = () => {
 
   useEffect(() => {
     let loadFunc =
-      playMode === "arcade" ? loadCompletedLevels : loadAllUserMaps;
+      window.game.playMode === "arcade" ? loadCompletedLevels : loadAllUserMaps;
 
     loadFunc()
       .then((um) => {
@@ -43,12 +43,16 @@ const LoadMapContent = () => {
         setMapOptions(options);
       })
       .catch((err) => console.error(err));
-  }, [playMode]);
+  }, []);
+
+  useEffect(() => {
+    console.log("INPUT VALUE AT MODAL OPEN: ", inputState.inputValue)
+  }, [])
 
   if (!mapOptions.length)
     return (
       <p>
-        You have no {playMode === "arcade" ? "completed levels" : "custom maps"}
+        You have no {window.game.playMode === "arcade" ? "completed levels" : "custom maps"}
       </p>
     );
   return <OptionList listName="loadMap" options={mapOptions} />;

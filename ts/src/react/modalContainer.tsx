@@ -21,9 +21,9 @@ const ModalContainer = () => {
     modalName: string,
     levelNumber?: number
   ) => {
-    setModalOpen(isOpen);
     setModalName(modalName);
     if (levelNumber) setLevelNum(levelNumber);
+    setModalOpen(isOpen);
   };
 
   return (

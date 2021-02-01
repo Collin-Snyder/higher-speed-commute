@@ -1,4 +1,4 @@
-import React, { useState, useContext, PointerEvent, MouseEvent } from "react";
+import React, { useState, useContext, useEffect, PointerEvent, MouseEvent } from "react";
 import { ModalInputContext } from "./modalInputContext";
 import { checkForMouseCollision } from "../modules/gameMath";
 
@@ -40,9 +40,18 @@ const ActionButton = ({
 }: ActionButtonProps) => {
   const [inputState, dispatch] = useContext(ModalInputContext);
   const [depressed, setDepressed] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      dispatch({ type: "SET_INPUT_VALUE", payload: "" });
+      dispatch({ type: "SET_SUBMIT_ACTIONS", payload: {} });
+    };
+  }, []);
+
   const { x, y, w, h } = depressed
     ? buttonImages[`${buttonName}Depressed`]
     : buttonImages[buttonName];
+
   return (
     <i
       className={`action-button ${buttonType}`}
@@ -76,14 +85,13 @@ const ActionButton = ({
         );
 
         if (pointerOnButton) {
-          if ((inputState.inputValue === null || inputState.inputValue === "") && buttonType === "submit") return;
+          if (inputState.inputValue === "" && buttonType === "submit") return;
           let input =
             inputState.inputValue === "useEvent" ? e : inputState.inputValue;
           toggleModal(false);
-          console.log("Input value: ", inputState.inputValue);
           buttonAction(input);
-          dispatch({ type: "SET_INPUT_VALUE", payload: "" });
-          dispatch({ type: "SET_SUBMIT_ACTIONS", payload: {} });
+          // dispatch({ type: "SET_INPUT_VALUE", payload: "" });
+          // dispatch({ type: "SET_SUBMIT_ACTIONS", payload: {} });
         }
       }}
     ></i>

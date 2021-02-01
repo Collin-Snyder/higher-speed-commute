@@ -204,6 +204,7 @@ export class MenuButtons {
       loadSaved: {
         name: "loadSaved",
         onClick: function() {
+          console.log("clicking loadSaved!")
           game.publish("loadSaved");
         },
         width: 200,
@@ -213,6 +214,8 @@ export class MenuButtons {
       save: {
         name: "save",
         onClick: function() {
+          console.log("clicking save!")
+
           game.publish("save");
         },
         height: 75,
@@ -222,6 +225,7 @@ export class MenuButtons {
       saveAs: {
         name: "saveAs",
         onClick: function() {
+          console.log("clicking saveAs!")
           game.publish("saveAs");
           //on failure, display failure message
         },
