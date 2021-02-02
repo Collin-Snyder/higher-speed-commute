@@ -200,17 +200,23 @@ class RenderMenus extends EntityComponentSystem.System {
   }
 
   drawTitle() {
+    let canv = this.ctx.canvas;
+    let canvW = canv.width;
+    let canvH = canv.height;
     let spriteCoords = this.spriteMap.title;
     let spriteW = 195;
     let spriteH = 53;
-    let renderH = window.innerHeight / 4;
+    // let renderH = window.innerHeight / 4;
+    let renderH = canvH / 4;
     let renderW = renderH * (spriteW / spriteH);
 
     let { x, y } = centerWithin(
       0,
       0,
-      window.innerWidth,
-      window.innerHeight / 3,
+      // window.innerWidth,
+      canvW,
+      // window.innerHeight / 3,
+      canvH / 3,
       renderW,
       renderH,
       1,
@@ -225,12 +231,14 @@ class RenderMenus extends EntityComponentSystem.System {
       spriteW,
       spriteH,
       x.start,
-      window.innerHeight / 8,
+      // window.innerHeight / 8,
+      canvH / 8,
       renderW,
       renderH
     );
 
-    return { titleY: window.innerHeight / 8, titleHeight: renderH };
+    // return { titleY: window.innerHeight / 8, titleHeight: renderH };
+    return { titleY: canvH / 8, titleHeight: renderH };
   }
 
   renderMainMenu() {

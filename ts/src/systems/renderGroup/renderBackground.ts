@@ -11,7 +11,8 @@ class RenderBackground extends EntityComponentSystem.System {
       let layers = this.ecs.getEntity("bg").ParallaxLayer;
   
       this.ctx.fillStyle = "#8edbfa";
-      this.ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+      // this.ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+      this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
   
       if (game.backgroundIsLoaded) {
         for (let layer of layers) {
@@ -32,7 +33,8 @@ class RenderBackground extends EntityComponentSystem.System {
       }
     ) {
       let { X, Y, width, height, offset } = l;
-      let renderHeight = (height / (width / 2)) * window.innerWidth;
+      // let renderHeight = (height / (width / 2)) * window.innerWidth;
+      let renderHeight = (height / (width / 2)) * this.ctx.canvas.width;
       this.ctx.drawImage(
         bg,
         X + offset,
@@ -40,8 +42,10 @@ class RenderBackground extends EntityComponentSystem.System {
         width / 2,
         height,
         0,
-        window.innerHeight - renderHeight,
-        window.innerWidth,
+        // window.innerHeight - renderHeight,
+        this.ctx.canvas.height - renderHeight,
+        // window.innerWidth,
+        this.ctx.canvas.width,
         renderHeight
       );
     }

@@ -85,7 +85,7 @@ export class Game {
 
   // GRAPHICS //
   private UICanvas: HTMLCanvasElement;
-  private uictx: CanvasRenderingContext2D;
+  public uictx: CanvasRenderingContext2D;
   private OSMapCanvas: HTMLCanvasElement;
   private osmctx: CanvasRenderingContext2D;
   private OSEntCanvas: HTMLCanvasElement;
@@ -191,6 +191,8 @@ export class Game {
 
     this.background.src = "../bgsheet-sm.png";
     this.spritesheet.src = "../spritesheet.png";
+    this.uictx.canvas.style.width = `${window.innerWidth}px`;
+    this.uictx.canvas.style.height = `${window.innerHeight}px`;
     this.uictx.canvas.width = window.innerWidth;
     this.uictx.canvas.height = window.innerHeight;
     this.uictx.imageSmoothingEnabled = false;
@@ -758,6 +760,7 @@ export class InputEvents {
       this.keyPressMap[keyCodes[keyName]] = false;
     }
 
+    window.addEventListener("resize", (e) => this.handleWindowResize(e));
     document.addEventListener("keydown", (e) => this.handleKeypress(e));
     document.addEventListener("keyup", (e) => this.handleKeypress(e));
     document.addEventListener("keypress", (e) => this.handleKeypress(e));
@@ -780,6 +783,29 @@ export class InputEvents {
       e.target.releasePointerCapture(e.pointerId);
     });
   }
+
+  private handleWindowResize = (e: UIEvent) => {
+    let game = window.game;
+    let { Renderable, TileData, Border, ViewBox } = game.ecs.getEntity("map");
+
+    let newW = Math.ceil(window.innerWidth);
+    let newH = Math.ceil(window.innerHeight);
+
+    game.uictx.canvas.style.width = `${newW}px`;
+    game.uictx.canvas.style.height = `${newH}px`;
+    game.uictx.canvas.width = newW;
+    game.uictx.canvas.height = newH;
+    game.uictx.imageSmoothingEnabled = false;
+
+    Renderable.renderWidth = newW * 0.55;
+    TileData.tileWidth = Renderable.renderWidth / 40;
+    TileData.tileHeight = TileData.tileWidth;
+    Renderable.renderHeight = TileData.tileHeight * 25;
+    Border.weight = Renderable.renderWidth * 0.02;
+    Border.radius = Border.weight;
+    ViewBox.w = Renderable.renderWidth / game.currentZoom;
+    ViewBox.h = Renderable.renderHeight / game.currentZoom;
+  };
 
   private handleKeypress = (e: KeyboardEvent) => {
     if ((e.target as HTMLElement)?.tagName == "INPUT") return;
