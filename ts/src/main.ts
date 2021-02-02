@@ -201,26 +201,13 @@ export class Game {
 
     this.background.src = "../bgsheet-sm.png";
     this.spritesheet.src = "../spritesheet.png";
-    this.UICanvas.width = window.innerWidth;
-    this.UICanvas.height = window.innerHeight;
+    this.uictx.canvas.width = window.innerWidth;
+    this.uictx.canvas.height = window.innerHeight;
     this.uictx.imageSmoothingEnabled = false;
 
     this.registerComponents();
     this.registerTags();
     this.registerSubscribers();
-
-    window.addEventListener("resize", (e) => {
-      console.log("Resizing window");
-      let newW = window.innerWidth;
-      let newH = window.innerHeight;
-      let xr = newW / this.windowWidth;
-      let yr = newH / this.windowHeight;
-      this.UICanvas.width = newW;
-      this.UICanvas.height = newH;
-      this.uictx.scale(xr, yr);
-      this.windowWidth = newW;
-      this.windowHeight = newH;
-    });
 
     this.globalEntity = this.ecs.createEntity({
       id: "global",
@@ -529,7 +516,7 @@ export class Game {
         description,
       };
       let { MapData } = this.ecs.getEntity("map");
-      
+
       mapInfo.id = id;
       mapInfo.name = name;
       MapData.map = ArcadeMap.fromMapObject(mapInfo);
@@ -741,7 +728,7 @@ export class Game {
 }
 
 export class InputEvents {
-  public UICanvas: undefined | HTMLCanvasElement;
+  public UICanvas: HTMLCanvasElement;
   public mouseX: number;
   public mouseY: number;
   public mouseDown: boolean;
@@ -752,7 +739,7 @@ export class InputEvents {
   public keyPressMap: { [keyCode: number]: boolean };
 
   constructor() {
-    this.UICanvas;
+    this.UICanvas = <HTMLCanvasElement>document.getElementById("ui");
     this.mouseX = 0;
     this.mouseY = 0;
     this.mouseDown = false;
@@ -766,9 +753,6 @@ export class InputEvents {
       this.keyPressMap[keyCodes[keyName]] = false;
     }
 
-    this.UICanvas = <HTMLCanvasElement>document.getElementById("ui");
-
-    window.addEventListener("resize", (e) => this.handleWindowResize(e));
     document.addEventListener("keydown", (e) => this.handleKeypress(e));
     document.addEventListener("keyup", (e) => this.handleKeypress(e));
     document.addEventListener("keypress", (e) => this.handleKeypress(e));
@@ -791,13 +775,6 @@ export class InputEvents {
       e.target.releasePointerCapture(e.pointerId);
     });
   }
-
-  private handleWindowResize = (e: UIEvent) => {
-    if (this.UICanvas) {
-      this.UICanvas.width = window.innerWidth;
-      this.UICanvas.height = window.innerHeight;
-    }
-  };
 
   private handleKeypress = (e: KeyboardEvent) => {
     if ((e.target as HTMLElement)?.tagName == "INPUT") return;
