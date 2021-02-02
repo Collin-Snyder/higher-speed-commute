@@ -34,6 +34,8 @@ export interface IMapObject {
   office: number;
   lights: { [key: string]: number };
   coffees: { [key: string]: boolean };
+  id: number;
+  name: string;
 }
 
 export interface IMiniMapObject {
@@ -119,6 +121,8 @@ export class ArcadeMap implements IArcadeMap {
 
   static fromMapObject(mapObj: IMapObject): ArcadeMap {
     const {
+      id,
+      name,
       boardWidth,
       boardHeight,
       squares,
@@ -131,6 +135,8 @@ export class ArcadeMap implements IArcadeMap {
 
     const newMap = new this(boardWidth, boardHeight);
 
+    newMap.id = id;
+    newMap.name = name;
     newMap.playerHome = playerHome;
     newMap.bossHome = bossHome;
     newMap.office = office;
@@ -664,7 +670,6 @@ export class SandboxMap extends ArcadeMap {
   }
 
   handleCoffeeAction(editor: Editor, square: ISquare) {
-    console.log("Adding coffee");
     let id = square.id;
     let tileChanges = [];
     let hasLight = this.lights.hasOwnProperty(id);
@@ -776,6 +781,7 @@ export class SandboxMap extends ArcadeMap {
       lights: this.lights,
       coffees: this.coffees,
       name: this.name ? this.name : "Untitled map",
+      id: this.id
     };
     return mapObj;
   }

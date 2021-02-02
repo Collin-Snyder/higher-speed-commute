@@ -9,7 +9,7 @@ import { Tile } from "../state/map";
 
 export class MapSystem extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
-    has: ["Map", "TileMap"],
+    has: ["MapData", "TileData"],
   };
   private mapOffscreen: HTMLCanvasElement;
   private mapCtx: CanvasRenderingContext2D;
@@ -24,26 +24,36 @@ export class MapSystem extends EntityComponentSystem.System {
 
   update(tick: number, entities: Set<Entity>) {
     let mapEntity = <Entity>entities.values().next().value;
-    let newMap = mapEntity.Map.map;
-    mapEntity.TileMap.tiles = newMap.generateTileMap();
+    let {
+      MapData: { map },
+      TileData,
+    } = mapEntity;
+    TileData.tiles = map.generateTileMap();
 
     this.positionMap(mapEntity);
-    this.updateDriverEntities(newMap);
-    this.createLightEntities(newMap);
-    this.createCoffeeEntities(newMap);
+    this.updateDriverEntities(map);
+    this.createLightEntities(map);
+    this.createCoffeeEntities(map);
     this.drawOffscreenMap(mapEntity);
   }
 
   positionMap(mapEntity: Entity) {
-    mapEntity.Coordinates.X = findCenteredElementSpread(
+    let {
+      Coordinates,
+      MapData: {
+        map: { pixelWidth, pixelHeight },
+      },
+    } = mapEntity;
+
+    Coordinates.X = findCenteredElementSpread(
       window.innerWidth,
-      mapEntity.Map.map.pixelWidth,
+      pixelWidth,
       1,
       "spaceEvenly"
     ).start;
-    mapEntity.Coordinates.Y = findCenteredElementSpread(
+    Coordinates.Y = findCenteredElementSpread(
       window.innerHeight,
-      mapEntity.Map.map.pixelHeight,
+      pixelHeight,
       1,
       "spaceEvenly"
     ).start;
@@ -172,8 +182,6 @@ export class MapSystem extends EntityComponentSystem.System {
   }
 
   drawOffscreenMap(mapEntity: any) {
-    let global = this.ecs.getEntity("global").Global;
-
     this.mapCtx.fillStyle = "#81c76d";
     this.mapCtx.fillRect(
       0,

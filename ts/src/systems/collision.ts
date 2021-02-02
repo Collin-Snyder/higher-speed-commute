@@ -42,7 +42,7 @@ export class CollisionSystem extends ECS.System {
   update(tick: number, entities: Set<Entity>) {
     this.collidables = [...entities];
     // this.game = this.globalEntity.Global.game;
-    this.map = this.globalEntity.Global.map.Map.map;
+    this.map = this.game.ecs.getEntity("map").MapData.map;
     let changes = [...this.changes];
     for (let change of changes) {
       let entity = change.component.entity;
@@ -74,9 +74,7 @@ export class CollisionSystem extends ECS.System {
       case "schoolZone":
         if (!entity.SchoolZone) {
           if (entity.id === "boss") {
-            let sq = this.game.ecs
-              .getEntity("map")
-              .Map.map.getSquareByCoords(
+            let sq = this.map.getSquareByCoords(
                 entity.Coordinates.X,
                 entity.Coordinates.Y
               ).id;
@@ -87,9 +85,7 @@ export class CollisionSystem extends ECS.System {
       default:
         if (entity.SchoolZone) {
           if (entity.id === "boss") {
-            let sq = this.game.ecs
-              .getEntity("map")
-              .Map.map.getSquareByCoords(
+            let sq = this.map.getSquareByCoords(
                 entity.Coordinates.X,
                 entity.Coordinates.Y
               ).id;

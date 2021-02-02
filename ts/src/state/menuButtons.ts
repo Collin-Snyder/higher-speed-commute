@@ -47,8 +47,8 @@ export class MenuButtons {
         width: 200,
         tags: ["menu", "gameplay", "won", "arcade"],
       },
-      newMap: {
-        name: "newMap",
+      chooseMap: {
+        name: "chooseMap",
         onClick: function() {
           game.publish("loadSaved");
         },

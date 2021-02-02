@@ -15,9 +15,7 @@ import LogTimers from "./modules/logger";
 import { ArcadeMap, IArcadeMap } from "./state/map";
 import GameModeMachine, { Mode } from "./state/pubsub";
 import Race from "./modules/raceData";
-import Sounds from "./modules/sound";
 import { MenuButtons } from "./state/menuButtons";
-import allSounds from "./state/sounds";
 import Components from "./components/index";
 import Tags from "./tags/tags";
 import { MapSystem } from "./systems/map";
@@ -46,13 +44,9 @@ import {
 import {
   loadArcadeLevel,
   loadCustomLevel,
-  loadCompletedLevels,
-  getUserInfo,
   createUser,
   getLastCompletedLevel,
 } from "./state/localDb";
-import { textChangeRangeIsUnchanged } from "typescript";
-import { Canvas } from "./components/map";
 
 declare global {
   interface Window {
@@ -115,7 +109,6 @@ export class Game {
   // ECS //
   public ecs: ECS;
   public globalEntity: Entity;
-  private mapEntity: Entity;
   private playerEntity: Entity;
   private bossEntity: Entity;
 
@@ -237,10 +230,10 @@ export class Game {
       },
     });
 
-    this.mapEntity = this.ecs.createEntity({
+    this.ecs.createEntity({
       id: "map",
-      Map: {},
-      TileMap: {},
+      MapData: {},
+      TileData: {},
       Coordinates: {},
       Renderable: {
         renderWidth: 1000,
@@ -350,7 +343,6 @@ export class Game {
     this.bossEntity.Collision.currentHb = getCurrentHb.bind(this.bossEntity);
     this.bossEntity.Collision.currentCp = getCurrentCp.bind(this.bossEntity);
 
-    this.globalEntity.Global.map = this.mapEntity;
     this.globalEntity.Global.player = this.playerEntity;
 
     this.background.onload = () => {
@@ -374,8 +366,6 @@ export class Game {
       new LevelStartAnimation(this.ecs, this.step, this.uictx)
     );
     this.ecs.addSystem("animations", new Animation(this.ecs));
-
-    this.loadMap = this.loadMap.bind(this);
 
     // this.enableAutopilot();
   }
@@ -538,9 +528,11 @@ export class Game {
         number: levelNumber,
         description,
       };
-      let mapEntity = this.ecs.getEntity("map");
-      mapEntity.Map.mapId = id;
-      mapEntity.Map.map = ArcadeMap.fromMapObject(mapInfo);
+      let { MapData } = this.ecs.getEntity("map");
+      // mapEntity.MapData.mapId = id;
+      mapInfo.id = id;
+      mapInfo.name = name;
+      MapData.map = ArcadeMap.fromMapObject(mapInfo);
       this.publish("chooseDifficulty");
     } catch (err) {
       console.error(err);
@@ -548,9 +540,10 @@ export class Game {
   }
 
   testCurrentSandboxMap() {
-    let mapEntity = this.ecs.getEntity("map");
-    let mapInfo = mapEntity.Map.map.exportMapObject();
-    mapEntity.Map.map = ArcadeMap.fromMapObject(mapInfo);
+    let { MapData } = this.ecs.getEntity("map");
+    //??? - Just replacing the map with a new copy of itself
+    let mapInfo = MapData.map.exportMapObject();
+    MapData.map = ArcadeMap.fromMapObject(mapInfo);
     this.publish("chooseDifficulty");
   }
 
@@ -573,31 +566,12 @@ export class Game {
           nextLevelId: next_level_id,
           description: "Not all who wander are late",
         };
-        let mapEntity = this.ecs.getEntity("map");
+        let { MapData } = this.ecs.getEntity("map");
         let { map_info } = levelInfo;
-        mapEntity.Map.mapId = levelInfo.id;
-        mapEntity.Map.map = ArcadeMap.fromMapObject(map_info);
+        MapData.map = ArcadeMap.fromMapObject(map_info);
+        MapData.map.id = levelInfo.id;
         // this.ecs.runSystemGroup("map");
         this.publish("chooseDifficulty");
-      })
-      //@ts-ignore
-      .catch((err) => {
-        console.error(err);
-      });
-  }
-
-  loadMap(id: number): void {
-    axios
-      .get(`/maps/${id}`)
-      //@ts-ignore
-      .then((data) => {
-        let mapInfo = data.data;
-        let mapEntity = this.ecs.getEntity("map");
-        mapEntity.Map.mapId = id;
-        mapEntity.Map.map = ArcadeMap.fromMapObject(mapInfo);
-        this.ecs.runSystemGroup("map");
-        this.publish("play");
-        this.publish("pause");
       })
       //@ts-ignore
       .catch((err) => {
@@ -672,15 +646,14 @@ export class Game {
 
   startRace() {
     if (!this.recordRaceData) return;
-    let mapEntity = this.ecs.getEntity("map");
+    let {
+      MapData: {
+        map: { id },
+      },
+    } = this.ecs.getEntity("map");
     let { color } = this.ecs.getEntity("player").Car;
 
-    this.currentRace = new Race(
-      mapEntity.Map.mapId,
-      this.difficulty,
-      color,
-      this.step
-    );
+    this.currentRace = new Race(id, this.difficulty, color, this.step);
   }
 
   endRace() {
@@ -739,7 +712,9 @@ export class Game {
     if (this.autopilot) return true;
     let p = this.ecs.getEntity("player");
     if (!p.has("Path")) p.addComponent("Path", { driver: "player" });
-    let map = this.ecs.getEntity("map").Map.map;
+    let {
+      MapData: { map },
+    } = this.ecs.getEntity("map");
     if (map && !p.Path.length) {
       let currentSquareCoords = map.getSquareByCoords(
         p.Coordinates.X,

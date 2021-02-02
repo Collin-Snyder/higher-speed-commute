@@ -146,8 +146,8 @@ export class LevelStartAnimation extends StateAnimation {
         Math.floor(this.states.gameboard.duration / this.states.gameboard.step)
       ).toFixed(3)
     );
-    this.map = this.ecs.getEntity("map").Map;
-    this.tileMap = this.ecs.getEntity("map").TileMap;
+    this.map = this.ecs.getEntity("map").MapData.map;
+    this.tileMap = this.ecs.getEntity("map").TileData;
     this.keySquaresVisible = {
       playerHome: false,
       bossHome: false,
@@ -158,7 +158,7 @@ export class LevelStartAnimation extends StateAnimation {
     this.countdownAlphaStep = Number(
       (1 / Math.floor(1000 / this.states.countdown.step)).toFixed(3)
     );
-    this.shrinkDuration = (this.states.reveal.duration * 2) / this.map.width;
+    this.shrinkDuration = (this.states.reveal.duration * 2) / (this.map?.width || 40);
     this.revealElapsedTime = 0;
     this.revealCol = 1;
     this.zoomStep = 0.075;
@@ -166,21 +166,22 @@ export class LevelStartAnimation extends StateAnimation {
 
   isAnimationRunning(): boolean {
     let global = this.ecs.getEntity("global").Global;
-    return global.game.mode === "levelStartAnimation";
+    this.map = this.ecs.getEntity("map").MapData.map;
+    return global.game.mode === "levelStartAnimation" && this.map;
   }
 
   onGameBoardStep(): void {
-    let mapEntity = this.ecs.getEntity("map");
+    let { Renderable } = this.ecs.getEntity("map");
     let newAlpha = this.gameboardAlpha + this.gameboardAlphaStep;
     if (newAlpha > 1) newAlpha = 1;
-    mapEntity.Renderable.alpha = newAlpha;
+    Renderable.alpha = newAlpha;
     this.gameboardAlpha = newAlpha;
   }
 
   onGameBoardDone(): string {
     if (this.gameboardAlpha !== 1) {
-      let mapEntity = this.ecs.getEntity("map");
-      mapEntity.Renderable.alpha = 1;
+      let { Renderable } = this.ecs.getEntity("map");
+      Renderable.alpha = 1;
     }
     return "pause1";
   }
@@ -188,13 +189,13 @@ export class LevelStartAnimation extends StateAnimation {
   onKeySquareStep(): void {
     let index;
     if (!this.keySquaresVisible.playerHome) {
-      index = this.map.map.getKeySquare("playerHome").tileIndex;
+      index = this.map.getKeySquare("playerHome").tileIndex;
       this.keySquaresVisible.playerHome = true;
     } else if (!this.keySquaresVisible.bossHome) {
-      index = this.map.map.getKeySquare("bossHome").tileIndex;
+      index = this.map.getKeySquare("bossHome").tileIndex;
       this.keySquaresVisible.bossHome = true;
     } else if (!this.keySquaresVisible.office) {
-      index = this.map.map.getKeySquare("office").tileIndex;
+      index = this.map.getKeySquare("office").tileIndex;
       this.keySquaresVisible.office = true;
     }
     this.tileMap.tiles[index].display = true;
@@ -253,8 +254,6 @@ export class LevelStartAnimation extends StateAnimation {
   }
 
   onCountdownDone(): string {
-    // let mapEntity = this.ecs.getEntity("map");
-    // mapEntity.TileMap.tiles = mapEntity.Map.map.generateTileMap();
     this.onRevealStep();
     return "reveal";
   }
@@ -359,7 +358,9 @@ export class LevelStartAnimation extends StateAnimation {
   }
 
   onStart(): string {
-    let tiles = this.ecs.getEntity("map").TileMap.tiles;
+    let {
+      TileData: { tiles },
+    } = this.ecs.getEntity("map");
     let spriteMap = this.ecs.getEntity("global").Global.spriteMap;
 
     // console.log("resetting tilemap");
@@ -453,7 +454,14 @@ export class AnimationSystem extends EntityComponentSystem.System {
     let et = game.totalElapsedTime;
     //for each entity
     for (let entity of entities) {
-      let {startTime, duration, easing, keyframes, repeat, direction} = entity.Animation;
+      let {
+        startTime,
+        duration,
+        easing,
+        keyframes,
+        repeat,
+        direction,
+      } = entity.Animation;
       //find current p value: (current et - start time) / duration
       let p = (et - startTime) / duration;
       //if easing, apply easing function to get eased p value
@@ -462,22 +470,19 @@ export class AnimationSystem extends EntityComponentSystem.System {
       //get prev keyframe and next keyframe
       let prevkf;
       //for each prop in prev keyframe, calculate new value
-        //p value between prev and next p * diff between prev and next value + prev value
-        //update entity's corresponding component/property to new value
-
+      //p value between prev and next p * diff between prev and next value + prev value
+      //update entity's corresponding component/property to new value
     }
   }
 
-  getKeyframes(kf: any[], p: number) {
-    
-  }
+  getKeyframes(kf: any[], p: number) {}
 }
 
 //for each animation component
-  //determine position relative to whole animation
-  //use position to find prev and next keyframes
-  //determine position between prev and next keyframes
-  //for each property of each component of the keyframes, 
-    //calculate current value of property based on position
-    //if easing, run value through appropriate easing function to get final value
-    //apply value to matching property on entity's actual component
+//determine position relative to whole animation
+//use position to find prev and next keyframes
+//determine position between prev and next keyframes
+//for each property of each component of the keyframes,
+//calculate current value of property based on position
+//if easing, run value through appropriate easing function to get final value
+//apply value to matching property on entity's actual component
