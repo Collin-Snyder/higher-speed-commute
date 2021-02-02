@@ -279,7 +279,7 @@ export class LevelStartAnimation extends StateAnimation {
         return;
       }
       if (t.col < this.revealCol) {
-        if (t.w === this.tileMap.tileWidth) return;
+        if (t.w === 25) return;
         t.w--;
         t.h--;
         if (light) {

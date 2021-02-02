@@ -13,6 +13,8 @@ class RenderViewBox extends EntityComponentSystem.System {
   private bossEntity: Entity;
   private refColors: { [key: string]: string };
   private modeNames: string[];
+  private scaleXFactor: number;
+  private scaleYFactor: number;
 
   constructor(
     ecs: ECS,
@@ -31,6 +33,8 @@ class RenderViewBox extends EntityComponentSystem.System {
       street: "#878787",
     };
     this.modeNames = ["playing", "won", "levelStartAnimation"];
+    this.scaleXFactor = 1;
+    this.scaleYFactor = 1;
   }
 
   update(tick: number, entities: Set<Entity>) {
@@ -40,9 +44,11 @@ class RenderViewBox extends EntityComponentSystem.System {
     let mapView = global.game.mapView;
     if (!this.modeNames.includes(mode)) return;
 
-    let mapEntity = <Entity>entities.values().next().value;
-    this.updateViewbox(mapEntity, global, mode);
+   
 
+    let mapEntity = <Entity>entities.values().next().value;
+    
+    
     let {
       ViewBox,
       Coordinates,
@@ -50,8 +56,13 @@ class RenderViewBox extends EntityComponentSystem.System {
       MapData: { map },
       TileData: { tileWidth },
     } = mapEntity;
-
+    
     let { X, Y } = Coordinates;
+
+    this.scaleXFactor = renderWidth / 1000;
+    this.scaleYFactor = renderHeight / 625;
+    
+    this.updateViewbox(mapEntity, global, mode);
 
     if (mapView) {
       this.renderReferenceMap(
@@ -77,8 +88,8 @@ class RenderViewBox extends EntityComponentSystem.System {
         ViewBox.h,
         X,
         Y,
-        map.renderWidth,
-        map.renderHeight
+        renderWidth,
+        renderHeight
       );
       this.ctx.drawImage(
         <HTMLCanvasElement>document.getElementById("ents-offscreen"),
@@ -88,8 +99,8 @@ class RenderViewBox extends EntityComponentSystem.System {
         ViewBox.h,
         X,
         Y,
-        map.renderWidth,
-        map.renderHeight
+        renderWidth,
+        renderHeight
       );
 
       if (mode === "levelStartAnimation") return;
@@ -134,8 +145,10 @@ class RenderViewBox extends EntityComponentSystem.System {
       focusEnt.Renderable.renderWidth,
       focusEnt.Renderable.renderHeight
     );
-    ViewBox.w = Renderable.renderWidth / global.game.currentZoom;
-    ViewBox.h = Renderable.renderHeight / global.game.currentZoom;
+    // ViewBox.w = Renderable.renderWidth / global.game.currentZoom;
+    ViewBox.w = 1000 / global.game.currentZoom;
+    // ViewBox.h = Renderable.renderHeight / global.game.currentZoom;
+    ViewBox.h = 625 / global.game.currentZoom;
     let vbCenter = getCenterPoint(ViewBox.x, ViewBox.y, ViewBox.w, ViewBox.h);
 
     if (mode === "playing") {
@@ -174,7 +187,7 @@ class RenderViewBox extends EntityComponentSystem.System {
     spriteSheet: any,
     spriteMap: any,
     mapCoords: any,
-    scaleFactor: number,
+    zoomFactor: number,
     mapEntity: Entity
   ) {
     let { ViewBox } = mapEntity;
@@ -192,10 +205,10 @@ class RenderViewBox extends EntityComponentSystem.System {
     } = entity;
     let X = Coordinates.X - ViewBox.x;
     let Y = Coordinates.Y - ViewBox.y;
-    let dx = mapCoords.X + X * scaleFactor;
-    let dy = mapCoords.Y + Y * scaleFactor;
-    let dw = renderWidth * scaleFactor;
-    let dh = renderHeight * scaleFactor;
+    let dx = mapCoords.X + (X * zoomFactor) * this.scaleXFactor;
+    let dy = mapCoords.Y + (Y * zoomFactor) * this.scaleYFactor;
+    let dw = renderWidth * zoomFactor * this.scaleXFactor;
+    let dh = renderHeight * zoomFactor * this.scaleYFactor;
     let trans = getCenterPoint(dx, dy, dw, dh);
     this.ctx.save();
     this.ctx.translate(trans.X, trans.Y);
@@ -348,7 +361,7 @@ class RenderViewBox extends EntityComponentSystem.System {
     let { pulser, pulsea } = this.calculateDotPulse(tick, dotr);
 
     let scaledX = X * (mapw / 1000) + mapx;
-    let scaledY = Y * (maph / 600) + mapy;
+    let scaledY = Y * (maph / 625) + mapy;
 
     this.ctx.save();
     this.ctx.beginPath();

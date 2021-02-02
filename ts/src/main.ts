@@ -221,7 +221,7 @@ export class Game {
 
     let { Renderable, TileData, Border, ViewBox } = mapEntity;
 
-    Renderable.renderWidth = window.innerWidth / 2;
+    Renderable.renderWidth = window.innerWidth * 0.55;
     TileData.tileWidth = Renderable.renderWidth / 40;
     TileData.tileHeight = TileData.tileWidth;
     Renderable.renderHeight = TileData.tileHeight * 25;

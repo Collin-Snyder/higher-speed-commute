@@ -45,7 +45,7 @@ class RenderMap extends EntityComponentSystem.System {
       this.ctx.save();
       this.ctx.globalAlpha = Renderable.alpha;
       this.ctx.fillStyle = Renderable.bgColor;
-      this.ctx.fillRect(0, 0, map.pixelWidth, map.pixelHeight);
+      this.ctx.fillRect(0, 0, 1000, 625);
       drawTileMap(
         tiles,
         map.width,
@@ -68,10 +68,10 @@ class RenderMap extends EntityComponentSystem.System {
             global.spriteSheet,
             tileCoords.X,
             tileCoords.Y,
-            tileWidth,
-            tileHeight,
-            x * tileWidth,
-            y * tileHeight,
+            25,
+            25,
+            x * 25,
+            y * 25,
             w,
             h
           );
