@@ -61,12 +61,12 @@ declare global {
   }
 }
 
-window.makeSeedData = function() {
-  axios
-    .post("/generate_seed_data")
-    .then((result) => console.log(result))
-    .catch((err) => console.error(err));
-};
+// window.makeSeedData = function() {
+//   axios
+//     .post("/generate_seed_data")
+//     .then((result) => console.log(result))
+//     .catch((err) => console.error(err));
+// };
 
 interface InputEventsInterface {
   mouseX: number;
@@ -534,38 +534,6 @@ export class Game {
     this.publish("chooseDifficulty");
   }
 
-  loadLevelFromBackend(num: number): void {
-    axios
-      .get(`/levels/${num}`)
-      //@ts-ignore
-      .then((data) => {
-        if (data.data === "end of game") {
-          this.publish("endOfGame");
-          return;
-        }
-
-        let levelInfo = data.data;
-        let { id, level_number, next_level_id, level_name } = levelInfo;
-        this.currentLevel = {
-          id,
-          number: level_number,
-          name: level_name,
-          nextLevelId: next_level_id,
-          description: "Not all who wander are late",
-        };
-        let { MapData } = this.ecs.getEntity("map");
-        let { map_info } = levelInfo;
-        MapData.map = ArcadeMap.fromMapObject(map_info);
-        MapData.map.id = levelInfo.id;
-        // this.ecs.runSystemGroup("map");
-        this.publish("chooseDifficulty");
-      })
-      //@ts-ignore
-      .catch((err) => {
-        console.error(err);
-      });
-  }
-
   tick() {
     let now = this.timestamp();
     this.totalElapsedTime = now - this.start;
@@ -656,14 +624,14 @@ export class Game {
   saveRaceData(outcome: "won" | "lost" | "crash") {
     if (!this.currentRace) return;
     let raceData = this.currentRace.exportForSave(outcome);
-    axios
-      .post("/races", raceData)
-      .then((data: any) => {
-        let { id } = data.data;
-        console.log(`Saved race data under id ${id}`);
-        this.endRace();
-      })
-      .catch((err: any) => console.error(err));
+    // axios
+    //   .post("/races", raceData)
+    //   .then((data: any) => {
+    //     let { id } = data.data;
+    //     console.log(`Saved race data under id ${id}`);
+    //     this.endRace();
+    //   })
+    //   .catch((err: any) => console.error(err));
   }
 
   getPlayerHB() {
