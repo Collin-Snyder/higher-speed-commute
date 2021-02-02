@@ -60,17 +60,18 @@ class DesignModule {
   editDesign() {
     if (!this.selectedTool) return;
     let global = this._game.ecs.getEntity("global").Global;
+    let {
+      MapData: { map },
+      TileData,
+      Coordinates,
+    } = this._game.ecs.getEntity("map");
+
     let mx = global.inputs.mouseX;
     let my = global.inputs.mouseY;
     let dragging = global.inputs.dragging;
-    let mapEntity = global.map;
-    let designMap = mapEntity.Map.map;
 
     //find which square was clicked
-    let square = designMap.getSquareByCoords(
-      mx - mapEntity.Coordinates.X,
-      my - mapEntity.Coordinates.Y
-    );
+    let square = map.getSquareByCoords(mx - Coordinates.X, my - Coordinates.Y);
 
     //perform design map action on that square
     if (!square) {
@@ -99,7 +100,7 @@ class DesignModule {
     }
 
     if (!dragging) this._editor.beginGroup();
-    const tileChanges = designMap[`handle${actionType}Action`](
+    const tileChanges = map[`handle${actionType}Action`](
       this._editor,
       square,
       dragging,
@@ -108,11 +109,11 @@ class DesignModule {
     if (!dragging) this._editor.endGroup();
 
     //handle resulting changes to tile map
-    let tiles = mapEntity.TileMap.tiles;
+    let { tiles } = TileData;
     tileChanges.forEach((id: number) => {
       let index = id - 1;
       let oldTile = tiles[index].type;
-      let newTile = designMap.determineTileValue(id);
+      let newTile = map.determineTileValue(id);
       // debugger;
       if (oldTile !== newTile) {
         tiles[index].type = newTile;
@@ -123,12 +124,13 @@ class DesignModule {
   }
 
   save() {
-    let global = this._game.ecs.getEntity("global").Global;
-    let map = global.map.Map;
+    let {
+      MapData: { map },
+    } = this._game.ecs.getEntity("map");
     // let saved = map.map.exportForSave();
     // let userMap = map.map.exportForLocalSave();
 
-    if (map.map.id) {
+    if (map?.id) {
       // axios
       //   .put(`/maps/${map.mapId}`, saved)
       //   .then((data: any) => {
@@ -142,7 +144,7 @@ class DesignModule {
       //     console.error(err);
       //   });
       // userMap.id = map.mapId;
-      map.map
+      map
         .saveMapAsync()
         .then((result: any) => {
           this.saved = true;
@@ -159,32 +161,15 @@ class DesignModule {
   }
 
   async saveAsAsync(name: string) {
-    let global = this._game.ecs.getEntity("global").Global;
-    let map = global.map.Map;
-    // let saved = map.map.exportForSave();
-    // let userMap = map.map.exportForLocalSave();
-    console.log(`name passed to saveAs: "${name}"`);
+    let {
+      MapData: { map },
+    } = this._game.ecs.getEntity("map");
+
     if (name) {
-      // saved.level_name = name;
-      // saved.user_id = 1;
-      // axios
-      //   .post("/maps", saved)
-      //   .then((data: any) => {
-      //     console.log(data.data);
-      //     let { id } = data.data;
-      //     map.mapId = id;
-      //     this.saved = true;
-      //     console.log(`Saved new map #${id}!`);
-      //   })
-      //   .catch((err: any) => console.error(err));
-
-      // userMap.name = name;
-
-      // map.map.name = name;
-      await map.map.saveNewMapAsync(name);
+      await map.saveNewMapAsync(name);
 
       this.saved = true;
-      
+
       if (this.quitting) this._game.publish("quit");
       else map.name = name;
     }
@@ -195,50 +180,43 @@ class DesignModule {
   }
 
   async loadSaved(levelId: number) {
-    // let id = 0;
     levelId = Number(levelId);
     if (levelId) {
-      let global = this._game.ecs.getEntity("global").Global;
-      // axios
-      //   .get(`/maps/${levelId}`)
-      //   .then((data: any) => {
-      //     console.log(data.data);
-      //     global.map.Map.mapId = levelId;
-      //     global.map.Map.map = SandboxMap.fromMapObject(data.data);
-      //     global.map.TileMap.tiles = global.map.Map.map.generateDesignTileMap();
-      //     this._editor.restart();
-      //   })
-      //   .catch((err: any) => console.error(err));
       try {
         let savedMap = await loadUserMap(levelId);
         if (!savedMap)
           throw new Error(`There is no user map with id ${levelId}`);
         let decompressed = savedMap.decompress();
-        let mapEntity = this._game.ecs.getEntity("map");
-        console.log(decompressed.squares[0]);
-        mapEntity.Map.mapId = levelId;
-        mapEntity.Map.name = decompressed.name;
-        // mapEntity.Map.map = SandboxMap.fromUserMapObject(decompressed);
-        mapEntity.Map.map = decompressed;
-        mapEntity.TileMap.tiles = mapEntity.Map.map.generateDesignTileMap();
+
+        let { MapData, TileData } = this._game.ecs.getEntity("map");
+
+        MapData.map = decompressed;
+        TileData.tiles = MapData.map.generateDesignTileMap();
+
         this._editor.restart();
       } catch (err) {
         console.error(err);
       }
     }
-    // this.setDesignTool("");
   }
 
   undo() {
     this._editor.undo();
-    let global = this._game.ecs.getEntity("global").Global;
-    global.map.TileMap.tiles = global.map.Map.map.generateDesignTileMap();
+    let {
+      TileData,
+      MapData: { map },
+    } = this._game.ecs.getEntity("map");
+
+    TileData.tiles = map.generateDesignTileMap();
   }
 
   redo() {
     this._editor.redo();
-    let global = this._game.ecs.getEntity("global").Global;
-    global.map.TileMap.tiles = global.map.Map.map.generateDesignTileMap();
+     let {
+      TileData,
+      MapData: { map },
+    } = this._game.ecs.getEntity("map");
+    TileData.tiles = map.generateDesignTileMap();
   }
 
   startDrawing() {
@@ -262,7 +240,9 @@ class DesignModule {
   }
 
   resetMap(resetChoice: "save" | "overwrite") {
-    let mapEntity = this._game.ecs.getEntity("map");
+    let {
+      MapData: { map },
+    } = this._game.ecs.getEntity("map");
 
     if (resetChoice === "save") {
       if (!this.saved) this.save();
@@ -270,7 +250,7 @@ class DesignModule {
     }
 
     if (resetChoice === "overwrite") {
-      if (mapEntity.Map.mapId) this.deleteMap(mapEntity.Map.mapId);
+      if (map?.id) this.deleteMap(map.id);
       else this.clearMap();
     }
 
@@ -279,13 +259,14 @@ class DesignModule {
   }
 
   clearMap() {
-    let mapEntity = this._game.ecs.getEntity("map");
-    mapEntity.Map.map.clear(this._editor);
-    mapEntity.TileMap.tiles = mapEntity.Map.map.generateDesignTileMap();
-    mapEntity.Map.map.id = null;
-    mapEntity.Map.map.name = "";
-    mapEntity.Map.mapId = null;
-    mapEntity.Map.name = "";
+    let {
+      MapData: { map },
+      TileData,
+    } = this._game.ecs.getEntity("map");
+    map.clear(this._editor);
+    TileData.tiles = map.generateDesignTileMap();
+    map.id = null;
+    map.name = "";
   }
 
   deleteMap(id: number) {

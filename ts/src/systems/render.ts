@@ -196,7 +196,7 @@ export class RenderBorders extends EntityComponentSystem.System {
 
 export class RenderMap extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
-    has: ["TileMap", "Map"],
+    has: ["TileData", "MapData"],
   };
 
   private modeNames: string[];
@@ -218,9 +218,11 @@ export class RenderMap extends EntityComponentSystem.System {
     if (!this.modeNames.includes(mode)) return;
 
     const mapEntity = entities.values().next().value;
-    const coords = mapEntity.Coordinates;
-    const tileMap = mapEntity.TileMap;
-    const map = mapEntity.Map.map;
+    const {
+      TileData: { tiles, tileWidth, tileHeight },
+      MapData: { map },
+      Renderable,
+    } = mapEntity;
 
     if (
       mode === "designing" ||
@@ -229,11 +231,11 @@ export class RenderMap extends EntityComponentSystem.System {
       mode === "lost"
     ) {
       this.ctx.save();
-      this.ctx.globalAlpha = mapEntity.Renderable.alpha;
-      this.ctx.fillStyle = mapEntity.Renderable.bgColor;
+      this.ctx.globalAlpha = Renderable.alpha;
+      this.ctx.fillStyle = Renderable.bgColor;
       this.ctx.fillRect(0, 0, map.pixelWidth, map.pixelHeight);
       drawTileMap(
-        tileMap.tiles,
+        tiles,
         map.width,
         (
           type: Tile,
@@ -254,10 +256,10 @@ export class RenderMap extends EntityComponentSystem.System {
             global.spriteSheet,
             tileCoords.X,
             tileCoords.Y,
-            tileMap.tileWidth,
-            tileMap.tileHeight,
-            x * tileMap.tileWidth,
-            y * tileMap.tileHeight,
+            tileWidth,
+            tileHeight,
+            x * tileWidth,
+            y * tileHeight,
             w,
             h
           );
@@ -310,7 +312,7 @@ export class RenderMap extends EntityComponentSystem.System {
 export class RenderGameplayEntities extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
     has: ["Coordinates", "Renderable"],
-    hasnt: ["Button", "Car", "Map"],
+    hasnt: ["Button", "Car", "MapData"],
   };
 
   constructor(
@@ -328,26 +330,40 @@ export class RenderGameplayEntities extends EntityComponentSystem.System {
     if (mode === "playing" || mode === "levelStartAnimation") {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       for (let entity of entities) {
-        if (entity.Renderable.visible && entity.id !== "countdown") {
+        let {
+          Renderable: {
+            visible,
+            renderWidth,
+            renderHeight,
+            spriteX,
+            spriteY,
+            spriteWidth,
+            spriteHeight,
+          },
+          Coordinates: { X, Y },
+        } = entity;
+
+        if (spriteX === 0 && spriteY === 0) continue;
+        if (visible && entity.id !== "countdown") {
           if (entity.Color) {
             this.drawLightTile(
               entity.Color.color,
-              entity.Coordinates.X,
-              entity.Coordinates.Y,
-              entity.Renderable.renderWidth,
-              entity.Renderable.renderHeight
+              X,
+              Y,
+              renderWidth,
+              renderHeight
             );
           }
           this.ctx.drawImage(
             global.spriteSheet,
-            entity.Renderable.spriteX,
-            entity.Renderable.spriteY,
-            entity.Renderable.spriteWidth,
-            entity.Renderable.spriteHeight,
-            entity.Coordinates.X,
-            entity.Coordinates.Y,
-            entity.Renderable.renderWidth,
-            entity.Renderable.renderHeight
+            spriteX,
+            spriteY,
+            spriteWidth,
+            spriteHeight,
+            X,
+            Y,
+            renderWidth,
+            renderHeight
           );
         }
       }
@@ -401,14 +417,16 @@ export class RenderSandbox extends EntityComponentSystem.System {
     // console.log("RenderSandbox update is running");
 
     let mapEntity = this.ecs.getEntity("map");
-    let { TileMap } = mapEntity;
-    let { map } = mapEntity.Map;
-    let { X, Y } = mapEntity.Coordinates;
+    let {
+      TileData: { tiles, tileWidth, tileHeight },
+      MapData: { map },
+      Coordinates: { X, Y },
+    } = mapEntity;
 
     this.ctx.fillStyle = "lightgray";
     this.ctx.fillRect(X, Y, map.pixelWidth, map.pixelHeight);
     drawTileMap(
-      TileMap.tiles,
+      tiles,
       map.width,
       (
         type: Tile,
@@ -421,12 +439,7 @@ export class RenderSandbox extends EntityComponentSystem.System {
       ) => {
         if (type === "greenLight" || type === "coffee") return;
         this.ctx.fillStyle = this.tileColors[type];
-        this.ctx.fillRect(
-          x * TileMap.tileWidth + X,
-          y * TileMap.tileHeight + Y,
-          w,
-          h
-        );
+        this.ctx.fillRect(x * tileWidth + X, y * tileHeight + Y, w, h);
       }
     );
 
@@ -435,7 +448,7 @@ export class RenderSandbox extends EntityComponentSystem.System {
     }
 
     drawTileMap(
-      TileMap.tiles,
+      tiles,
       map.width,
       (
         type: Tile,
@@ -453,10 +466,10 @@ export class RenderSandbox extends EntityComponentSystem.System {
           spriteSheet,
           tileCoords.X,
           tileCoords.Y,
-          TileMap.tileWidth,
-          TileMap.tileHeight,
-          x * TileMap.tileWidth + X,
-          y * TileMap.tileHeight + Y,
+          tileWidth,
+          tileHeight,
+          x * tileWidth + X,
+          y * tileHeight + Y,
           w,
           h
         );
@@ -502,65 +515,67 @@ export class RenderViewBox extends EntityComponentSystem.System {
 
     let mapEntity = <Entity>entities.values().next().value;
     this.updateViewbox(mapEntity, global, mode);
-    let vb = mapEntity.ViewBox;
-    const coords = mapEntity.Coordinates;
-    const map = mapEntity.Map.map;
+
+    let {
+      ViewBox,
+      Coordinates,
+      Renderable: { renderWidth, renderHeight },
+      MapData: { map },
+    } = mapEntity;
+
+    let { X, Y } = Coordinates;
+
     if (mapView) {
-      this.renderReferenceMap(map, coords.X, coords.Y, vb, tick);
+      this.renderReferenceMap(map, X, Y, ViewBox, tick);
     } else {
       this.ctx.drawImage(
         <HTMLCanvasElement>document.getElementById("map-offscreen"),
-        vb.x,
-        vb.y,
-        vb.w,
-        vb.h,
-        coords.X,
-        coords.Y,
+        ViewBox.x,
+        ViewBox.y,
+        ViewBox.w,
+        ViewBox.h,
+        X,
+        Y,
         map.pixelWidth,
         map.pixelHeight
       );
       this.ctx.drawImage(
         <HTMLCanvasElement>document.getElementById("ents-offscreen"),
-        vb.x,
-        vb.y,
-        vb.w,
-        vb.h,
-        coords.X,
-        coords.Y,
+        ViewBox.x,
+        ViewBox.y,
+        ViewBox.w,
+        ViewBox.h,
+        X,
+        Y,
         map.pixelWidth,
         map.pixelHeight
       );
 
       if (mode === "levelStartAnimation") return;
 
-      if (this.carInViewbox(this.bossEntity, vb)) {
+      if (this.carInViewbox(this.bossEntity, ViewBox)) {
         this.renderCarSprite(
           this.bossEntity,
           global.spriteSheet,
           global.spriteMap,
-          coords,
+          Coordinates,
           zoom,
           mapEntity
         );
       }
-      if (this.carInViewbox(this.playerEntity, vb)) {
+      if (this.carInViewbox(this.playerEntity, ViewBox)) {
         this.renderCarSprite(
           this.playerEntity,
           global.spriteSheet,
           global.spriteMap,
-          coords,
+          Coordinates,
           zoom,
           mapEntity
         );
       }
 
       if (global.game.focusView === "boss") {
-        this.drawBossBorder(
-          coords.X,
-          coords.Y,
-          mapEntity.Renderable.renderWidth,
-          mapEntity.Renderable.renderHeight
-        );
+        this.drawBossBorder(X, Y, renderWidth, renderHeight);
       }
     }
   }
@@ -622,23 +637,35 @@ export class RenderViewBox extends EntityComponentSystem.System {
     mapEntity: Entity
   ) {
     let { ViewBox } = mapEntity;
-    let X = entity.Coordinates.X - ViewBox.x;
-    let Y = entity.Coordinates.Y - ViewBox.y;
+    let {
+      Coordinates,
+      Renderable: {
+        renderWidth,
+        renderHeight,
+        degrees,
+        spriteX,
+        spriteY,
+        spriteWidth,
+        spriteHeight,
+      },
+    } = entity;
+    let X = Coordinates.X - ViewBox.x;
+    let Y = Coordinates.Y - ViewBox.y;
     let dx = mapCoords.X + X * scaleFactor;
     let dy = mapCoords.Y + Y * scaleFactor;
-    let dw = entity.Renderable.renderWidth * scaleFactor;
-    let dh = entity.Renderable.renderHeight * scaleFactor;
+    let dw = renderWidth * scaleFactor;
+    let dh = renderHeight * scaleFactor;
     let trans = getCenterPoint(dx, dy, dw, dh);
     this.ctx.save();
     this.ctx.translate(trans.X, trans.Y);
-    this.ctx.rotate(degreesToRadians(entity.Renderable.degrees));
+    this.ctx.rotate(degreesToRadians(degrees));
     this.ctx.translate(-trans.X, -trans.Y);
     this.ctx.drawImage(
       spriteSheet,
-      entity.Renderable.spriteX,
-      entity.Renderable.spriteY,
-      entity.Renderable.spriteWidth,
-      entity.Renderable.spriteHeight,
+      spriteX,
+      spriteY,
+      spriteWidth,
+      spriteHeight,
       dx,
       dy,
       dw,
@@ -860,12 +887,18 @@ export class RenderMenus extends EntityComponentSystem.System {
     this.buttonEntities.forEach((e) => {
       if (e.has("NI")) e.removeTag("NI");
     });
-    let { pixelWidth, pixelHeight } = global.map.Map.map ?? {
+    let {
+      MapData: { map },
+      Border,
+      Coordinates,
+    } = this.ecs.getEntity("map");
+
+    let { pixelWidth, pixelHeight } = map ?? {
       pixelHeight: 0,
       pixelWidth: 0,
     };
-    let { weight } = global.map.Border ?? { weight: 0 };
-    let { X, Y } = global.map.Coordinates ?? { X: 0, Y: 0 };
+    let { weight } = Border ?? { weight: 0 };
+    let { X, Y } = Coordinates ?? { X: 0, Y: 0 };
 
     let borderX = X - weight;
     let borderY = Y - weight;
@@ -880,13 +913,7 @@ export class RenderMenus extends EntityComponentSystem.System {
       case "won":
       case "lost":
       case "crash":
-        this.renderGameplayMenu(
-          mode,
-          X,
-          Y,
-          pixelWidth,
-          pixelHeight
-        );
+        this.renderGameplayMenu(mode, X, Y, pixelWidth, pixelHeight);
         return;
       case "designing":
         let { saved } = game.designModule;
@@ -917,9 +944,6 @@ export class RenderMenus extends EntityComponentSystem.System {
     if (playMode) {
       if (mode === "won" || playMode === "testing")
         btns = btns.filter((b) => b.has(playMode));
-    }
-    if (mode === "won" && playMode) {
-      btns = btns.filter((b) => b.has(playMode));
     }
     return btns;
   }

@@ -105,58 +105,54 @@ class Editor {
 }
 
 const actions = {
-  getMap: function () {
+  makeDrivable: function(squareId: number) {
     let game = <Game>(<unknown>this);
-    return game.ecs.getEntity("global").Global.map.Map.map;
-  },
-  makeDrivable: function (squareId: number) {
-    let game = <Game>(<unknown>this);
-    let map = game.ecs.getEntity("global").Global.map.Map.map;
+    let { map } = game.ecs.getEntity("map").MapData;
     map.setSquare(squareId, "drivable", true);
   },
-  makeSchoolZone: function (squareId: number) {
+  makeSchoolZone: function(squareId: number) {
     let game = <Game>(<unknown>this);
-    let map = game.ecs.getEntity("global").Global.map.Map.map;
+    let { map } = game.ecs.getEntity("map").MapData;
     map.setSquare(squareId, "schoolZone", true);
   },
-  addLight: function (squareId: number, timer: number) {
+  addLight: function(squareId: number, timer: number) {
     let game = <Game>(<unknown>this);
-    let map = game.ecs.getEntity("global").Global.map.Map.map;
+    let { map } = game.ecs.getEntity("map").MapData;
     map.lights[squareId] = timer;
   },
-  addCoffee: function (squareId: number) {
+  addCoffee: function(squareId: number) {
     let game = <Game>(<unknown>this);
-    let map = game.ecs.getEntity("global").Global.map.Map.map;
+    let { map } = game.ecs.getEntity("map").MapData;
     map.coffees[squareId] = true;
   },
-  makeNotDrivable: function (squareId: number) {
+  makeNotDrivable: function(squareId: number) {
     let game = <Game>(<unknown>this);
-    let map = game.ecs.getEntity("global").Global.map.Map.map;
+    let { map } = game.ecs.getEntity("map").MapData;
     map.setSquare(squareId, "drivable", false);
   },
-  makeNotSchoolZone: function (squareId: number) {
+  makeNotSchoolZone: function(squareId: number) {
     let game = <Game>(<unknown>this);
-    let map = game.ecs.getEntity("global").Global.map.Map.map;
+    let { map } = game.ecs.getEntity("map").MapData;
     map.setSquare(squareId, "schoolZone", false);
   },
-  removeLight: function (squareId: number) {
+  removeLight: function(squareId: number) {
     let game = <Game>(<unknown>this);
-    let map = game.ecs.getEntity("global").Global.map.Map.map;
+    let { map } = game.ecs.getEntity("map").MapData;
     delete map.lights[squareId];
   },
-  removeCoffee: function (squareId: number) {
+  removeCoffee: function(squareId: number) {
     let game = <Game>(<unknown>this);
-    let map = game.ecs.getEntity("global").Global.map.Map.map;
+    let { map } = game.ecs.getEntity("map").MapData;
     delete map.coffees[squareId];
   },
-  makeKeySquare: function (keySquare: string, squareId: number) {
+  makeKeySquare: function(keySquare: string, squareId: number) {
     let game = <Game>(<unknown>this);
-    let map = game.ecs.getEntity("global").Global.map.Map.map;
+    let { map } = game.ecs.getEntity("map").MapData;
     map[keySquare] = squareId;
   },
-  removeKeySquare: function (keySquare: string, squareId: number, ) {
+  removeKeySquare: function(keySquare: string, squareId: number) {
     let game = <Game>(<unknown>this);
-    let map = game.ecs.getEntity("global").Global.map.Map.map;
+    let { map } = game.ecs.getEntity("map").MapData;
     map[keySquare] = 0;
   },
 };
