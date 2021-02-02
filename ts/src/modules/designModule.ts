@@ -164,26 +164,8 @@ class DesignModule {
     let {
       MapData: { map },
     } = this._game.ecs.getEntity("map");
-    // let saved = map.map.exportForSave();
-    // let userMap = map.map.exportForLocalSave();
-    console.log(`name passed to saveAs: "${name}"`);
+
     if (name) {
-      // saved.level_name = name;
-      // saved.user_id = 1;
-      // axios
-      //   .post("/maps", saved)
-      //   .then((data: any) => {
-      //     console.log(data.data);
-      //     let { id } = data.data;
-      //     map.mapId = id;
-      //     this.saved = true;
-      //     console.log(`Saved new map #${id}!`);
-      //   })
-      //   .catch((err: any) => console.error(err));
-
-      // userMap.name = name;
-
-      // map.map.name = name;
       await map.saveNewMapAsync(name);
 
       this.saved = true;
@@ -268,7 +250,7 @@ class DesignModule {
     }
 
     if (resetChoice === "overwrite") {
-      if (map?.id) this.deleteMap(map?.id);
+      if (map?.id) this.deleteMap(map.id);
       else this.clearMap();
     }
 

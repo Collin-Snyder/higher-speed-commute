@@ -945,9 +945,6 @@ export class RenderMenus extends EntityComponentSystem.System {
       if (mode === "won" || playMode === "testing")
         btns = btns.filter((b) => b.has(playMode));
     }
-    // if (mode === "won" && playMode) {
-    //   btns = btns.filter((b) => b.has(playMode));
-    // }
     return btns;
   }
 
@@ -1288,7 +1285,6 @@ export class RenderMenus extends EntityComponentSystem.System {
       menuH -= totalH;
     }
 
-    console.log("Positioning button entities: ", JSON.stringify(this.buttonEntities.map(b => b.id)))
     //position and draw buttons based on location/size of menu graphic
     this.positionButtons(
       mapX,

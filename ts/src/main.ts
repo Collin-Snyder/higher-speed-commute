@@ -529,7 +529,7 @@ export class Game {
         description,
       };
       let { MapData } = this.ecs.getEntity("map");
-      // mapEntity.MapData.mapId = id;
+      
       mapInfo.id = id;
       mapInfo.name = name;
       MapData.map = ArcadeMap.fromMapObject(mapInfo);
