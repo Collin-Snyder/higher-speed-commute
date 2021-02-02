@@ -20,18 +20,23 @@ class RenderSandbox extends EntityComponentSystem.System {
     let { mode, designModule } = game;
 
     if (mode !== "designing") return;
-    // console.log("RenderSandbox update is running");
-
     let mapEntity = this.ecs.getEntity("map");
     let {
       TileData: { tiles, tileWidth, tileHeight },
       MapData: { map },
       Coordinates: { X, Y },
-      Renderable: { renderWidth, renderHeight },
+      Renderable: { renderWidth, renderHeight }
     } = mapEntity;
 
     this.ctx.fillStyle = "lightgray";
     this.ctx.fillRect(X, Y, renderWidth, renderHeight);
+    
+    tiles = tiles.map((t: any) => {
+      t.w = tileWidth;
+      t.h = tileHeight;
+      return t;
+    });
+
     drawTileMap(
       tiles,
       map.width,
@@ -46,13 +51,16 @@ class RenderSandbox extends EntityComponentSystem.System {
       ) => {
         if (type === "greenLight" || type === "coffee") return;
         this.ctx.fillStyle = this.tileColors[type];
-        this.ctx.fillRect(x * tileWidth + X, y * tileHeight + Y, w, h);
+        this.ctx.fillRect(
+          x * tileWidth + X,
+          y * tileHeight + Y,
+          w,
+          h
+        );
       }
     );
 
-    if (designModule.gridLoaded) {
-      this.ctx.drawImage(designModule.gridOverlay, X, Y);
-    }
+    this.drawGrid(X, Y, renderWidth, renderHeight, tileWidth, tileHeight);
 
     drawTileMap(
       tiles,
@@ -69,12 +77,13 @@ class RenderSandbox extends EntityComponentSystem.System {
         if (type !== "greenLight" && type !== "coffee") return;
         let tileCoords =
           type === "greenLight" ? spriteMap.designLight : spriteMap.coffee;
+
         this.ctx.drawImage(
           spriteSheet,
           tileCoords.X,
           tileCoords.Y,
-          tileWidth,
-          tileHeight,
+          25,
+          25,
           x * tileWidth + X,
           y * tileHeight + Y,
           w,
@@ -82,6 +91,38 @@ class RenderSandbox extends EntityComponentSystem.System {
         );
       }
     );
+  }
+
+  drawGrid(mapx: number, mapy: number, mapw: number, maph: number, tilew: number, tileh: number) {
+    let c = 39;
+    let r = 24;
+    let currCol = 1;
+    let currRow = 1;
+    this.ctx.save();
+    while (currCol <= c) {
+      //extra 0.5 added to values to prevent anti-aliasing
+      //https://stackoverflow.com/questions/23376308/avoiding-lines-between-adjecent-svg-rectangles/23376793#23376793
+      let colX = Math.floor(currCol * tilew + mapx) + 0.5;
+      let colEndY = Math.floor(mapy + maph) + 0.5;
+      this.ctx.strokeStyle = "black";
+      this.ctx.lineWidth = 1;
+      this.ctx.moveTo(colX, mapy);
+      this.ctx.lineTo(colX, colEndY);
+      this.ctx.stroke();
+      currCol++;
+    }
+
+    while (currRow <= r) {
+      let rowY = Math.floor(currRow * tileh + mapy) + 0.5;
+      let rowEndX = Math.floor(mapx + mapw) + 0.5;
+      this.ctx.strokeStyle = "black";
+      this.ctx.lineWidth = 1;
+      this.ctx.moveTo(mapx, rowY);
+      this.ctx.lineTo(rowEndX, rowY);
+      this.ctx.stroke();
+      currRow++;
+    }
+    this.ctx.restore();
   }
 }
 

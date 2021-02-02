@@ -64,6 +64,7 @@ class DesignModule {
       MapData: { map },
       TileData,
       Coordinates,
+      Scale: { scaleX, scaleY },
     } = this._game.ecs.getEntity("map");
 
     let mx = global.inputs.mouseX;
@@ -71,8 +72,10 @@ class DesignModule {
     let dragging = global.inputs.dragging;
 
     //find which square was clicked
-    let square = map.getSquareByCoords(mx - Coordinates.X, my - Coordinates.Y);
-
+    let square = map.getSquareByCoords(
+      (mx - Coordinates.X) / scaleX,
+      (my - Coordinates.Y) / scaleY
+    );
     //perform design map action on that square
     if (!square) {
       console.log(
@@ -212,7 +215,7 @@ class DesignModule {
 
   redo() {
     this._editor.redo();
-     let {
+    let {
       TileData,
       MapData: { map },
     } = this._game.ecs.getEntity("map");

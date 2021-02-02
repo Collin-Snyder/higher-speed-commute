@@ -27,3 +27,10 @@ export const Border = {
     radius: 0,
   }
 }
+
+export const Scale = {
+  properties: {
+    scaleX: 1,
+    scaleY: 1
+  }
+}

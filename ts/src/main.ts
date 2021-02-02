@@ -219,9 +219,10 @@ export class Game {
       },
       Border: {},
       ViewBox: {},
+      Scale: {}
     });
 
-    let { Renderable, TileData, Border, ViewBox } = mapEntity;
+    let { Renderable, TileData, Border, ViewBox, Scale } = mapEntity;
 
     Renderable.renderWidth = window.innerWidth * 0.55;
     TileData.tileWidth = Renderable.renderWidth / 40;
@@ -231,6 +232,8 @@ export class Game {
     Border.radius = Border.weight;
     ViewBox.w = Renderable.renderWidth / this.currentZoom;
     ViewBox.h = Renderable.renderHeight / this.currentZoom;
+    Scale.scaleX = Renderable.renderWidth / 1000;
+    Scale.scaleY = Renderable.renderHeight / 625;
 
     let hb = [];
     hb.push(scaleVector({ X: 6, Y: 2 }, 2 / 3));
@@ -786,7 +789,7 @@ export class InputEvents {
 
   private handleWindowResize = (e: UIEvent) => {
     let game = window.game;
-    let { Renderable, TileData, Border, ViewBox } = game.ecs.getEntity("map");
+    let { Renderable, TileData, Border, ViewBox, Scale } = game.ecs.getEntity("map");
 
     let newW = Math.ceil(window.innerWidth);
     let newH = Math.ceil(window.innerHeight);
@@ -805,6 +808,8 @@ export class InputEvents {
     Border.radius = Border.weight;
     ViewBox.w = Renderable.renderWidth / game.currentZoom;
     ViewBox.h = Renderable.renderHeight / game.currentZoom;
+    Scale.scaleX = Renderable.renderWidth / 1000;
+    Scale.scaleY = Renderable.renderHeight / 625;
   };
 
   private handleKeypress = (e: KeyboardEvent) => {

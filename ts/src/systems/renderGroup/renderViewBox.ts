@@ -13,8 +13,6 @@ class RenderViewBox extends EntityComponentSystem.System {
   private bossEntity: Entity;
   private refColors: { [key: string]: string };
   private modeNames: string[];
-  private scaleXFactor: number;
-  private scaleYFactor: number;
 
   constructor(
     ecs: ECS,
@@ -33,8 +31,6 @@ class RenderViewBox extends EntityComponentSystem.System {
       street: "#878787",
     };
     this.modeNames = ["playing", "won", "levelStartAnimation"];
-    this.scaleXFactor = 1;
-    this.scaleYFactor = 1;
   }
 
   update(tick: number, entities: Set<Entity>) {
@@ -58,9 +54,6 @@ class RenderViewBox extends EntityComponentSystem.System {
     } = mapEntity;
     
     let { X, Y } = Coordinates;
-
-    this.scaleXFactor = renderWidth / 1000;
-    this.scaleYFactor = renderHeight / 625;
     
     this.updateViewbox(mapEntity, global, mode);
 
@@ -190,7 +183,7 @@ class RenderViewBox extends EntityComponentSystem.System {
     zoomFactor: number,
     mapEntity: Entity
   ) {
-    let { ViewBox } = mapEntity;
+    let { ViewBox, Scale: {scaleX, scaleY} } = mapEntity;
     let {
       Coordinates,
       Renderable: {
@@ -205,10 +198,10 @@ class RenderViewBox extends EntityComponentSystem.System {
     } = entity;
     let X = Coordinates.X - ViewBox.x;
     let Y = Coordinates.Y - ViewBox.y;
-    let dx = mapCoords.X + (X * zoomFactor) * this.scaleXFactor;
-    let dy = mapCoords.Y + (Y * zoomFactor) * this.scaleYFactor;
-    let dw = renderWidth * zoomFactor * this.scaleXFactor;
-    let dh = renderHeight * zoomFactor * this.scaleYFactor;
+    let dx = mapCoords.X + (X * zoomFactor) * scaleX;
+    let dy = mapCoords.Y + (Y * zoomFactor) * scaleY;
+    let dw = renderWidth * zoomFactor;
+    let dh = renderHeight * zoomFactor;
     let trans = getCenterPoint(dx, dy, dw, dh);
     this.ctx.save();
     this.ctx.translate(trans.X, trans.Y);
