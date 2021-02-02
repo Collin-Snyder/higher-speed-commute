@@ -30,17 +30,7 @@ import {
   BackgroundAnimation,
   Animation,
 } from "./systems/animations";
-import {
-  RenderBackground,
-  RenderMap,
-  RenderGameplayEntities,
-  RenderSandbox,
-  RenderViewBox,
-  RenderMenus,
-  RenderButtonModifiers,
-  RenderTopLevelGraphics,
-  RenderBorders,
-} from "./systems/render";
+import RenderGroup from "./systems/render";
 import {
   loadArcadeLevel,
   loadCustomLevel,
@@ -217,25 +207,28 @@ export class Game {
       },
     });
 
-    this.ecs.createEntity({
+    let mapEntity = this.ecs.createEntity({
       id: "map",
       MapData: {},
       TileData: {},
       Coordinates: {},
       Renderable: {
-        renderWidth: 1000,
-        renderHeight: 625,
         visible: false,
       },
-      Border: {
-        weight: 20,
-        radius: 20,
-      },
-      ViewBox: {
-        w: 1000 / this.currentZoom,
-        h: 625 / this.currentZoom,
-      },
+      Border: {},
+      ViewBox: {},
     });
+
+    let { Renderable, TileData, Border, ViewBox } = mapEntity;
+
+    Renderable.renderWidth = window.innerWidth / 2;
+    TileData.tileWidth = Renderable.renderWidth / 40;
+    TileData.tileHeight = TileData.tileWidth;
+    Renderable.renderHeight = TileData.tileHeight * 25;
+    Border.weight = Renderable.renderWidth * 0.02;
+    Border.radius = Border.weight;
+    ViewBox.w = Renderable.renderWidth / this.currentZoom;
+    ViewBox.h = Renderable.renderHeight / this.currentZoom;
 
     let hb = [];
     hb.push(scaleVector({ X: 6, Y: 2 }, 2 / 3));
@@ -288,8 +281,8 @@ export class Game {
       },
       Velocity: {},
       Renderable: {
-        renderWidth: 25 * (2 / 3),
-        renderHeight: 25 * (2 / 3),
+        renderWidth: mapEntity.TileData.tileWidth * (2 / 3),
+        renderHeight: mapEntity.TileData.tileWidth * (2 / 3),
       },
       Collision: { hb, cp },
     });
@@ -307,8 +300,8 @@ export class Game {
         driver: "boss",
       },
       Renderable: {
-        renderWidth: 25 * (2 / 3),
-        renderHeight: 25 * (2 / 3),
+        renderWidth: mapEntity.TileData.tileWidth * (2 / 3),
+        renderHeight: mapEntity.TileData.tileWidth * (2 / 3),
       },
       Collision: { hb, cp },
     });
@@ -419,6 +412,18 @@ export class Game {
   }
 
   buildWorld(): void {
+    const {
+      RenderBackground,
+      RenderMap,
+      RenderGameplayEntities,
+      RenderSandbox,
+      RenderViewBox,
+      RenderMenus,
+      RenderButtonModifiers,
+      RenderTopLevelGraphics,
+      RenderBorders,
+    } = RenderGroup;
+
     this.globalEntity.Global.bgSheet = this.background;
     this.globalEntity.Global.bgMap = bgMap;
     this.ecs.createEntity({

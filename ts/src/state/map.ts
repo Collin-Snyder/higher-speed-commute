@@ -781,7 +781,7 @@ export class SandboxMap extends ArcadeMap {
       lights: this.lights,
       coffees: this.coffees,
       name: this.name ? this.name : "Untitled map",
-      id: this.id
+      id: this.id,
     };
     return mapObj;
   }
@@ -793,7 +793,7 @@ export class SandboxMap extends ArcadeMap {
       );
     let updatedMap = <SandboxMap>this.exportForLocalSaveAs();
     updatedMap.id = this.id;
-    console.log("Current map with id ", this.id, " is being updated")
+    console.log("Current map with id ", this.id, " is being updated");
     return updateUserMap(updatedMap);
   }
 
@@ -802,7 +802,9 @@ export class SandboxMap extends ArcadeMap {
     let newSandboxMap = <SandboxMap>this.exportForLocalSaveAs();
     let newId = await saveNewUserMap(newSandboxMap);
     this.id = newId;
-    console.log(`This map is now called ${this.name} and was saved under id ${this.id}`)
+    console.log(
+      `This map is now called ${this.name} and was saved under id ${this.id}`
+    );
   }
 
   compress() {

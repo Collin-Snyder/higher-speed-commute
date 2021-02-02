@@ -273,13 +273,13 @@ class GameModeMachine {
         }
         Coordinates.X = findCenteredElementSpread(
           window.innerWidth,
-          MapData.map.pixelWidth,
+          Renderable.renderWidth,
           1,
           "spaceEvenly"
         ).start;
         Coordinates.Y = findCenteredElementSpread(
           window.innerHeight,
-          MapData.map.pixelHeight,
+          Renderable.renderHeight,
           1,
           "spaceEvenly"
         ).start;

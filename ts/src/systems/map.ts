@@ -40,20 +40,18 @@ export class MapSystem extends EntityComponentSystem.System {
   positionMap(mapEntity: Entity) {
     let {
       Coordinates,
-      MapData: {
-        map: { pixelWidth, pixelHeight },
-      },
+      Renderable: { renderWidth, renderHeight },
     } = mapEntity;
 
     Coordinates.X = findCenteredElementSpread(
       window.innerWidth,
-      pixelWidth,
+      renderWidth,
       1,
       "spaceEvenly"
     ).start;
     Coordinates.Y = findCenteredElementSpread(
       window.innerHeight,
-      pixelHeight,
+      renderHeight,
       1,
       "spaceEvenly"
     ).start;
