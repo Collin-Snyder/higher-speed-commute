@@ -1,6 +1,7 @@
 import { Game } from "../main";
 import { toggleModal } from "../react/modalContainer";
 import { getLastCompletedLevel } from "./localDb";
+import { small, regular } from "../modules/breakpoints";
 
 export interface ButtonInterface {
   name: string;
@@ -134,7 +135,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "toolbar"],
+        tags: ["menu", "design", "toolbar", "square"],
       },
       bossHome: {
         name: "bossHome",
@@ -143,7 +144,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "toolbar"],
+        tags: ["menu", "design", "toolbar", "square"],
       },
       office: {
         name: "office",
@@ -152,7 +153,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "toolbar"],
+        tags: ["menu", "design", "toolbar", "square"],
       },
       street: {
         name: "street",
@@ -161,7 +162,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "toolbar"],
+        tags: ["menu", "design", "toolbar", "square"],
       },
       light: {
         name: "light",
@@ -170,7 +171,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "toolbar"],
+        tags: ["menu", "design", "toolbar", "square"],
       },
       schoolZone: {
         name: "schoolZone",
@@ -179,7 +180,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "toolbar"],
+        tags: ["menu", "design", "toolbar", "square"],
       },
       coffee: {
         name: "coffee",
@@ -188,7 +189,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "toolbar"],
+        tags: ["menu", "design", "toolbar", "square"],
       },
       home: {
         name: "home",
@@ -204,7 +205,7 @@ export class MenuButtons {
       loadSaved: {
         name: "loadSaved",
         onClick: function() {
-          console.log("clicking loadSaved!")
+          console.log("clicking loadSaved!");
           game.publish("loadSaved");
         },
         width: 200,
@@ -214,7 +215,7 @@ export class MenuButtons {
       save: {
         name: "save",
         onClick: function() {
-          console.log("clicking save!")
+          console.log("clicking save!");
 
           game.publish("save");
         },
@@ -225,7 +226,7 @@ export class MenuButtons {
       saveAs: {
         name: "saveAs",
         onClick: function() {
-          console.log("clicking saveAs!")
+          console.log("clicking saveAs!");
           game.publish("saveAs");
           //on failure, display failure message
         },
@@ -260,7 +261,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "config"],
+        tags: ["menu", "design", "config", "square"],
       },
       redo: {
         name: "redo",
@@ -269,7 +270,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "config"],
+        tags: ["menu", "design", "config", "square"],
       },
       erase: {
         name: "eraser",
@@ -278,7 +279,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "config"],
+        tags: ["menu", "design", "config", "square"],
       },
       reset: {
         name: "reset",
@@ -287,7 +288,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "config"],
+        tags: ["menu", "design", "config", "square"],
       },
       issues: {
         name: "issues",
@@ -325,11 +326,14 @@ export class MenuButtons {
       let coords = game.ecs.getEntity("global").Global.spriteMap[
         `${button.name}Button`
       ];
+      let square = false;
 
       if (!coords) return;
+      if (button.tags.includes("square")) square = true;
 
-      let entity = game.ecs.createEntity({
+      game.ecs.createEntity({
         id: `${button.name}Button`,
+        tags: [...button.tags, "NI"],
         Button: { name: button.name },
         Clickable: { onClick: button.onClick },
         Coordinates: {},
@@ -341,13 +345,19 @@ export class MenuButtons {
           renderWidth: button.width,
           renderHeight: button.height,
         },
+        Breakpoint: [
+          {
+            name: "small",
+            width: square ? small.buttonHeight : small.buttonWidth,
+            height: small.buttonHeight,
+          },
+          {
+            name: "regular",
+            width: square ? regular.buttonHeight : regular.buttonWidth,
+            height: regular.buttonHeight,
+          },
+        ],
       });
-
-      for (let tag of button.tags) {
-        entity.addTag(tag);
-      }
-
-      entity.addTag("NI");
     }
   }
 }

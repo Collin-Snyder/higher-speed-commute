@@ -64,6 +64,7 @@ class DesignModule {
       MapData: { map },
       TileData,
       Coordinates,
+      Renderable: { breakpointScale },
     } = this._game.ecs.getEntity("map");
 
     let mx = global.inputs.mouseX;
@@ -71,7 +72,11 @@ class DesignModule {
     let dragging = global.inputs.dragging;
 
     //find which square was clicked
-    let square = map.getSquareByCoords(mx - Coordinates.X, my - Coordinates.Y);
+    console.log("BreakpointScale: ", breakpointScale)
+    let square = map.getSquareByCoords(
+      (mx - Coordinates.X) / breakpointScale,
+      (my - Coordinates.Y) / breakpointScale
+    );
 
     //perform design map action on that square
     if (!square) {
@@ -212,7 +217,7 @@ class DesignModule {
 
   redo() {
     this._editor.redo();
-     let {
+    let {
       TileData,
       MapData: { map },
     } = this._game.ecs.getEntity("map");

@@ -4,6 +4,7 @@ import {
   getCenterPoint,
   getTileHitbox,
 } from "../modules/gameMath";
+import { small, regular } from "../modules/breakpoints";
 import { drawTileMap } from "../modules/tileDrawer";
 import { Tile } from "../state/map";
 
@@ -40,20 +41,18 @@ export class MapSystem extends EntityComponentSystem.System {
   positionMap(mapEntity: Entity) {
     let {
       Coordinates,
-      MapData: {
-        map: { pixelWidth, pixelHeight },
-      },
+      Renderable: { renderWidth, renderHeight },
     } = mapEntity;
 
     Coordinates.X = findCenteredElementSpread(
       window.innerWidth,
-      pixelWidth,
+      renderWidth,
       1,
       "spaceEvenly"
     ).start;
     Coordinates.Y = findCenteredElementSpread(
       window.innerHeight,
-      pixelHeight,
+      renderHeight,
       1,
       "spaceEvenly"
     ).start;
@@ -98,6 +97,7 @@ export class MapSystem extends EntityComponentSystem.System {
 
       let ent = this.ecs.createEntity({
         id: `light${id}`,
+        tags: ["tileSized"],
         Coordinates: {
           X,
           Y,
@@ -118,6 +118,14 @@ export class MapSystem extends EntityComponentSystem.System {
           hb: getTileHitbox(X, Y, rw, rh),
           cp: getCenterPoint(X, Y, rw, rh),
         },
+        // Breakpoint: [
+        //   { name: "small", width: small.tileSize, height: small.tileSize },
+        //   {
+        //     name: "regular",
+        //     width: regular.tileSize,
+        //     height: regular.tileSize,
+        //   },
+        // ],
       });
       ent.Collision.currentHb = function() {
         //@ts-ignore
@@ -158,6 +166,18 @@ export class MapSystem extends EntityComponentSystem.System {
           cp: getCenterPoint(X, Y, rw, rh),
         },
         Caffeine: {},
+        // Breakpoint: [
+        //   {
+        //     name: "small",
+        //     width: Math.ceil(small.tileSize / 20),
+        //     height: Math.ceil(small.tileSize / 20),
+        //   },
+        //   {
+        //     name: "regular",
+        //     width: Math.ceil(regular.tileSize / 2),
+        //     height: Math.ceil(regular.tileSize / 2),
+        //   },
+        // ],
       });
       ent.Collision.currentHb = function() {
         //@ts-ignore

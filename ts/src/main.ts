@@ -4,7 +4,9 @@ import {
   scaleVector,
   VectorInterface,
   findRotatedVertex,
+  centerWithin,
 } from "./modules/gameMath";
+import * as breakpoints from "./modules/breakpoints";
 //@ts-ignore
 import axios from "axios";
 import spriteMap from "./spriteMap";
@@ -18,6 +20,7 @@ import Race from "./modules/raceData";
 import { MenuButtons } from "./state/menuButtons";
 import Components from "./components/index";
 import Tags from "./tags/tags";
+import { BreakpointSystem } from "./systems/breakpoints";
 import { MapSystem } from "./systems/map";
 import { LightTimer } from "./systems/lights";
 import { InputSystem } from "./systems/input";
@@ -75,6 +78,8 @@ interface InputEventsInterface {
   keyPressMap: { [keyCode: number]: boolean };
 }
 
+export type TBreakpoint = "small" | "regular";
+
 export class Game {
   // GAME TIME //
   public start: number;
@@ -105,6 +110,7 @@ export class Game {
   public spriteMap: { [entity: string]: { X: number; Y: number } };
   public spriteSheetIsLoaded: boolean;
   public backgroundIsLoaded: boolean;
+  public breakpoint: TBreakpoint;
 
   // ECS //
   public ecs: ECS;
@@ -198,16 +204,18 @@ export class Game {
     this.autopilot = false;
     this.windowWidth = window.innerWidth;
     this.windowHeight = window.innerHeight;
+    this.breakpoint = "regular";
 
     this.background.src = "../bgsheet-sm.png";
     this.spritesheet.src = "../spritesheet.png";
-    this.uictx.canvas.width = window.innerWidth;
-    this.uictx.canvas.height = window.innerHeight;
-    this.uictx.imageSmoothingEnabled = false;
+    // this.uictx.canvas.width = window.innerWidth;
+    // this.uictx.canvas.height = window.innerHeight;
+    // this.uictx.imageSmoothingEnabled = false;
 
     this.registerComponents();
     this.registerTags();
     this.registerSubscribers();
+    this.updateCanvasSize();
 
     this.globalEntity = this.ecs.createEntity({
       id: "global",
@@ -235,6 +243,22 @@ export class Game {
         w: 1000 / this.currentZoom,
         h: 625 / this.currentZoom,
       },
+      Breakpoint: [
+        {
+          name: "small",
+          width: breakpoints.small.mapWidth,
+          height: breakpoints.small.mapHeight,
+          tileSize: breakpoints.small.tileSize,
+          scale: breakpoints.small.scale,
+        },
+        {
+          name: "regular",
+          width: breakpoints.regular.mapWidth,
+          height: breakpoints.regular.mapHeight,
+          tileSize: breakpoints.regular.tileSize,
+          scale: breakpoints.regular.scale,
+        },
+      ],
     });
 
     let hb = [];
@@ -261,7 +285,7 @@ export class Game {
 
       let deg = entity.Renderable.degrees;
       if (deg === 0) return hb;
-      // entity.Renderable.degrees = degrees;
+
       //@ts-ignore
       return hb.map(({ X, Y }) => findRotatedVertex(X, Y, cpx, cpy, deg));
     };
@@ -292,6 +316,10 @@ export class Game {
         renderHeight: 25 * (2 / 3),
       },
       Collision: { hb, cp },
+      Breakpoint: [
+        { name: "small", scale: breakpoints.small.scale },
+        { name: "regular", scale: breakpoints.regular.scale },
+      ],
     });
 
     this.bossEntity = this.ecs.createEntity({
@@ -311,6 +339,10 @@ export class Game {
         renderHeight: 25 * (2 / 3),
       },
       Collision: { hb, cp },
+      Breakpoint: [
+        { name: "small", scale: breakpoints.small.scale },
+        { name: "regular", scale: breakpoints.regular.scale },
+      ],
     });
 
     createUser()
@@ -331,6 +363,8 @@ export class Game {
     this.bossEntity.Collision.currentCp = getCurrentCp.bind(this.bossEntity);
 
     this.globalEntity.Global.player = this.playerEntity;
+
+    this.ecs.addSystem("render", new BreakpointSystem(this.ecs));
 
     this.background.onload = () => {
       this.backgroundIsLoaded = true;
@@ -571,6 +605,7 @@ export class Game {
 
   render() {
     if (this.backgroundIsLoaded && this.spriteSheetIsLoaded) {
+      if (this.uictx.canvas.width != window.innerWidth) this.updateCanvasSize();
       this.ecs.runSystemGroup("animations");
       this.ecs.runSystemGroup("render");
     }
@@ -663,6 +698,47 @@ export class Game {
     bossEntity.Velocity.speedConstant = speedConstants[d];
   }
 
+  updateCanvasSize() {
+    let newW = Math.ceil(window.innerWidth);
+    let newH = Math.ceil(window.innerHeight);
+    let size: "small" | "regular" = newW < 1440 ? "small" : "regular";
+
+    this.uictx.canvas.style.width = `${newW}px`;
+    this.uictx.canvas.style.height = `${newH}px`;
+    this.uictx.canvas.width = newW;
+    this.uictx.canvas.height = newH;
+    this.uictx.imageSmoothingEnabled = false;
+    this.breakpoint = size;
+
+    this.repositionMap();
+  }
+
+  repositionMap() {
+    let mapEntity = this.ecs.getEntity("map");
+    if (!mapEntity) return;
+    
+    let {
+      Coordinates,
+      Renderable: { visible, renderWidth, renderHeight },
+    } = mapEntity;
+
+    if (!visible) return;
+
+    let { x, y } = centerWithin(
+      0,
+      0,
+      window.innerWidth,
+      window.innerHeight,
+      renderWidth,
+      renderHeight,
+      1,
+      "horizontal"
+    );
+
+    Coordinates.X = x.start;
+    Coordinates.Y = y.start;
+  }
+
   enableAutopilot() {
     if (this.autopilot) return true;
     let p = this.ecs.getEntity("player");
@@ -721,7 +797,6 @@ export class InputEvents {
       this.keyPressMap[keyCodes[keyName]] = false;
     }
 
-    window.addEventListener("resize", (e) => this.handleWindowResize(e));
     document.addEventListener("keydown", (e) => this.handleKeypress(e));
     document.addEventListener("keyup", (e) => this.handleKeypress(e));
     document.addEventListener("keypress", (e) => this.handleKeypress(e));
@@ -744,22 +819,6 @@ export class InputEvents {
       e.target.releasePointerCapture(e.pointerId);
     });
   }
-
-  private handleWindowResize = (e: UIEvent) => {
-    let game = window.game;
-
-    let newW = Math.ceil(window.innerWidth);
-    let newH = Math.ceil(window.innerHeight);
-
-    console.log("Window width: ", newW);
-
-    game.uictx.canvas.style.width = `${newW}px`;
-    game.uictx.canvas.style.height = `${newH}px`;
-    game.uictx.canvas.width = newW;
-    game.uictx.canvas.height = newH;
-    game.uictx.imageSmoothingEnabled = false;
-  };
-
 
   private handleKeypress = (e: KeyboardEvent) => {
     if ((e.target as HTMLElement)?.tagName == "INPUT") return;

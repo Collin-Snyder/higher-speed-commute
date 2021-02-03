@@ -46,8 +46,20 @@ export const Renderable = {
     prevSpriteName: null,
     degrees: 0,
     radians: 0,
+    breakpointScale: 1,
   },
 };
+
+export const Breakpoint = {
+  multiset: true,
+  properties: {
+    name: "regular",
+    width: 0,
+    height: 0,
+    tileSize: 0,
+    scale: 1
+  }
+}
 
 export const Path = {
   properties: {

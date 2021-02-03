@@ -256,10 +256,10 @@ export class RenderMap extends EntityComponentSystem.System {
             global.spriteSheet,
             tileCoords.X,
             tileCoords.Y,
-            tileWidth,
-            tileHeight,
-            x * tileWidth,
-            y * tileHeight,
+            25,
+            25,
+            x * 25,
+            y * 25,
             w,
             h
           );
@@ -421,10 +421,18 @@ export class RenderSandbox extends EntityComponentSystem.System {
       TileData: { tiles, tileWidth, tileHeight },
       MapData: { map },
       Coordinates: { X, Y },
+      Renderable: { renderWidth, renderHeight },
     } = mapEntity;
 
     this.ctx.fillStyle = "lightgray";
-    this.ctx.fillRect(X, Y, map.pixelWidth, map.pixelHeight);
+    this.ctx.fillRect(X, Y, renderWidth, renderHeight);
+
+    tiles = tiles.map((t: any) => {
+      t.w = tileWidth;
+      t.h = tileHeight;
+      return t;
+    });
+
     drawTileMap(
       tiles,
       map.width,
@@ -444,7 +452,7 @@ export class RenderSandbox extends EntityComponentSystem.System {
     );
 
     if (designModule.gridLoaded) {
-      this.ctx.drawImage(designModule.gridOverlay, X, Y);
+      this.ctx.drawImage(designModule.gridOverlay, X, Y, renderWidth, renderHeight);
     }
 
     drawTileMap(
@@ -466,8 +474,8 @@ export class RenderSandbox extends EntityComponentSystem.System {
           spriteSheet,
           tileCoords.X,
           tileCoords.Y,
-          tileWidth,
-          tileHeight,
+          25,
+          25,
           x * tileWidth + X,
           y * tileHeight + Y,
           w,
@@ -521,12 +529,22 @@ export class RenderViewBox extends EntityComponentSystem.System {
       Coordinates,
       Renderable: { renderWidth, renderHeight },
       MapData: { map },
+      TileData: { tileWidth },
     } = mapEntity;
 
     let { X, Y } = Coordinates;
 
     if (mapView) {
-      this.renderReferenceMap(map, X, Y, ViewBox, tick);
+      this.renderReferenceMap(
+        map,
+        X,
+        Y,
+        renderWidth,
+        renderHeight,
+        tileWidth,
+        ViewBox,
+        tick
+      );
     } else {
       this.ctx.drawImage(
         <HTMLCanvasElement>document.getElementById("map-offscreen"),
@@ -536,8 +554,8 @@ export class RenderViewBox extends EntityComponentSystem.System {
         ViewBox.h,
         X,
         Y,
-        map.pixelWidth,
-        map.pixelHeight
+        renderWidth,
+        renderHeight
       );
       this.ctx.drawImage(
         <HTMLCanvasElement>document.getElementById("ents-offscreen"),
@@ -547,8 +565,8 @@ export class RenderViewBox extends EntityComponentSystem.System {
         ViewBox.h,
         X,
         Y,
-        map.pixelWidth,
-        map.pixelHeight
+        renderWidth,
+        renderHeight
       );
 
       if (mode === "levelStartAnimation") return;
@@ -633,7 +651,7 @@ export class RenderViewBox extends EntityComponentSystem.System {
     spriteSheet: any,
     spriteMap: any,
     mapCoords: any,
-    scaleFactor: number,
+    zoomFactor: number,
     mapEntity: Entity
   ) {
     let { ViewBox } = mapEntity;
@@ -647,14 +665,15 @@ export class RenderViewBox extends EntityComponentSystem.System {
         spriteY,
         spriteWidth,
         spriteHeight,
+        breakpointScale
       },
     } = entity;
     let X = Coordinates.X - ViewBox.x;
     let Y = Coordinates.Y - ViewBox.y;
-    let dx = mapCoords.X + X * scaleFactor;
-    let dy = mapCoords.Y + Y * scaleFactor;
-    let dw = renderWidth * scaleFactor;
-    let dh = renderHeight * scaleFactor;
+    let dx = mapCoords.X + X * zoomFactor * breakpointScale;
+    let dy = mapCoords.Y + Y * zoomFactor * breakpointScale;
+    let dw = renderWidth * zoomFactor;
+    let dh = renderHeight * zoomFactor;
     let trans = getCenterPoint(dx, dy, dw, dh);
     this.ctx.save();
     this.ctx.translate(trans.X, trans.Y);
@@ -739,15 +758,18 @@ export class RenderViewBox extends EntityComponentSystem.System {
     map: any,
     mapx: number,
     mapy: number,
+    mapw: number,
+    maph: number,
+    tileSize: number,
     vb: any,
     tick: number
   ) {
     this.ctx.fillStyle = "#313131";
-    this.ctx.fillRect(mapx, mapy, map.pixelWidth, map.pixelHeight);
+    this.ctx.fillRect(mapx, mapy, mapw, maph);
     let tiles = map.generateReferenceTileMap();
     let x = 0;
     let y = 0;
-    let s = 25;
+    let s = tileSize;
     for (let tile of tiles) {
       if (tile) {
         this.drawSquare(x * s + mapx, y * s + mapy, s, this.refColors[tile]);
@@ -891,19 +913,20 @@ export class RenderMenus extends EntityComponentSystem.System {
       MapData: { map },
       Border,
       Coordinates,
+      Renderable: { renderWidth, renderHeight },
     } = this.ecs.getEntity("map");
 
-    let { pixelWidth, pixelHeight } = map ?? {
-      pixelHeight: 0,
-      pixelWidth: 0,
-    };
+    // let { pixelWidth, pixelHeight } = map ?? {
+    //   pixelHeight: 0,
+    //   pixelWidth: 0,
+    // };
     let { weight } = Border ?? { weight: 0 };
     let { X, Y } = Coordinates ?? { X: 0, Y: 0 };
 
     let borderX = X - weight;
     let borderY = Y - weight;
-    let borderWidth = pixelWidth + weight * 2;
-    let borderHeight = pixelHeight + weight * 2;
+    let borderWidth = renderWidth + weight * 2;
+    let borderHeight = renderHeight + weight * 2;
 
     switch (mode) {
       case "menu":
@@ -913,7 +936,7 @@ export class RenderMenus extends EntityComponentSystem.System {
       case "won":
       case "lost":
       case "crash":
-        this.renderGameplayMenu(mode, X, Y, pixelWidth, pixelHeight);
+        this.renderGameplayMenu(mode, X, Y, renderWidth, renderHeight);
         return;
       case "designing":
         let { saved } = game.designModule;
@@ -1141,6 +1164,7 @@ export class RenderMenus extends EntityComponentSystem.System {
 
   drawMenuText(
     menu: "won" | "lost" | "crash" | "end",
+    textX: number,
     textY: number,
     textH: number,
     maxW: number
@@ -1164,25 +1188,18 @@ export class RenderMenus extends EntityComponentSystem.System {
     this.ctx.textBaseline = "top";
     this.ctx.fillStyle = menu === "end" ? "black" : "white";
 
-    // console.log(`Drawing segment "${textSegments[0]}" at Y ${l1Y}`)
-    this.ctx.fillText(textSegments[0], window.innerWidth / 2, l1Y, maxW);
+    this.ctx.fillText(textSegments[0], textX, l1Y, maxW);
     totalH += topGap + bigTextH;
 
     if (textSegments[1]) {
       fontStr = fontStr.replace(/\d+(?=px)/, `${textH}`);
       this.ctx.font = fontStr;
-      // console.log(`Drawing segment "${textSegments[1]}" at Y ${l2Y}`)
-      this.ctx.fillText(textSegments[1], window.innerWidth / 2, l2Y, maxW);
+      this.ctx.fillText(textSegments[1], textX, l2Y, maxW);
       totalH += lineGap + textH;
     }
 
     if (textSegments[2]) {
-      // console.log("text height for line 3: ", textH)
-      // fontStr = fontStr.replace(/\d+(?=px)/, `${textH}`);
-      // console.log("font str: ", fontStr)
-      // this.ctx.font = fontStr;
-      // console.log(`Drawing segment "${textSegments[2]}" at Y ${l3Y}`)
-      this.ctx.fillText(textSegments[2], window.innerWidth / 2, l3Y, maxW);
+      this.ctx.fillText(textSegments[2], textX, l3Y, maxW);
       totalH += lineGap + textH;
     }
 
@@ -1280,7 +1297,7 @@ export class RenderMenus extends EntityComponentSystem.System {
     if (menu !== "paused") {
       let textH = mapHeight / 32;
       // let textH = 75;
-      let totalH = this.drawMenuText(menu, menuY, textH, mapWidth);
+      let totalH = this.drawMenuText(menu, (mapWidth / 2) + mapX, menuY, textH, mapWidth);
       menuY += totalH;
       menuH -= totalH;
     }
@@ -1437,6 +1454,7 @@ export class RenderMenus extends EntityComponentSystem.System {
 
     let textH = this.drawMenuText(
       "end",
+      window.innerWidth / 2,
       window.innerHeight / 2,
       window.innerHeight / 32,
       window.innerWidth
