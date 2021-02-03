@@ -248,12 +248,14 @@ export class Game {
           width: breakpoints.small.mapWidth,
           height: breakpoints.small.mapHeight,
           tileSize: breakpoints.small.tileSize,
+          scale: breakpoints.small.scale
         },
         {
           name: "regular",
           width: breakpoints.regular.mapWidth,
           height: breakpoints.regular.mapHeight,
           tileSize: breakpoints.regular.tileSize,
+          scale: breakpoints.regular.scale
         },
       ],
     });

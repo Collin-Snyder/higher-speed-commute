@@ -29,7 +29,6 @@ export class BreakpointSystem extends EntityComponentSystem.System {
       this.setBreakpoint(Breakpoint);
 
       if (entity.has("Car")) {
-          console.log("Scale being applied to cars: ", this.bpData.scale)
         Renderable.renderWidth = 25 * (2 / 3) * this.bpData.scale;
         Renderable.renderHeight = 25 * (2 / 3) * this.bpData.scale;
       } else {

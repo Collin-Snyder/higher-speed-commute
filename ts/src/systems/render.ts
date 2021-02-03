@@ -426,6 +426,13 @@ export class RenderSandbox extends EntityComponentSystem.System {
 
     this.ctx.fillStyle = "lightgray";
     this.ctx.fillRect(X, Y, renderWidth, renderHeight);
+
+    tiles = tiles.map((t: any) => {
+      t.w = tileWidth;
+      t.h = tileHeight;
+      return t;
+    });
+
     drawTileMap(
       tiles,
       map.width,
@@ -445,7 +452,7 @@ export class RenderSandbox extends EntityComponentSystem.System {
     );
 
     if (designModule.gridLoaded) {
-      this.ctx.drawImage(designModule.gridOverlay, X, Y);
+      this.ctx.drawImage(designModule.gridOverlay, X, Y, renderWidth, renderHeight);
     }
 
     drawTileMap(
@@ -467,8 +474,8 @@ export class RenderSandbox extends EntityComponentSystem.System {
           spriteSheet,
           tileCoords.X,
           tileCoords.Y,
-          tileWidth,
-          tileHeight,
+          25,
+          25,
           x * tileWidth + X,
           y * tileHeight + Y,
           w,
