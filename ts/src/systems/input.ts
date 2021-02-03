@@ -56,7 +56,7 @@ export class InputSystem extends ECS.System {
     }
 
     for (let e of clickable) {
-      let isMap = !!e.MapData;
+      let isMap = e.id === "map";
       // let width = isMap ? e.MapData.map.pixelWidth : e.Renderable.renderWidth;
       // let height = isMap ? e.MapData.map.pixelHeight : e.Renderable.renderHeight;
 
@@ -70,7 +70,7 @@ export class InputSystem extends ECS.System {
       );
 
       if (mouseCollision && !e.has("Disabled")) {
-        cursor = isMap ? this.global.game.designModule.mapCursor : "pointer";
+        cursor = isMap ? window.game.designModule.mapCursor : "pointer";
 
         if (dragging && isMap) clicked = e;
         else if (!dragging && mousedown && !this.lastMousedown) {

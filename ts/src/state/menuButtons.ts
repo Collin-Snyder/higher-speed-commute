@@ -135,7 +135,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "toolbar"],
+        tags: ["menu", "design", "toolbar", "square"],
       },
       bossHome: {
         name: "bossHome",
@@ -144,7 +144,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "toolbar"],
+        tags: ["menu", "design", "toolbar", "square"],
       },
       office: {
         name: "office",
@@ -153,7 +153,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "toolbar"],
+        tags: ["menu", "design", "toolbar", "square"],
       },
       street: {
         name: "street",
@@ -162,7 +162,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "toolbar"],
+        tags: ["menu", "design", "toolbar", "square"],
       },
       light: {
         name: "light",
@@ -171,7 +171,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "toolbar"],
+        tags: ["menu", "design", "toolbar", "square"],
       },
       schoolZone: {
         name: "schoolZone",
@@ -180,7 +180,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "toolbar"],
+        tags: ["menu", "design", "toolbar", "square"],
       },
       coffee: {
         name: "coffee",
@@ -189,7 +189,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "toolbar"],
+        tags: ["menu", "design", "toolbar", "square"],
       },
       home: {
         name: "home",
@@ -261,7 +261,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "config"],
+        tags: ["menu", "design", "config", "square"],
       },
       redo: {
         name: "redo",
@@ -270,7 +270,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "config"],
+        tags: ["menu", "design", "config", "square"],
       },
       erase: {
         name: "eraser",
@@ -279,7 +279,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "config"],
+        tags: ["menu", "design", "config", "square"],
       },
       reset: {
         name: "reset",
@@ -288,7 +288,7 @@ export class MenuButtons {
         },
         height: 75,
         width: 75,
-        tags: ["menu", "design", "config"],
+        tags: ["menu", "design", "config", "square"],
       },
       issues: {
         name: "issues",
@@ -326,8 +326,10 @@ export class MenuButtons {
       let coords = game.ecs.getEntity("global").Global.spriteMap[
         `${button.name}Button`
       ];
+      let square = false;
 
       if (!coords) return;
+      if (button.tags.includes("square")) square = true;
 
       game.ecs.createEntity({
         id: `${button.name}Button`,
@@ -346,12 +348,12 @@ export class MenuButtons {
         Breakpoint: [
           {
             name: "small",
-            width: small.buttonWidth,
+            width: square ? small.buttonHeight : small.buttonWidth,
             height: small.buttonHeight,
           },
           {
             name: "regular",
-            width: regular.buttonWidth,
+            width: square ? regular.buttonHeight : regular.buttonWidth,
             height: regular.buttonHeight,
           },
         ],

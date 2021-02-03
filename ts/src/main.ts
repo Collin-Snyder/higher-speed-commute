@@ -4,6 +4,7 @@ import {
   scaleVector,
   VectorInterface,
   findRotatedVertex,
+  centerWithin,
 } from "./modules/gameMath";
 import * as breakpoints from "./modules/breakpoints";
 //@ts-ignore
@@ -248,14 +249,14 @@ export class Game {
           width: breakpoints.small.mapWidth,
           height: breakpoints.small.mapHeight,
           tileSize: breakpoints.small.tileSize,
-          scale: breakpoints.small.scale
+          scale: breakpoints.small.scale,
         },
         {
           name: "regular",
           width: breakpoints.regular.mapWidth,
           height: breakpoints.regular.mapHeight,
           tileSize: breakpoints.regular.tileSize,
-          scale: breakpoints.regular.scale
+          scale: breakpoints.regular.scale,
         },
       ],
     });
@@ -708,6 +709,34 @@ export class Game {
     this.uictx.canvas.height = newH;
     this.uictx.imageSmoothingEnabled = false;
     this.breakpoint = size;
+
+    this.repositionMap();
+  }
+
+  repositionMap() {
+    let mapEntity = this.ecs.getEntity("map");
+    if (!mapEntity) return;
+    
+    let {
+      Coordinates,
+      Renderable: { visible, renderWidth, renderHeight },
+    } = mapEntity;
+
+    if (!visible) return;
+
+    let { x, y } = centerWithin(
+      0,
+      0,
+      window.innerWidth,
+      window.innerHeight,
+      renderWidth,
+      renderHeight,
+      1,
+      "horizontal"
+    );
+
+    Coordinates.X = x.start;
+    Coordinates.Y = y.start;
   }
 
   enableAutopilot() {

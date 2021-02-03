@@ -18,7 +18,7 @@ const tagGroups: { [group: string]: string[] } = {
   ],
   interactibility: ["NI"],
   animation: ["anim", "bg"],
-  rendering: ["tileSized"]
+  rendering: ["tileSized", "square"]
 };
 
 let AllTags: Array<string> = [];
