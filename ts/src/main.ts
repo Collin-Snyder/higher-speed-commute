@@ -5,6 +5,7 @@ import {
   VectorInterface,
   findRotatedVertex,
 } from "./modules/gameMath";
+import * as breakpoints from "./modules/breakpoints";
 //@ts-ignore
 import axios from "axios";
 import spriteMap from "./spriteMap";
@@ -18,6 +19,7 @@ import Race from "./modules/raceData";
 import { MenuButtons } from "./state/menuButtons";
 import Components from "./components/index";
 import Tags from "./tags/tags";
+import { BreakpointSystem } from "./systems/breakpoints";
 import { MapSystem } from "./systems/map";
 import { LightTimer } from "./systems/lights";
 import { InputSystem } from "./systems/input";
@@ -105,7 +107,7 @@ export class Game {
   public spriteMap: { [entity: string]: { X: number; Y: number } };
   public spriteSheetIsLoaded: boolean;
   public backgroundIsLoaded: boolean;
-  public windowSize: "small" | "regular";
+  public breakpoint: "small" | "regular";
 
   // ECS //
   public ecs: ECS;
@@ -199,13 +201,13 @@ export class Game {
     this.autopilot = false;
     this.windowWidth = window.innerWidth;
     this.windowHeight = window.innerHeight;
-    this.windowSize = "regular";
+    this.breakpoint = "regular";
 
     this.background.src = "../bgsheet-sm.png";
     this.spritesheet.src = "../spritesheet.png";
-    this.uictx.canvas.width = window.innerWidth;
-    this.uictx.canvas.height = window.innerHeight;
-    this.uictx.imageSmoothingEnabled = false;
+    // this.uictx.canvas.width = window.innerWidth;
+    // this.uictx.canvas.height = window.innerHeight;
+    // this.uictx.imageSmoothingEnabled = false;
 
     this.registerComponents();
     this.registerTags();
@@ -238,6 +240,20 @@ export class Game {
         w: 1000 / this.currentZoom,
         h: 625 / this.currentZoom,
       },
+      Breakpoint: [
+        {
+          name: "small",
+          width: breakpoints.small.mapWidth,
+          height: breakpoints.small.mapHeight,
+          tileSize: breakpoints.small.tileSize,
+        },
+        {
+          name: "regular",
+          width: breakpoints.regular.mapWidth,
+          height: breakpoints.regular.mapHeight,
+          tileSize: breakpoints.regular.tileSize,
+        },
+      ],
     });
 
     let hb = [];
@@ -356,6 +372,7 @@ export class Game {
       new LevelStartAnimation(this.ecs, this.step, this.uictx)
     );
     this.ecs.addSystem("animations", new Animation(this.ecs));
+    this.ecs.addSystem("render", new BreakpointSystem(this.ecs));
 
     // this.enableAutopilot();
   }
@@ -574,7 +591,7 @@ export class Game {
 
   render() {
     if (this.backgroundIsLoaded && this.spriteSheetIsLoaded) {
-      this.updateCanvasSize();
+      if (this.uictx.canvas.width != window.innerWidth) this.updateCanvasSize();
       this.ecs.runSystemGroup("animations");
       this.ecs.runSystemGroup("render");
     }
@@ -668,20 +685,16 @@ export class Game {
   }
 
   updateCanvasSize() {
-    let ww = window.innerWidth;
-    if (this.uictx.canvas.width == ww) return;
-
-    
-    let newW = Math.ceil(ww);
+    let newW = Math.ceil(window.innerWidth);
     let newH = Math.ceil(window.innerHeight);
     let size: "small" | "regular" = newW < 1440 ? "small" : "regular";
 
-    game.uictx.canvas.style.width = `${newW}px`;
-    game.uictx.canvas.style.height = `${newH}px`;
-    game.uictx.canvas.width = newW;
-    game.uictx.canvas.height = newH;
-    game.uictx.imageSmoothingEnabled = false;
-    game.windowSize = size;
+    this.uictx.canvas.style.width = `${newW}px`;
+    this.uictx.canvas.style.height = `${newH}px`;
+    this.uictx.canvas.width = newW;
+    this.uictx.canvas.height = newH;
+    this.uictx.imageSmoothingEnabled = false;
+    this.breakpoint = size;
   }
 
   enableAutopilot() {
@@ -764,7 +777,6 @@ export class InputEvents {
       e.target.releasePointerCapture(e.pointerId);
     });
   }
-
 
   private handleKeypress = (e: KeyboardEvent) => {
     if ((e.target as HTMLElement)?.tagName == "INPUT") return;

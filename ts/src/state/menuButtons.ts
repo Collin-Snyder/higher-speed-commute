@@ -1,6 +1,7 @@
 import { Game } from "../main";
 import { toggleModal } from "../react/modalContainer";
 import { getLastCompletedLevel } from "./localDb";
+import { small, regular } from "../modules/breakpoints";
 
 export interface ButtonInterface {
   name: string;
@@ -204,7 +205,7 @@ export class MenuButtons {
       loadSaved: {
         name: "loadSaved",
         onClick: function() {
-          console.log("clicking loadSaved!")
+          console.log("clicking loadSaved!");
           game.publish("loadSaved");
         },
         width: 200,
@@ -214,7 +215,7 @@ export class MenuButtons {
       save: {
         name: "save",
         onClick: function() {
-          console.log("clicking save!")
+          console.log("clicking save!");
 
           game.publish("save");
         },
@@ -225,7 +226,7 @@ export class MenuButtons {
       saveAs: {
         name: "saveAs",
         onClick: function() {
-          console.log("clicking saveAs!")
+          console.log("clicking saveAs!");
           game.publish("saveAs");
           //on failure, display failure message
         },
@@ -328,8 +329,9 @@ export class MenuButtons {
 
       if (!coords) return;
 
-      let entity = game.ecs.createEntity({
+      game.ecs.createEntity({
         id: `${button.name}Button`,
+        tags: [...button.tags, "NI"],
         Button: { name: button.name },
         Clickable: { onClick: button.onClick },
         Coordinates: {},
@@ -341,13 +343,19 @@ export class MenuButtons {
           renderWidth: button.width,
           renderHeight: button.height,
         },
+        Breakpoint: [
+          {
+            name: "small",
+            width: small.buttonWidth,
+            height: small.buttonHeight,
+          },
+          {
+            name: "regular",
+            width: regular.buttonWidth,
+            height: regular.buttonHeight,
+          },
+        ],
       });
-
-      for (let tag of button.tags) {
-        entity.addTag(tag);
-      }
-
-      entity.addTag("NI");
     }
   }
 }

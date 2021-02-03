@@ -1,5 +1,6 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { centerWithin, getCenterPoint } from "../modules/gameMath";
+import { small, regular } from "../modules/breakpoints";
 import { Tile, ITile } from "../state/map";
 const { floor } = Math;
 
@@ -158,7 +159,8 @@ export class LevelStartAnimation extends StateAnimation {
     this.countdownAlphaStep = Number(
       (1 / Math.floor(1000 / this.states.countdown.step)).toFixed(3)
     );
-    this.shrinkDuration = (this.states.reveal.duration * 2) / (this.map?.width || 40);
+    this.shrinkDuration =
+      (this.states.reveal.duration * 2) / (this.map?.width || 40);
     this.revealElapsedTime = 0;
     this.revealCol = 1;
     this.zoomStep = 0.075;
@@ -235,10 +237,20 @@ export class LevelStartAnimation extends StateAnimation {
             spriteY: spriteCoords.Y,
             spriteWidth: 75,
             spriteHeight: 75,
-            renderWidth: 400,
-            renderHeight: 400,
             alpha: this.countdownAlpha,
           },
+          Breakpoint: [
+            {
+              name: "small",
+              width: small.countdownSize,
+              height: small.countdownSize,
+            },
+            {
+              name: "regular",
+              width: regular.countdownSize,
+              height: regular.countdownSize,
+            },
+          ],
         })
         .addTag("anim");
       return;

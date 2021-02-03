@@ -536,8 +536,8 @@ export class RenderViewBox extends EntityComponentSystem.System {
         ViewBox.h,
         X,
         Y,
-        map.pixelWidth,
-        map.pixelHeight
+        renderWidth,
+        renderHeight
       );
       this.ctx.drawImage(
         <HTMLCanvasElement>document.getElementById("ents-offscreen"),
@@ -547,8 +547,8 @@ export class RenderViewBox extends EntityComponentSystem.System {
         ViewBox.h,
         X,
         Y,
-        map.pixelWidth,
-        map.pixelHeight
+        renderWidth,
+        renderHeight
       );
 
       if (mode === "levelStartAnimation") return;
@@ -633,7 +633,7 @@ export class RenderViewBox extends EntityComponentSystem.System {
     spriteSheet: any,
     spriteMap: any,
     mapCoords: any,
-    scaleFactor: number,
+    zoomFactor: number,
     mapEntity: Entity
   ) {
     let { ViewBox } = mapEntity;
@@ -651,10 +651,10 @@ export class RenderViewBox extends EntityComponentSystem.System {
     } = entity;
     let X = Coordinates.X - ViewBox.x;
     let Y = Coordinates.Y - ViewBox.y;
-    let dx = mapCoords.X + X * scaleFactor;
-    let dy = mapCoords.Y + Y * scaleFactor;
-    let dw = renderWidth * scaleFactor;
-    let dh = renderHeight * scaleFactor;
+    let dx = mapCoords.X + X * zoomFactor;
+    let dy = mapCoords.Y + Y * zoomFactor;
+    let dw = renderWidth * zoomFactor;
+    let dh = renderHeight * zoomFactor;
     let trans = getCenterPoint(dx, dy, dw, dh);
     this.ctx.save();
     this.ctx.translate(trans.X, trans.Y);

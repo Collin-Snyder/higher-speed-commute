@@ -49,6 +49,16 @@ export const Renderable = {
   },
 };
 
+export const Breakpoint = {
+  multiset: true,
+  properties: {
+    name: "regular",
+    width: 0,
+    height: 0,
+    tileSize: 0
+  }
+}
+
 export const Path = {
   properties: {
     driver: "",
