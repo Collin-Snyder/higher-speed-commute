@@ -95,7 +95,7 @@ export class Game {
 
   // GRAPHICS //
   private UICanvas: HTMLCanvasElement;
-  private uictx: CanvasRenderingContext2D;
+  public uictx: CanvasRenderingContext2D;
   private OSMapCanvas: HTMLCanvasElement;
   private osmctx: CanvasRenderingContext2D;
   private OSEntCanvas: HTMLCanvasElement;
@@ -721,6 +721,7 @@ export class InputEvents {
       this.keyPressMap[keyCodes[keyName]] = false;
     }
 
+    window.addEventListener("resize", (e) => this.handleWindowResize(e));
     document.addEventListener("keydown", (e) => this.handleKeypress(e));
     document.addEventListener("keyup", (e) => this.handleKeypress(e));
     document.addEventListener("keypress", (e) => this.handleKeypress(e));
@@ -743,6 +744,22 @@ export class InputEvents {
       e.target.releasePointerCapture(e.pointerId);
     });
   }
+
+  private handleWindowResize = (e: UIEvent) => {
+    let game = window.game;
+
+    let newW = Math.ceil(window.innerWidth);
+    let newH = Math.ceil(window.innerHeight);
+
+    console.log("Window width: ", newW);
+
+    game.uictx.canvas.style.width = `${newW}px`;
+    game.uictx.canvas.style.height = `${newH}px`;
+    game.uictx.canvas.width = newW;
+    game.uictx.canvas.height = newH;
+    game.uictx.imageSmoothingEnabled = false;
+  };
+
 
   private handleKeypress = (e: KeyboardEvent) => {
     if ((e.target as HTMLElement)?.tagName == "INPUT") return;
