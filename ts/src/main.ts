@@ -105,6 +105,7 @@ export class Game {
   public spriteMap: { [entity: string]: { X: number; Y: number } };
   public spriteSheetIsLoaded: boolean;
   public backgroundIsLoaded: boolean;
+  public windowSize: "small" | "regular";
 
   // ECS //
   public ecs: ECS;
@@ -198,6 +199,7 @@ export class Game {
     this.autopilot = false;
     this.windowWidth = window.innerWidth;
     this.windowHeight = window.innerHeight;
+    this.windowSize = "regular";
 
     this.background.src = "../bgsheet-sm.png";
     this.spritesheet.src = "../spritesheet.png";
@@ -208,6 +210,7 @@ export class Game {
     this.registerComponents();
     this.registerTags();
     this.registerSubscribers();
+    this.updateCanvasSize();
 
     this.globalEntity = this.ecs.createEntity({
       id: "global",
@@ -571,6 +574,7 @@ export class Game {
 
   render() {
     if (this.backgroundIsLoaded && this.spriteSheetIsLoaded) {
+      this.updateCanvasSize();
       this.ecs.runSystemGroup("animations");
       this.ecs.runSystemGroup("render");
     }
@@ -663,6 +667,23 @@ export class Game {
     bossEntity.Velocity.speedConstant = speedConstants[d];
   }
 
+  updateCanvasSize() {
+    let ww = window.innerWidth;
+    if (this.uictx.canvas.width == ww) return;
+
+    
+    let newW = Math.ceil(ww);
+    let newH = Math.ceil(window.innerHeight);
+    let size: "small" | "regular" = newW < 1440 ? "small" : "regular";
+
+    game.uictx.canvas.style.width = `${newW}px`;
+    game.uictx.canvas.style.height = `${newH}px`;
+    game.uictx.canvas.width = newW;
+    game.uictx.canvas.height = newH;
+    game.uictx.imageSmoothingEnabled = false;
+    game.windowSize = size;
+  }
+
   enableAutopilot() {
     if (this.autopilot) return true;
     let p = this.ecs.getEntity("player");
@@ -721,7 +742,6 @@ export class InputEvents {
       this.keyPressMap[keyCodes[keyName]] = false;
     }
 
-    window.addEventListener("resize", (e) => this.handleWindowResize(e));
     document.addEventListener("keydown", (e) => this.handleKeypress(e));
     document.addEventListener("keyup", (e) => this.handleKeypress(e));
     document.addEventListener("keypress", (e) => this.handleKeypress(e));
@@ -744,21 +764,6 @@ export class InputEvents {
       e.target.releasePointerCapture(e.pointerId);
     });
   }
-
-  private handleWindowResize = (e: UIEvent) => {
-    let game = window.game;
-
-    let newW = Math.ceil(window.innerWidth);
-    let newH = Math.ceil(window.innerHeight);
-
-    console.log("Window width: ", newW);
-
-    game.uictx.canvas.style.width = `${newW}px`;
-    game.uictx.canvas.style.height = `${newH}px`;
-    game.uictx.canvas.width = newW;
-    game.uictx.canvas.height = newH;
-    game.uictx.imageSmoothingEnabled = false;
-  };
 
 
   private handleKeypress = (e: KeyboardEvent) => {
