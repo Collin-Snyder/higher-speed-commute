@@ -231,6 +231,7 @@ export class LevelStartAnimation extends StateAnimation {
       this.ecs
         .createEntity({
           id: "countdown",
+          tags: ["anim"],
           Coordinates: {},
           Renderable: {
             spriteX: spriteCoords.X,
@@ -252,7 +253,6 @@ export class LevelStartAnimation extends StateAnimation {
             },
           ],
         })
-        .addTag("anim");
       return;
     }
 
@@ -291,7 +291,7 @@ export class LevelStartAnimation extends StateAnimation {
         return;
       }
       if (t.col < this.revealCol) {
-        if (t.w === this.tileMap.tileWidth) return;
+        if (t.w === 25) return;
         t.w--;
         t.h--;
         if (light) {

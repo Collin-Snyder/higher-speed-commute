@@ -77,6 +77,8 @@ interface InputEventsInterface {
   keyPressMap: { [keyCode: number]: boolean };
 }
 
+export type TBreakpoint = "small" | "regular";
+
 export class Game {
   // GAME TIME //
   public start: number;
@@ -107,7 +109,7 @@ export class Game {
   public spriteMap: { [entity: string]: { X: number; Y: number } };
   public spriteSheetIsLoaded: boolean;
   public backgroundIsLoaded: boolean;
-  public breakpoint: "small" | "regular";
+  public breakpoint: TBreakpoint;
 
   // ECS //
   public ecs: ECS;
@@ -280,7 +282,7 @@ export class Game {
 
       let deg = entity.Renderable.degrees;
       if (deg === 0) return hb;
-      // entity.Renderable.degrees = degrees;
+
       //@ts-ignore
       return hb.map(({ X, Y }) => findRotatedVertex(X, Y, cpx, cpy, deg));
     };
@@ -311,6 +313,10 @@ export class Game {
         renderHeight: 25 * (2 / 3),
       },
       Collision: { hb, cp },
+      Breakpoint: [
+        { name: "small", scale: breakpoints.small.scale },
+        { name: "regular", scale: breakpoints.regular.scale },
+      ],
     });
 
     this.bossEntity = this.ecs.createEntity({
@@ -330,6 +336,10 @@ export class Game {
         renderHeight: 25 * (2 / 3),
       },
       Collision: { hb, cp },
+      Breakpoint: [
+        { name: "small", scale: breakpoints.small.scale },
+        { name: "regular", scale: breakpoints.regular.scale },
+      ],
     });
 
     createUser()
@@ -350,6 +360,8 @@ export class Game {
     this.bossEntity.Collision.currentCp = getCurrentCp.bind(this.bossEntity);
 
     this.globalEntity.Global.player = this.playerEntity;
+
+    this.ecs.addSystem("render", new BreakpointSystem(this.ecs));
 
     this.background.onload = () => {
       this.backgroundIsLoaded = true;
@@ -372,7 +384,6 @@ export class Game {
       new LevelStartAnimation(this.ecs, this.step, this.uictx)
     );
     this.ecs.addSystem("animations", new Animation(this.ecs));
-    this.ecs.addSystem("render", new BreakpointSystem(this.ecs));
 
     // this.enableAutopilot();
   }

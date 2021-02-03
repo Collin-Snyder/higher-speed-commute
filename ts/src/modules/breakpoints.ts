@@ -6,6 +6,7 @@ export const small = {
   buttonHeight: 57,
   titleHeight: 165,
   countdownSize: 304,
+  carScale: 1 / 2,
   scale: 0.76,
 };
 
@@ -17,5 +18,6 @@ export const regular = {
   buttonHeight: 75,
   titleHeight: 216,
   countdownSize: 400,
+  carScale: 2 / 3,
   scale: 1,
 };
