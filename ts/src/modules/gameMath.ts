@@ -268,7 +268,7 @@ export function checkCollision(
   return false;
 }
 
-function checkSideCollision(
+export function checkSideCollision(
   hb: VectorInterface[],
   x1: number,
   y1: number,

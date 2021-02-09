@@ -273,21 +273,26 @@ export class Game {
       hb[3].Y - hb[0].Y
     );
 
-    let getCurrentHb = function(degrees?:number) {
+    let getCurrentHb = function(degrees?: number) {
       //@ts-ignore
       let entity = <Entity>(<unknown>this);
       let { hb, cp } = entity.Collision;
       let c = entity.Coordinates;
 
-      hb = hb.map((v: VectorInterface) => ({ X: v.X + c.X, Y: v.Y + c.Y }));
+      hb = hb.map((v: VectorInterface) => ({
+        X: v.X + c.X,
+        Y: v.Y + c.Y,
+      }));
+
       let cpx = cp.X + c.X;
       let cpy = cp.Y + c.Y;
 
       let deg = degrees ?? entity.Renderable.degrees;
       if (deg === 0) return hb;
 
-      //@ts-ignore
-      return hb.map(({ X, Y }) => findRotatedVertex(X, Y, cpx, cpy, deg));
+      return hb.map(({ X, Y }: VectorInterface) =>
+        findRotatedVertex(X, Y, cpx, cpy, deg)
+      );
     };
 
     let getCurrentCp = function() {
@@ -709,7 +714,6 @@ export class Game {
     this.uictx.canvas.height = newH;
     this.uictx.imageSmoothingEnabled = false;
     this.breakpoint = size;
-
   }
 
   enableAutopilot() {

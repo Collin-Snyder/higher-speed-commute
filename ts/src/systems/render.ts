@@ -691,7 +691,7 @@ export class RenderViewBox extends EntityComponentSystem.System {
       dh
     );
     this.ctx.restore();
-    this.renderHitbox(entity, zoomFactor, breakpointScale, mapCoords, ViewBox);
+    // this.renderHitbox(entity, zoomFactor, breakpointScale, mapCoords, ViewBox, true);
   }
 
   renderHitbox(
@@ -699,7 +699,8 @@ export class RenderViewBox extends EntityComponentSystem.System {
     zoomFactor: number,
     bpScale: number,
     mapCoords: any,
-    viewbox: any
+    viewbox: any,
+    showFrontCorners: boolean = false
   ) {
     let scaledHb = entity.Collision.currentHb().map((v: VectorInterface) => ({
       X: mapCoords.X + (v.X - viewbox.x) * zoomFactor * bpScale,
@@ -715,6 +716,16 @@ export class RenderViewBox extends EntityComponentSystem.System {
     this.ctx.lineWidth = 3;
     this.ctx.strokeStyle = "#ff0000";
     this.ctx.stroke();
+
+    if (!showFrontCorners) return;
+    this.ctx.save();
+    this.ctx.beginPath();
+    this.ctx.fillStyle = "#FFFF00";
+    this.ctx.arc(scaledHb[0].X, scaledHb[0].Y, 4, 0, 2 * Math.PI);
+    this.ctx.fill();
+    this.ctx.arc(scaledHb[1].X, scaledHb[1].Y, 4, 0, 2 * Math.PI);
+    this.ctx.fill();
+    this.ctx.restore();
   }
 
   carInViewbox(entity: Entity, vb: any) {

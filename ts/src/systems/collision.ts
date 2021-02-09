@@ -9,7 +9,6 @@
 //Will need to ensure that NPCs are on paths that do not collide head-on
 
 import ECS, { Entity } from "@fritzy/ecs";
-import { isExpressionWithTypeArguments } from "../../../node_modules/typescript/lib/typescript";
 import Game from "../main";
 import {
   calculateSpeedConstant,
@@ -19,10 +18,8 @@ import {
   VectorInterface,
   getTileHitbox,
   isDiagonal,
-  isStopped,
   checkPointCollision,
 } from "../modules/gameMath";
-const { abs } = Math;
 
 export class CollisionSystem extends ECS.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -84,23 +81,11 @@ export class CollisionSystem extends ECS.System {
         break;
       case "schoolZone":
         if (!entity.SchoolZone) {
-          if (entity.id === "boss") {
-            let sq = this.map.getSquareByCoords(
-              entity.Coordinates.X,
-              entity.Coordinates.Y
-            ).id;
-          }
           entity.addComponent("SchoolZone", { multiplier: 0.34 });
         }
         break;
       default:
         if (entity.SchoolZone) {
-          if (entity.id === "boss") {
-            let sq = this.map.getSquareByCoords(
-              entity.Coordinates.X,
-              entity.Coordinates.Y
-            ).id;
-          }
           entity.removeComponentByType("SchoolZone");
         }
     }
@@ -115,7 +100,6 @@ export class CollisionSystem extends ECS.System {
     let v = entity.Velocity.vector;
     let deg = findDegFromVector(v);
     let hb = entity.Collision.currentHb(deg);
-    let diag = isDiagonal(v);
 
     if (this.checkEdgeCollision(hb)) {
       return "boundary";
@@ -126,9 +110,10 @@ export class CollisionSystem extends ECS.System {
         if (!square) continue;
         let sqCoords = square.coordinates;
         let thb = getTileHitbox(sqCoords.X, sqCoords.Y, 25, 25);
-        let coll = checkCollision(hb, thb);
-        if (coll) {
-          if (!square.drivable) return "boundary";
+        if (!square.drivable) {
+          //check only front vertices for collision
+          if (this.checkFrontOnlyCollision(hb, thb)) return "boundary";
+        } else if (checkCollision(hb, thb)) {
           if (square.id == this.map.office) return "office";
           if (square.schoolZone) schoolZone = true;
         }
@@ -155,6 +140,18 @@ export class CollisionSystem extends ECS.System {
     for (let { X, Y } of hb) {
       if (X < 0 || Y < 0 || X > mw || Y > mh) return true;
     }
+    return false;
+  }
+
+  checkFrontOnlyCollision(hb: VectorInterface[], thb: VectorInterface[]) {
+    let frontL = hb[0];
+    let frontR = hb[1];
+
+    let flhit = checkPointCollision(thb, frontL.X, frontL.Y);
+    if (flhit) return true;
+    let frhit = checkPointCollision(thb, frontR.X, frontR.Y);
+    if (frhit) return true;
+
     return false;
   }
 
