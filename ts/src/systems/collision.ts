@@ -18,8 +18,11 @@ import {
   checkCollision,
   VectorInterface,
   getTileHitbox,
+  isDiagonal,
+  isStopped,
+  checkPointCollision,
 } from "../modules/gameMath";
-const {abs} = Math;
+const { abs } = Math;
 
 export class CollisionSystem extends ECS.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -47,8 +50,12 @@ export class CollisionSystem extends ECS.System {
     for (let change of changes) {
       let entity = change.component.entity;
       if (entity.has("Car")) {
-        this.handleMapCollisions(entity);
-        this.handleEntityCollisions(entity);
+        let mapCollision = this.handleMapCollisions(entity);
+        let entityCollision = this.handleEntityCollisions(entity);
+        if (mapCollision !== "boundary" && entityCollision !== "redLight") {
+          let deg = findDegFromVector(entity.Velocity.vector);
+          if (deg >= 0) entity.Renderable.degrees = deg;
+        }
         entity.Collision.prevHb = entity.Collision.currentHb();
       }
     }
@@ -58,10 +65,13 @@ export class CollisionSystem extends ECS.System {
     let mapCollision = this.detectMapCollision(entity);
     switch (mapCollision) {
       case "boundary":
+        if (isDiagonal(entity.Velocity.prevVector)) {
+          entity.Velocity.altVectors.push(entity.Velocity.prevVector);
+        }
         do {
           this.revert(entity);
           if (!entity.Velocity.altVectors.length) break;
-          // entity.Velocity.prevVector = entity.Velocity.vector;
+
           entity.Velocity.vector = entity.Velocity.altVectors.shift();
           this.move(entity);
           mapCollision = this.detectMapCollision(entity);
@@ -69,15 +79,16 @@ export class CollisionSystem extends ECS.System {
         break;
       case "office":
         if (entity.id === "player") this.game.publish("raceFinished", "won");
-        else if (entity.id === "boss") this.game.publish("raceFinished", "lost");
+        else if (entity.id === "boss")
+          this.game.publish("raceFinished", "lost");
         break;
       case "schoolZone":
         if (!entity.SchoolZone) {
           if (entity.id === "boss") {
             let sq = this.map.getSquareByCoords(
-                entity.Coordinates.X,
-                entity.Coordinates.Y
-              ).id;
+              entity.Coordinates.X,
+              entity.Coordinates.Y
+            ).id;
           }
           entity.addComponent("SchoolZone", { multiplier: 0.34 });
         }
@@ -86,13 +97,14 @@ export class CollisionSystem extends ECS.System {
         if (entity.SchoolZone) {
           if (entity.id === "boss") {
             let sq = this.map.getSquareByCoords(
-                entity.Coordinates.X,
-                entity.Coordinates.Y
-              ).id;
+              entity.Coordinates.X,
+              entity.Coordinates.Y
+            ).id;
           }
           entity.removeComponentByType("SchoolZone");
         }
     }
+    return mapCollision;
   }
 
   detectMapCollision(
@@ -100,7 +112,10 @@ export class CollisionSystem extends ECS.System {
   ): "boundary" | "office" | "schoolZone" | "" {
     let x = entity.Coordinates.X;
     let y = entity.Coordinates.Y;
-    let hb = entity.Collision.currentHb();
+    let v = entity.Velocity.vector;
+    let deg = findDegFromVector(v);
+    let hb = entity.Collision.currentHb(deg);
+    let diag = isDiagonal(v);
 
     if (this.checkEdgeCollision(hb)) {
       return "boundary";
@@ -111,8 +126,8 @@ export class CollisionSystem extends ECS.System {
         if (!square) continue;
         let sqCoords = square.coordinates;
         let thb = getTileHitbox(sqCoords.X, sqCoords.Y, 25, 25);
-        let col = checkCollision(hb, thb);
-        if (col) {
+        let coll = checkCollision(hb, thb);
+        if (coll) {
           if (!square.drivable) return "boundary";
           if (square.id == this.map.office) return "office";
           if (square.schoolZone) schoolZone = true;
@@ -121,6 +136,17 @@ export class CollisionSystem extends ECS.System {
       if (schoolZone) return "schoolZone";
     }
     return "";
+  }
+
+  checkValidDiagonalMove(entity: Entity, thb: VectorInterface[]): boolean {
+    let cp = entity.Collision.currentCp();
+    let w = entity.Renderable.renderWidth;
+    let h = entity.Renderable.renderHeight;
+    let downLimit = { X: cp.X, Y: cp.Y + w / 2 };
+    let upLimit = { X: cp.X, Y: cp.Y - w / 2 };
+    let leftLimit = { X: cp.X - w / 2, Y: cp.Y };
+    let rightLimit = { X: cp.X + w / 2, Y: cp.Y };
+    return true;
   }
 
   checkEdgeCollision(hb: VectorInterface[]) {
@@ -148,24 +174,31 @@ export class CollisionSystem extends ECS.System {
     return false;
   }
 
-  handleEntityCollisions(entity: Entity) {
+  handleEntityCollisions(entity: Entity): "car" | "redLight" | "coffee" | "" {
     let collisions = this.detectEntityCollisions(entity);
+    let outcome: "car" | "redLight" | "coffee" | "" = "";
     for (let c of collisions) {
       if (c.has("Car") && this.game.mode !== "lost") {
         this.game.publish("raceFinished", "crash");
+        outcome = "car";
+        break;
       }
       if (c.has("Timer") && c.has("Color") && c.Color.color === "red") {
         //if car is moving AND if car's pre-move location is NOT colliding with the light, then stop car
         if (this.checkForValidLightCollision(entity, c)) {
           this.game.publish("redLight", entity, c);
           this.revert(entity);
+          outcome = "redLight";
+          break;
         }
       }
       if (c.has("Caffeine")) {
         this.game.publish("caffeinate", entity, c);
         this.collidables = this.collidables.filter((e) => e !== c);
+        outcome = "coffee";
       }
     }
+    return outcome;
   }
 
   detectEntityCollisions(entity: Entity) {
@@ -179,7 +212,10 @@ export class CollisionSystem extends ECS.System {
   checkForValidLightCollision(entity: Entity, lightEntity: Entity) {
     let { X, Y } = entity.Velocity.vector;
     if (X === 0 && Y === 0) return false;
-    let prevCollision = checkCollision(entity.Collision.prevHb, lightEntity.Collision.currentHb())
+    let prevCollision = checkCollision(
+      entity.Collision.prevHb,
+      lightEntity.Collision.currentHb()
+    );
     return !prevCollision;
   }
 
@@ -218,8 +254,8 @@ export class CollisionSystem extends ECS.System {
     const speedConstant = calculateSpeedConstant(entity);
     entity.Coordinates.X += entity.Velocity.vector.X * speedConstant;
     entity.Coordinates.Y += entity.Velocity.vector.Y * speedConstant;
-    let deg = findDegFromVector(entity.Velocity.vector);
-    if (deg >= 0) entity.Renderable.degrees = deg;
+    // let deg = findDegFromVector(entity.Velocity.vector);
+    // if (deg >= 0) entity.Renderable.degrees = deg;
   }
 
   revert(entity: Entity) {
@@ -236,8 +272,8 @@ export class CollisionSystem extends ECS.System {
     if (entity.Velocity.prevVector)
       entity.Velocity.vector = entity.Velocity.prevVector;
     // entity.Velocity.prevVector = null;
-    let deg = findDegFromVector(entity.Velocity.vector);
-    if (deg >= 0) entity.Renderable.degrees = deg;
+    // let deg = findDegFromVector(entity.Velocity.vector);
+    // if (deg >= 0) entity.Renderable.degrees = deg;
     // entity.Velocity.vector.X = 0;
     // entity.Velocity.vector.Y = 0;
   }

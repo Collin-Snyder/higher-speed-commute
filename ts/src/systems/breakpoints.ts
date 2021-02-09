@@ -65,7 +65,7 @@ export class BreakpointSystem extends EntityComponentSystem.System {
 
   handleMapBreakpoint(mapEntity: Entity) {
     let {
-      Renderable: { renderWidth, renderHeight },
+      Renderable: { renderWidth, renderHeight, visible },
       TileData,
       Border,
       Coordinates,
@@ -75,5 +75,21 @@ export class BreakpointSystem extends EntityComponentSystem.System {
     TileData.tileHeight = this.bpData.tileSize;
     Border.weight = renderWidth * 0.02;
     Border.radius = renderWidth * 0.02;
+
+    // if (!visible) return;
+
+    let { x, y } = centerWithin(
+      0,
+      0,
+      window.innerWidth,
+      window.innerHeight,
+      renderWidth,
+      renderHeight,
+      1,
+      "horizontal"
+    );
+
+    Coordinates.X = x.start;
+    Coordinates.Y = y.start;
   }
 }

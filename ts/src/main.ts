@@ -273,7 +273,7 @@ export class Game {
       hb[3].Y - hb[0].Y
     );
 
-    let getCurrentHb = function() {
+    let getCurrentHb = function(degrees?:number) {
       //@ts-ignore
       let entity = <Entity>(<unknown>this);
       let { hb, cp } = entity.Collision;
@@ -283,7 +283,7 @@ export class Game {
       let cpx = cp.X + c.X;
       let cpy = cp.Y + c.Y;
 
-      let deg = entity.Renderable.degrees;
+      let deg = degrees ?? entity.Renderable.degrees;
       if (deg === 0) return hb;
 
       //@ts-ignore
@@ -710,33 +710,6 @@ export class Game {
     this.uictx.imageSmoothingEnabled = false;
     this.breakpoint = size;
 
-    this.repositionMap();
-  }
-
-  repositionMap() {
-    let mapEntity = this.ecs.getEntity("map");
-    if (!mapEntity) return;
-    
-    let {
-      Coordinates,
-      Renderable: { visible, renderWidth, renderHeight },
-    } = mapEntity;
-
-    if (!visible) return;
-
-    let { x, y } = centerWithin(
-      0,
-      0,
-      window.innerWidth,
-      window.innerHeight,
-      renderWidth,
-      renderHeight,
-      1,
-      "horizontal"
-    );
-
-    Coordinates.X = x.start;
-    Coordinates.Y = y.start;
   }
 
   enableAutopilot() {

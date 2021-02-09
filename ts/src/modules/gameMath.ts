@@ -181,19 +181,22 @@ export function subtractVectors(
   return { X: v2.X - v1.X, Y: v2.Y - v1.Y };
 }
 
+export function isDiagonal(v: VectorInterface): boolean {
+  let { X, Y } = v;
+  if (X !== 0 && Y !== 0) return true;
+  return false;
+}
+
+export function isStopped(v: VectorInterface): boolean {
+  console.log(v)
+  let { X, Y } = v;
+  if (X === 0 && Y === 0) return true;
+  return false;
+}
+
 export function dotProd(v1: VectorInterface, v2: VectorInterface): number {
   return v1.X * v2.X + v1.Y * v2.Y;
 }
-
-// export function findDegFromVector(v: VectorInterface): number {
-//   //use points A, B, C
-//   const a = { X: 0, Y: -1 };
-//   const b = { X: 0, Y: 0 };
-
-//   let dot = dotProd(subtractVectors(a, b), subtractVectors(b, v));
-//   let ang = Math.asin(dot);
-//   return radiansToDegrees(ang);
-// }
 
 export function findDegFromVector(v: VectorInterface): number {
   const { X, Y } = v;
@@ -208,28 +211,6 @@ export function findDegFromVector(v: VectorInterface): number {
   if (X < 0) return 270;
   return -1;
 }
-
-// export function findRotatedVertex(
-//   vx: number,
-//   vy: number,
-//   cx: number,
-//   cy: number,
-//   d: number
-// ) {
-//   let X = cx - vx;
-//   let Y = cy - vy;
-//   let r = degreesToRadians(d);
-
-//   let hyp = Math.sqrt(X * X + Y * Y);
-
-//   let asin = Math.asin(Y / hyp);
-
-//   let a = asin + r;
-
-//   X = Math.cos(a) * hyp;
-//   Y = Math.sin(a) * hyp;
-//   return { X, Y };
-// }
 
 export function findRotatedVertex(
   vx: number,
@@ -331,7 +312,11 @@ function checkLineCollision(
   return { X, Y };
 }
 
-export function checkPointCollision(hb: VectorInterface[], px: number, py: number) {
+export function checkPointCollision(
+  hb: VectorInterface[],
+  px: number,
+  py: number
+) {
   let collision = false;
   let next = 0;
   for (let curr = 0; curr < hb.length; curr++) {

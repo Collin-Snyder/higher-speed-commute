@@ -37,8 +37,8 @@ export class MovementSystem extends ECS.System {
     entity.Velocity.vector = entity.Velocity.altVectors.shift();
     entity.Coordinates.X += entity.Velocity.vector.X * playerSpeedConstant;
     entity.Coordinates.Y += entity.Velocity.vector.Y * playerSpeedConstant;
-    let deg = findDegFromVector(entity.Velocity.vector);
-    if (deg >= 0) entity.Renderable.degrees = deg;
+    // let deg = findDegFromVector(entity.Velocity.vector);
+    // if (deg >= 0) entity.Renderable.degrees = deg;
   }
 
   handleNPCMovement(entity: Entity): void {

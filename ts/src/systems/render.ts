@@ -691,18 +691,19 @@ export class RenderViewBox extends EntityComponentSystem.System {
       dh
     );
     this.ctx.restore();
-    // this.renderHitbox(entity, scaleFactor, mapCoords, ViewBox);
+    this.renderHitbox(entity, zoomFactor, breakpointScale, mapCoords, ViewBox);
   }
 
   renderHitbox(
     entity: Entity,
-    scaleFactor: number,
+    zoomFactor: number,
+    bpScale: number,
     mapCoords: any,
     viewbox: any
   ) {
     let scaledHb = entity.Collision.currentHb().map((v: VectorInterface) => ({
-      X: mapCoords.X + (v.X - viewbox.x) * scaleFactor,
-      Y: mapCoords.Y + (v.Y - viewbox.y) * scaleFactor,
+      X: mapCoords.X + (v.X - viewbox.x) * zoomFactor * bpScale,
+      Y: mapCoords.Y + (v.Y - viewbox.y) * zoomFactor * bpScale,
     }));
 
     this.ctx.beginPath();
