@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 //@ts-ignore
 import axios from "axios";
 import Modal from "./modal";
@@ -26,15 +26,17 @@ const ModalContainer = () => {
     setModalOpen(isOpen);
   };
 
+  let closeModalOnClickOutside = useCallback(
+    (e) => {
+      if (modalName !== "levelStart") setModalOpen(false);
+    },
+    [modalName]
+  );
+
   return (
     <>
       {modalOpen ? (
-        <div
-          id="modal-container"
-          onClick={(e) => {
-            setModalOpen(false);
-          }}
-        >
+        <div id="modal-container" onClick={closeModalOnClickOutside}>
           <Modal name={modalName} levelNum={levelNum}>
             <ModalInputContextProvider>
               <ModalContent modalName={modalName} />
