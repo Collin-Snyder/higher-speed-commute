@@ -33,17 +33,8 @@ import {
   BackgroundAnimation,
   Animation,
 } from "./systems/animations";
-import {
-  RenderBackground,
-  RenderMap,
-  RenderGameplayEntities,
-  RenderSandbox,
-  RenderViewBox,
-  RenderMenus,
-  RenderButtonModifiers,
-  RenderTopLevelGraphics,
-  RenderBorders,
-} from "./systems/render";
+
+import RenderGroup from "./systems/render";
 import {
   loadArcadeLevel,
   loadCustomLevel,
@@ -468,6 +459,17 @@ export class Game {
   }
 
   buildWorld(): void {
+    let {
+      RenderBackground,
+      RenderOffscreenMap,
+      RenderGameplayEntities,
+      RenderSandboxMap,
+      RenderViewBox,
+      RenderMenus,
+      RenderButtonModifiers,
+      RenderTopLevelGraphics,
+      RenderBorders,
+    } = RenderGroup;
     this.globalEntity.Global.bgSheet = this.background;
     this.globalEntity.Global.bgMap = bgMap;
     this.ecs.createEntity({
@@ -521,12 +523,12 @@ export class Game {
     MenuButtons.createEntities(this);
 
     this.ecs.addSystem("render", new RenderBorders(this.ecs, this.uictx));
-    this.ecs.addSystem("render", new RenderMap(this.ecs, this.osmctx));
+    this.ecs.addSystem("render", new RenderOffscreenMap(this.ecs, this.osmctx));
     this.ecs.addSystem(
       "render",
       new RenderGameplayEntities(this.ecs, this.osectx, this.OSEntCanvas)
     );
-    this.ecs.addSystem("render", new RenderSandbox(this.ecs, this.uictx));
+    this.ecs.addSystem("render", new RenderSandboxMap(this.ecs, this.uictx));
     this.ecs.addSystem(
       "render",
       new RenderViewBox(this.ecs, this.uictx, this.step)
