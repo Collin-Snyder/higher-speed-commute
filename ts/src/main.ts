@@ -51,6 +51,16 @@ import {
   getLastCompletedLevel,
 } from "./state/localDb";
 
+//@ts-ignore
+Number.prototype.times = function(cb: (currentNum: number) => any, index: number) {
+  //@ts-ignore
+  let num = parseInt(this);
+  if (index !== 0 && index !== 1) index = 0;
+  for (let i = 0; i < num; i++) {
+    cb(index ? i + 1 : i);
+  }
+};
+
 declare global {
   interface Window {
     toggleModal: Function;

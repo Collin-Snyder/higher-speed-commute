@@ -89,3 +89,10 @@
 
 // // console.log(`It took ${end - start}ms to count to ${num - 1}`);
 
+// const times = function(cb, index) {
+//   let num = parseInt(this);
+//   if (index !== 0 && index !== 1) index = 0;
+//   for (let i = 0; i < num; i++) {
+//     cb(index ? i + 1 : i);
+//   }
+// };

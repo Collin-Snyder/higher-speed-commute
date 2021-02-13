@@ -4,7 +4,81 @@
     url("../8-bit-pusab.ttf") format("truetype");
 }
 
-/* @import url("https://candyfonts.com/wp-data/2019/03/03/23957/8-bit pusab.ttf"); */
+@media only screen and (min-width: 1440px) {
+  #modal {
+    width: 794px; /* 603.44 */
+    height: 450px; /* 342 */
+    padding: 20px; /* 15.2 */
+  }
+
+  h1.modal-title {
+    font-size: 30px; /* 22.8 */
+  }
+
+  #modal-content {
+    padding: 17px; /* 12.92 */
+    width: 737px; /* 560.12 */
+    height: 265px; /* 194.56 */
+    margin: 20px 0; /* 15.2 */
+  }
+
+  #modal-content.border {
+    border: 3px solid black; /* 2.28 */
+  }
+
+  #modal-button-container {
+    width: 710px; /* 539.6 */
+    height: 75px; /* 57 */
+  }
+
+  #modal-options {
+    width: 737px; /* 560.12 */
+  }
+
+  #modal-options.columns {
+    grid-template-columns: 360px 360px; /* 273.6 */
+    grid-gap: 17px; /* 12.92 */
+    margin-bottom: 17px; /* 12.92 */
+    margin-top: 17px; /* 12.92 */
+  }
+
+  .option-button {
+    width: 710px; /* 539.6 */
+    height: 89px; /* 67.64 */
+  }
+
+  .option-button.small {
+    width: 355px; /* 269.8 */
+  }
+
+  .option-button-graphic {
+    box-shadow: -4px -4px rgb(194, 194, 194) inset, 0 -4px black, 4px 0 black,
+      0 4px black, -4px 0 black; /* 3 */
+  }
+
+  .option-button-graphic.selected {
+    outline: 4px solid yellow; /* 3 */
+  }
+
+  .option-button-label {
+    margin-left: 1vw; /* 0.76vw */
+  }
+
+  .map-icon {
+    height: 75px; /* 57 */
+    width: 75px; /* 57 */
+    margin: 7px; /* 5.32 */
+  }
+
+  #map-name-input {
+    min-height: 36px; /* 27.36 */
+    box-shadow: -4px -4px rgb(194, 194, 194) inset, 0 -4px black, 4px 0 black,
+      0 4px black, -4px 0 black; /* 3 */
+    font-size: 1em; /* .76em */
+    padding-left: 20px; /* 15.2 */
+    margin: 20px auto; /* 15.2 */
+  }
+}
 
 html,
 body,
@@ -61,28 +135,9 @@ body {
   z-index: 100;
 }
 
-/* #modal {
-  width: 50vw;
-  height: 50vh;
-  max-width: 60vw;
-  max-height: 60vh;
-  display: block;
-  background-color: white;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  transform: scale(2, 2);
-  z-index: 101;
-  padding: 2vw;
-  text-align: center;
-} */
-
 #modal {
-  width: 794px;
-  height: 450px;
-  /* max-width: 60vw; */
-  /* max-height: 60vh; */
+  width: 603.44px;
+  height: 342px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -92,32 +147,14 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  /* transform: scale(2, 2); */
   z-index: 101;
-  padding: 20px;
+  padding: 15.2px;
   text-align: center;
   text-overflow: wrap;
-  /* overflow: hidden; */
 }
 
-/* #modal.loadMap {
-  width: 75vw;
-} */
-
-/* #modal-content {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-evenly;
-  padding: 1vw;
-  width: 100%;
-  height: 60%;
-  border: 3px solid black;
-  overflow-y: scroll;
-  margin-right: 0;
-} */
-
 h1.modal-title {
-  font-size: 30px;
+  font-size: 22.8px;
   margin: 0px;
 }
 
@@ -133,23 +170,23 @@ h1.modal-title {
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
-  padding: 17px;
-  width: 737px;
-  height: 265px;
+  padding: 12.92px;
+  width: 560.12px;
+  height: 194.56px;
   overflow-y: scroll;
-  margin: 20px 0;
+  margin: 15.2px 0;
   margin-right: 0px;
   position: relative;
 }
 
 #modal-content.border {
-  border: 3px solid black;
+  border: 2.28px solid black;
   background-color: lightgray;
 }
 
 #modal-button-container {
-  width: 710px;
-  height: 75px;
+  width: 539.6px;
+  height: 57px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -167,7 +204,7 @@ h1.modal-title {
   flex-direction: column;
   justify-content: space-evenly;
   align-items: center;
-  width: 737px;
+  width: 560.12px;
   height: fit-content(100vw);
   min-height: 100%;
   position: absolute;
@@ -176,26 +213,24 @@ h1.modal-title {
 
 #modal-options.columns {
   display: grid;
-  grid-template-columns: 360px 360px;
-  grid-gap: 17px;
+  grid-template-columns: 273.6px 273.6px;
+  grid-gap: 12.92px;
   justify-items: center;
-  margin-bottom: 17px;
-  margin-top: 17px;
+  margin-bottom: 12.92px;
+  margin-top: 12.92px;
 }
 
 .option-button {
-  width: 710px;
-  height: 89px;
+  width: 539.6px;
+  height: 67.64px;
   display: block;
   position: relative;
   cursor: pointer;
   background-color: white;
-  /* white-space: nowrap; */
-  /* text-overflow: ellipsis; */
 }
 
 .option-button.small {
-  width: 355px;
+  width: 269.8px;
 }
 
 .option-button input {
@@ -213,11 +248,10 @@ h1.modal-title {
   left: 0;
   width: 100%;
   height: 100%;
-  /* border: 2px solid black; */
   border: none;
   background-color: #fff;
-  box-shadow: -4px -4px rgb(194, 194, 194) inset, 0 -4px black, 4px 0 black,
-    0 4px black, -4px 0 black;
+  box-shadow: -3px -3px rgb(194, 194, 194) inset, 0 -3px black, 3px 0 black,
+    0 3px black, -3px 0 black;
   justify-content: center;
   align-items: center;
 }
@@ -229,7 +263,7 @@ h1.modal-title {
 }
 
 .option-button-graphic.selected {
-  outline: 4px solid yellow;
+  outline: 3px solid yellow;
 }
 
 .option-button-graphic:hover {
@@ -237,7 +271,7 @@ h1.modal-title {
 }
 
 .option-button-label {
-  margin-left: 1vw;
+  margin-left: 0.76vw;
   flex-grow: 0;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -245,9 +279,9 @@ h1.modal-title {
 }
 
 .map-icon {
-  height: 75px;
-  width: 75px;
-  margin: 7px;
+  height: 57px;
+  width: 57px;
+  margin: 5.32px;
   background-image: url("./map-icon.png");
   background-repeat: no-repeat;
   background-size: cover;
@@ -265,16 +299,16 @@ h1.modal-title {
 #map-name-input {
   width: 90%;
   height: 9%;
-  min-height: 36px;
+  min-height: 27.36px;
   border: none;
   background-color: #fff;
-  box-shadow: -4px -4px rgb(194, 194, 194) inset, 0 -4px black, 4px 0 black,
-    0 4px black, -4px 0 black;
-  font-size: 1em;
+  box-shadow: -3px -3px rgb(194, 194, 194) inset, 0 -3px black, 3px 0 black,
+    0 3px black, -3px 0 black;
+  font-size: 0.76em;
   font-family: "8-bit-pusab-regular";
-  padding-left: 20px;
+  padding-left: 15.2px;
   cursor: text;
-  margin: 20px auto;
+  margin: 15.2px auto;
 }
 
 #map-name-input:focus {
