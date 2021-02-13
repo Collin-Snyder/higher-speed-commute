@@ -270,13 +270,22 @@ export class ArcadeMap implements IArcadeMap {
         else if (this.office === s.id) type = "office";
         else type = "street";
       } else if (!isRefMap) {
-        if (Math.random() < 0.4) type = "tree";
+        if (Math.random() < 0.4) {
+          // @ts-ignore
+          if (Math.random() <= 0.07) type = "tree1";
+          // @ts-ignore
+          else type = "tree" + Math.round(Math.random() * 1 + 2);
+        }
         else if (
           Math.random() < 0.3 &&
           typeof s.borders.down != "number" &&
           s.borders.down?.drivable
         ) {
           type = "house";
+        }
+        else {
+          // @ts-ignore
+          type = "grass" + Math.round(Math.random() * 7 + 1);
         }
       }
 
@@ -291,37 +300,6 @@ export class ArcadeMap implements IArcadeMap {
         deg: 0,
         display: true,
       };
-    });
-  }
-
-  generateTileMapLegacy(): (Tile | Tile[])[] {
-    return this.squares.map((s: ISquare) => {
-      if (s.drivable) {
-        if (s.schoolZone) return "schoolZone";
-        if (this.playerHome === s.id) return "playerHome";
-        if (this.bossHome === s.id) return "bossHome";
-        if (this.office === s.id) return "office";
-        return "street";
-      }
-
-      if (Math.random() < 0.4) return "tree";
-
-      if (Math.random() < 0.3) {
-        let valid = false;
-        for (let border in s.borders) {
-          if (
-            //@ts-ignore
-            s.borders[border] &&
-            //@ts-ignore
-            s.borders[border].drivable
-          ) {
-            valid = true;
-            break;
-          }
-        }
-        if (valid) return "house";
-      }
-      return "";
     });
   }
 

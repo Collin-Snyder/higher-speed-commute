@@ -11,7 +11,7 @@ class RenderBackground extends EntityComponentSystem.System {
     let game = window.game;
     let layers = this.ecs.getEntity("bg").ParallaxLayer;
 
-    this.ctx.fillStyle = "#8edbfa";
+    this.ctx.fillStyle = "#b8d5ff";
     this.ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
     if (game.backgroundIsLoaded) {
