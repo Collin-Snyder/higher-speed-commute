@@ -216,8 +216,8 @@ export class LevelStartAnimation extends StateAnimation {
       }
       cd.Renderable.spriteX = sprite.x;
       cd.Renderable.spriteY = sprite.y;
-      cd.Renderable.spriteWidth = sprite.w;
-      cd.Renderable.spriteHeight = sprite.h;
+      cd.Renderable.spriteW = sprite.w;
+      cd.Renderable.spriteH = sprite.h;
       cd.Renderable.alpha = this.countdownAlpha;
       return;
     } else if (this.currentTimeRemaining <= 2000 && this.countdownNum > 2) {
@@ -231,8 +231,8 @@ export class LevelStartAnimation extends StateAnimation {
       }
       cd.Renderable.spriteX = sprite.x;
       cd.Renderable.spriteY = sprite.y;
-      cd.Renderable.spriteWidth = sprite.w;
-      cd.Renderable.spriteHeight = sprite.h;
+      cd.Renderable.spriteW = sprite.w;
+      cd.Renderable.spriteH = sprite.h;
       cd.Renderable.alpha = this.countdownAlpha;
       return;
     } else if (this.currentTimeRemaining === 3000) {
@@ -247,8 +247,8 @@ export class LevelStartAnimation extends StateAnimation {
           Renderable: {
             spriteX: sprite.x,
             spriteY: sprite.y,
-            spriteWidth: sprite.w,
-            spriteHeight: sprite.h,
+            spriteW: sprite.w,
+            spriteH: sprite.h,
             alpha: this.countdownAlpha,
           },
           Breakpoint: [
@@ -306,12 +306,12 @@ export class LevelStartAnimation extends StateAnimation {
         t.w--;
         t.h--;
         if (light) {
-          light.Renderable.renderWidth = t.w;
-          light.Renderable.renderHeight = t.h;
+          light.Renderable.renderW = t.w;
+          light.Renderable.renderH = t.h;
         }
         if (coffee) {
-          coffee.Renderable.renderWidth = floor(t.w / 2);
-          coffee.Renderable.renderHeight = floor(t.h / 2);
+          coffee.Renderable.renderW = floor(t.w / 2);
+          coffee.Renderable.renderH = floor(t.h / 2);
         }
         return;
       }
@@ -325,13 +325,13 @@ export class LevelStartAnimation extends StateAnimation {
         newCol = true;
         if (light) {
           light.Renderable.visible = true;
-          light.Renderable.renderWidth = t.w;
-          light.Renderable.renderHeight = t.h;
+          light.Renderable.renderW = t.w;
+          light.Renderable.renderH = t.h;
         }
         if (coffee) {
           coffee.Renderable.visible = true;
-          coffee.Renderable.renderWidth = floor(t.w / 2);
-          coffee.Renderable.renderHeight = floor(t.h / 2);
+          coffee.Renderable.renderW = floor(t.w / 2);
+          coffee.Renderable.renderH = floor(t.h / 2);
         }
       }
     });
@@ -354,8 +354,8 @@ export class LevelStartAnimation extends StateAnimation {
     const center = getCenterPoint(
       Coordinates.X,
       Coordinates.Y,
-      Renderable.renderWidth,
-      Renderable.renderHeight
+      Renderable.renderW,
+      Renderable.renderH
     );
     vb.x = center.X - vb.w / 2;
     vb.y = center.Y - vb.h / 2;

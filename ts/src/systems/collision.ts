@@ -125,8 +125,8 @@ export class CollisionSystem extends ECS.System {
 
   checkValidDiagonalMove(entity: Entity, thb: VectorInterface[]): boolean {
     let cp = entity.Collision.currentCp();
-    let w = entity.Renderable.renderWidth;
-    let h = entity.Renderable.renderHeight;
+    let w = entity.Renderable.renderW;
+    let h = entity.Renderable.renderH;
     let downLimit = { X: cp.X, Y: cp.Y + w / 2 };
     let upLimit = { X: cp.X, Y: cp.Y - w / 2 };
     let leftLimit = { X: cp.X - w / 2, Y: cp.Y };

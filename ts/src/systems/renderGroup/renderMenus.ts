@@ -8,7 +8,7 @@ class RenderMenus extends EntityComponentSystem.System {
   };
   private ctx: CanvasRenderingContext2D;
   private spriteSheet: HTMLImageElement;
-  private spriteMap: { [key: string]: { X: number; Y: number } };
+  private spriteMap: { [key: string]: { x: number; y: number; w: number; h: number; } };
   private menuTags: { [key: string]: Array<string> };
   private modeNames: string[];
   private buttonEntities: Entity[];
@@ -21,8 +21,8 @@ class RenderMenus extends EntityComponentSystem.System {
     super(ecs);
     this.ctx = ctx;
     this.global = this.ecs.getEntity("global");
-    let { spritesheet, spriteMap } = this.global.Global.game;
-    this.spriteSheet = spritesheet;
+    let { spriteSheet, spriteMap } = this.global.Global.game;
+    this.spriteSheet = spriteSheet;
     this.spriteMap = spriteMap;
     this.menuTags = {
       menu: ["main"],
@@ -74,7 +74,7 @@ class RenderMenus extends EntityComponentSystem.System {
       MapData: { map },
       Border,
       Coordinates,
-      Renderable: { renderWidth, renderHeight },
+      Renderable: { renderW, renderH },
     } = this.ecs.getEntity("map");
 
     // let { pixelWidth, pixelHeight } = map ?? {
@@ -86,8 +86,8 @@ class RenderMenus extends EntityComponentSystem.System {
 
     let borderX = X - weight;
     let borderY = Y - weight;
-    let borderWidth = renderWidth + weight * 2;
-    let borderHeight = renderHeight + weight * 2;
+    let borderWidth = renderW + weight * 2;
+    let borderHeight = renderH + weight * 2;
 
     switch (mode) {
       case "menu":
@@ -97,7 +97,7 @@ class RenderMenus extends EntityComponentSystem.System {
       case "won":
       case "lost":
       case "crash":
-        this.renderGameplayMenu(mode, X, Y, renderWidth, renderHeight);
+        this.renderGameplayMenu(mode, X, Y, renderW, renderH);
         return;
       case "designing":
         let { saved } = game.designModule;
@@ -161,8 +161,8 @@ class RenderMenus extends EntityComponentSystem.System {
         let suby = dir === "vertical" ? newCoord : y.start;
         let subw = dir === "horizontal" ? x.step : ew;
         let subh = dir === "vertical" ? y.step : eh;
-        let subew = btn[0].Renderable.renderWidth;
-        let subeh = btn[0].Renderable.renderHeight;
+        let subew = btn[0].Renderable.renderW;
+        let subeh = btn[0].Renderable.renderH;
         this.positionButtons(
           subx,
           suby,
@@ -202,8 +202,8 @@ class RenderMenus extends EntityComponentSystem.System {
       let { x, y } = alignCenter(
         entity.Coordinates.X,
         entity.Coordinates.Y,
-        entity.Renderable.renderWidth,
-        entity.Renderable.renderHeight,
+        entity.Renderable.renderW,
+        entity.Renderable.renderH,
         textRenderW,
         textRenderH,
       );
@@ -230,23 +230,21 @@ class RenderMenus extends EntityComponentSystem.System {
         this.spriteSheet,
         entity.Renderable.spriteX,
         entity.Renderable.spriteY,
-        entity.Renderable.spriteWidth,
-        entity.Renderable.spriteHeight,
+        entity.Renderable.spriteW,
+        entity.Renderable.spriteH,
         entity.Coordinates.X,
         entity.Coordinates.Y,
-        entity.Renderable.renderWidth,
-        entity.Renderable.renderHeight
+        entity.Renderable.renderW,
+        entity.Renderable.renderH
       );
     }
     this.drawButtonText(buttonEntities);
   }
 
   drawTitle() {
-    let spriteCoords = this.spriteMap.title;
-    let spriteW = 195;
-    let spriteH = 53;
+    let sprite = this.spriteMap.title;
     let renderH = window.innerHeight / 4;
-    let renderW = renderH * (spriteW / spriteH);
+    let renderW = renderH * (sprite.w / sprite.h);
 
     let { x, y } = centerWithin(
       0,
@@ -262,10 +260,10 @@ class RenderMenus extends EntityComponentSystem.System {
 
     this.ctx.drawImage(
       this.spriteSheet,
-      spriteCoords.X,
-      spriteCoords.Y,
-      spriteW,
-      spriteH,
+      sprite.x,
+      sprite.y,
+      sprite.w,
+      sprite.h,
       x.start,
       window.innerHeight / 8,
       renderW,
@@ -418,10 +416,8 @@ class RenderMenus extends EntityComponentSystem.System {
     mapW: number,
     mapH: number
   ) {
-    let spriteCoords = this.spriteMap[`${menu}Graphic`];
+    let sprite = this.spriteMap[`${menu}Graphic`];
     let hasShine = menu === "won" || menu === "crash";
-    let spriteW = 75;
-    let spriteH = 75;
     let graphicH = mapH / 3;
     let graphicW = graphicH;
     let graphicX, graphicY;
@@ -458,10 +454,10 @@ class RenderMenus extends EntityComponentSystem.System {
 
     this.ctx.drawImage(
       this.spriteSheet,
-      spriteCoords.X,
-      spriteCoords.Y,
-      spriteW,
-      spriteH,
+      sprite.x,
+      sprite.y,
+      sprite.w,
+      sprite.h,
       graphicX,
       graphicY,
       graphicW,
@@ -633,9 +629,7 @@ class RenderMenus extends EntityComponentSystem.System {
   }
 
   drawEndOfGameGraphic() {
-    let spriteCoords = this.spriteMap.endGraphic;
-    let spriteW = 75;
-    let spriteH = 75;
+    let sprite = this.spriteMap.endGraphic;
     let renderH = window.innerHeight / 3;
     let renderW = renderH;
 
@@ -644,10 +638,10 @@ class RenderMenus extends EntityComponentSystem.System {
 
     this.ctx.drawImage(
       this.spriteSheet,
-      spriteCoords.X,
-      spriteCoords.Y,
-      spriteW,
-      spriteH,
+      sprite.x,
+      sprite.y,
+      sprite.w,
+      sprite.h,
       x,
       y,
       renderW,

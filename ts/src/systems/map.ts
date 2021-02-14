@@ -41,18 +41,18 @@ export class MapSystem extends EntityComponentSystem.System {
   positionMap(mapEntity: Entity) {
     let {
       Coordinates,
-      Renderable: { renderWidth, renderHeight },
+      Renderable: { renderW, renderH },
     } = mapEntity;
 
     Coordinates.X = findCenteredElementSpread(
       window.innerWidth,
-      renderWidth,
+      renderW,
       1,
       "spaceEvenly"
     ).start;
     Coordinates.Y = findCenteredElementSpread(
       window.innerHeight,
-      renderHeight,
+      renderH,
       1,
       "spaceEvenly"
     ).start;
@@ -108,10 +108,10 @@ export class MapSystem extends EntityComponentSystem.System {
         },
         Color: {},
         Renderable: {
-          spriteX: spriteMap.greenLight.X,
-          spriteY: spriteMap.greenLight.Y,
-          renderWidth: rw,
-          renderHeight: rh,
+          spriteX: spriteMap.greenLight.x,
+          spriteY: spriteMap.greenLight.y,
+          renderW: rw,
+          renderH: rh,
           visible: false,
         },
         Collision: {
@@ -140,6 +140,8 @@ export class MapSystem extends EntityComponentSystem.System {
 
   createCoffeeEntities(newMap: any) {
     let coffees = this.ecs.queryEntities({ has: ["Caffeine"] });
+    let spriteMap = this.ecs.getEntity("global").Global.game.spriteMap;
+
     for (let coffee of coffees) {
       coffee.destroy();
     }
@@ -155,10 +157,10 @@ export class MapSystem extends EntityComponentSystem.System {
           Y,
         },
         Renderable: {
-          spriteX: 250,
-          spriteY: 0,
-          renderWidth: rw,
-          renderHeight: rh,
+          spriteX: spriteMap.coffee.x,
+          spriteY: spriteMap.coffee.y,
+          renderW: rw,
+          renderH: rh,
           visible: false,
         },
         Collision: {
@@ -166,18 +168,6 @@ export class MapSystem extends EntityComponentSystem.System {
           cp: getCenterPoint(X, Y, rw, rh),
         },
         Caffeine: {},
-        // Breakpoint: [
-        //   {
-        //     name: "small",
-        //     width: Math.ceil(small.tileSize / 20),
-        //     height: Math.ceil(small.tileSize / 20),
-        //   },
-        //   {
-        //     name: "regular",
-        //     width: Math.ceil(regular.tileSize / 2),
-        //     height: Math.ceil(regular.tileSize / 2),
-        //   },
-        // ],
       });
       ent.Collision.currentHb = function() {
         //@ts-ignore

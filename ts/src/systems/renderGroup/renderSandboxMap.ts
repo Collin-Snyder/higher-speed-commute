@@ -17,23 +17,22 @@ class RenderSandboxMap extends EntityComponentSystem.System {
   }
 
   update(tick: number, entities: Set<Entity>) {
-    let { game, spriteMap, spriteSheet } = this.ecs.getEntity("global").Global;
-    let { mode, designModule } = game;
+    let { game } = this.ecs.getEntity("global").Global;
+    let { mode, designModule, spriteSheet, spriteMap } = game;
     if (this.changes.length > 0) console.log(this.changes);
 
     if (mode !== "designing") return;
-    // console.log("RenderSandbox update is running");
 
     let mapEntity = this.ecs.getEntity("map");
     let {
       TileData: { tiles, tileWidth, tileHeight },
       MapData: { map },
       Coordinates: { X, Y },
-      Renderable: { renderWidth, renderHeight },
+      Renderable: { renderW, renderH },
     } = mapEntity;
 
     this.ctx.fillStyle = "lightgray";
-    this.ctx.fillRect(X, Y, renderWidth, renderHeight);
+    this.ctx.fillRect(X, Y, renderW, renderH);
 
     tiles = tiles.map((t: any) => {
       t.w = tileWidth;
@@ -64,8 +63,8 @@ class RenderSandboxMap extends EntityComponentSystem.System {
         designModule.gridOverlay,
         X,
         Y,
-        renderWidth,
-        renderHeight
+        renderW,
+        renderH
       );
     }
 
@@ -82,14 +81,14 @@ class RenderSandboxMap extends EntityComponentSystem.System {
         deg: number
       ) => {
         if (type !== "greenLight" && type !== "coffee") return;
-        let tileCoords =
+        let sprite =
           type === "greenLight" ? spriteMap.designLight : spriteMap.coffee;
         this.ctx.drawImage(
           spriteSheet,
-          tileCoords.X,
-          tileCoords.Y,
-          25,
-          25,
+          sprite.x,
+          sprite.y,
+          sprite.w,
+          sprite.h,
           x * tileWidth + X,
           y * tileHeight + Y,
           w,

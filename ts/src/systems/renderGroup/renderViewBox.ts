@@ -48,7 +48,7 @@ class RenderViewBox extends EntityComponentSystem.System {
     let {
       ViewBox,
       Coordinates,
-      Renderable: { renderWidth, renderHeight },
+      Renderable: { renderW, renderH },
       MapData: { map },
       TileData: { tileWidth },
     } = mapEntity;
@@ -60,8 +60,8 @@ class RenderViewBox extends EntityComponentSystem.System {
         map,
         X,
         Y,
-        renderWidth,
-        renderHeight,
+        renderW,
+        renderH,
         tileWidth,
         ViewBox,
         tick
@@ -75,8 +75,8 @@ class RenderViewBox extends EntityComponentSystem.System {
         ViewBox.h,
         X,
         Y,
-        renderWidth,
-        renderHeight
+        renderW,
+        renderH
       );
       this.ctx.drawImage(
         <HTMLCanvasElement>document.getElementById("ents-offscreen"),
@@ -86,8 +86,8 @@ class RenderViewBox extends EntityComponentSystem.System {
         ViewBox.h,
         X,
         Y,
-        renderWidth,
-        renderHeight
+        renderW,
+        renderH
       );
 
       if (mode === "levelStartAnimation") return;
@@ -95,7 +95,7 @@ class RenderViewBox extends EntityComponentSystem.System {
       if (this.carInViewbox(this.bossEntity, ViewBox)) {
         this.renderCarSprite(
           this.bossEntity,
-          game.spritesheet,
+          game.spriteSheet,
           game.spriteMap,
           Coordinates,
           zoom,
@@ -105,7 +105,7 @@ class RenderViewBox extends EntityComponentSystem.System {
       if (this.carInViewbox(this.playerEntity, ViewBox)) {
         this.renderCarSprite(
           this.playerEntity,
-          game.spritesheet,
+          game.spriteSheet,
           game.spriteMap,
           Coordinates,
           zoom,
@@ -114,7 +114,7 @@ class RenderViewBox extends EntityComponentSystem.System {
       }
 
       if (game.focusView === "boss") {
-        this.drawBossBorder(X, Y, renderWidth, renderHeight);
+        this.drawBossBorder(X, Y, renderW, renderH);
       }
     }
   }
@@ -129,8 +129,8 @@ class RenderViewBox extends EntityComponentSystem.System {
     let center = getCenterPoint(
       X,
       Y,
-      focusEnt.Renderable.renderWidth,
-      focusEnt.Renderable.renderHeight
+      focusEnt.Renderable.renderW,
+      focusEnt.Renderable.renderH
     );
     ViewBox.w = 1000 / game.currentZoom;
     ViewBox.h = 625 / game.currentZoom;
@@ -179,13 +179,13 @@ class RenderViewBox extends EntityComponentSystem.System {
     let {
       Coordinates,
       Renderable: {
-        renderWidth,
-        renderHeight,
+        renderW,
+        renderH,
         degrees,
         spriteX,
         spriteY,
-        spriteWidth,
-        spriteHeight,
+        spriteW,
+        spriteH,
         breakpointScale,
       },
     } = entity;
@@ -193,8 +193,8 @@ class RenderViewBox extends EntityComponentSystem.System {
     let Y = Coordinates.Y - ViewBox.y;
     let dx = mapCoords.X + X * zoomFactor * breakpointScale;
     let dy = mapCoords.Y + Y * zoomFactor * breakpointScale;
-    let dw = renderWidth * zoomFactor;
-    let dh = renderHeight * zoomFactor;
+    let dw = renderW * zoomFactor;
+    let dh = renderH * zoomFactor;
     let trans = getCenterPoint(dx, dy, dw, dh);
     this.ctx.save();
     this.ctx.translate(trans.X, trans.Y);
@@ -204,8 +204,8 @@ class RenderViewBox extends EntityComponentSystem.System {
       spriteSheet,
       spriteX,
       spriteY,
-      spriteWidth,
-      spriteHeight,
+      spriteW,
+      spriteH,
       dx,
       dy,
       dw,

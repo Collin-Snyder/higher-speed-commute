@@ -25,12 +25,12 @@ class RenderGameplayEntities extends EntityComponentSystem.System {
         let {
           Renderable: {
             visible,
-            renderWidth,
-            renderHeight,
+            renderW,
+            renderH,
             spriteX,
             spriteY,
-            spriteWidth,
-            spriteHeight,
+            spriteW,
+            spriteH,
           },
           Coordinates: { X, Y },
         } = entity;
@@ -42,20 +42,20 @@ class RenderGameplayEntities extends EntityComponentSystem.System {
               entity.Color.color,
               X,
               Y,
-              renderWidth,
-              renderHeight
+              renderW,
+              renderH
             );
           }
           this.ctx.drawImage(
-            game.spritesheet,
+            game.spriteSheet,
             spriteX,
             spriteY,
-            spriteWidth,
-            spriteHeight,
+            spriteW,
+            spriteH,
             X,
             Y,
-            renderWidth,
-            renderHeight
+            renderW,
+            renderH
           );
         }
       }

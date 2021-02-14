@@ -59,16 +59,16 @@ export class InputSystem extends ECS.System {
 
     for (let e of clickable) {
       let isMap = e.id === "map";
-      // let width = isMap ? e.MapData.map.pixelWidth : e.Renderable.renderWidth;
-      // let height = isMap ? e.MapData.map.pixelHeight : e.Renderable.renderHeight;
+      // let width = isMap ? e.MapData.map.pixelWidth : e.Renderable.renderW;
+      // let height = isMap ? e.MapData.map.pixelHeight : e.Renderable.renderH;
 
       let mouseCollision = checkForMouseCollision(
         mx,
         my,
         e.Coordinates.X,
         e.Coordinates.Y,
-        e.Renderable.renderWidth,
-        e.Renderable.renderHeight
+        e.Renderable.renderW,
+        e.Renderable.renderH
       );
 
       if (mouseCollision && !e.has("Disabled")) {

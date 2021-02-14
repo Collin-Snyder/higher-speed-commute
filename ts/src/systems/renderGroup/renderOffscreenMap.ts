@@ -63,7 +63,7 @@ class RenderOffscreenMap extends EntityComponentSystem.System {
           if (hasAlpha) this.ctx.globalAlpha = a;
           if (hasRotation) this.ctx.rotate(degreesToRadians(deg));
           this.ctx.drawImage(
-            game.spritesheet,
+            game.spriteSheet,
             tileCoords.x,
             tileCoords.y,
             25,
@@ -96,8 +96,8 @@ class RenderOffscreenMap extends EntityComponentSystem.System {
       let { X, Y } = entity.Coordinates;
       let dx = X;
       let dy = Y;
-      let dw = entity.Renderable.renderWidth;
-      let dh = entity.Renderable.renderHeight;
+      let dw = entity.Renderable.renderW;
+      let dh = entity.Renderable.renderH;
       let trans = getCenterPoint(dx, dy, dw, dh);
       ctx.save();
       ctx.translate(trans.X, trans.Y);
@@ -107,8 +107,8 @@ class RenderOffscreenMap extends EntityComponentSystem.System {
         spriteSheet,
         entity.Renderable.spriteX,
         entity.Renderable.spriteY,
-        entity.Renderable.spriteWidth,
-        entity.Renderable.spriteHeight,
+        entity.Renderable.spriteW,
+        entity.Renderable.spriteH,
         dx,
         dy,
         dw,

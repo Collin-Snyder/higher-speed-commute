@@ -319,8 +319,8 @@ function makeButtonEntities(game: Game) {
       Renderable: {
         spriteX: sprite.x,
         spriteY: sprite.y,
-        spriteWidth: sprite.w,
-        spriteHeight: sprite.h,
+        spriteW: sprite.w,
+        spriteH: sprite.h,
       },
       Breakpoint: [
         {

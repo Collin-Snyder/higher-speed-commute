@@ -18,8 +18,8 @@ class RenderButtonModifiers extends EntityComponentSystem.System {
         const image = this.ctx.getImageData(
           entity.Coordinates.X,
           entity.Coordinates.Y,
-          entity.Renderable.renderWidth,
-          entity.Renderable.renderHeight
+          entity.Renderable.renderW,
+          entity.Renderable.renderH
         );
         const { data } = image;
         for (let p = 0; p < data.length; p += 4) {
@@ -57,8 +57,8 @@ class RenderButtonModifiers extends EntityComponentSystem.System {
         this.ctx.rect(
           entity.Coordinates.X - this.ctx.lineWidth,
           entity.Coordinates.Y - this.ctx.lineWidth,
-          entity.Renderable.renderWidth + 2 * this.ctx.lineWidth,
-          entity.Renderable.renderHeight + 2 * this.ctx.lineWidth
+          entity.Renderable.renderW + 2 * this.ctx.lineWidth,
+          entity.Renderable.renderH + 2 * this.ctx.lineWidth
         );
         this.ctx.stroke();
       }

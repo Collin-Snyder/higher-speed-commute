@@ -20,15 +20,15 @@ class RenderBorders extends EntityComponentSystem.System {
     this.ctx.save();
     for (let entity of entities) {
       if (!entity.Renderable.visible) continue;
-      const { renderWidth, renderHeight, alpha } = entity.Renderable;
+      const { renderW, renderH, alpha } = entity.Renderable;
       const { X, Y } = entity.Coordinates;
       const { weight, radius } = entity.Border;
       this.ctx.globalAlpha = alpha;
       if (!this.canvases[entity.id]) {
         this.initializeCanvas(
           entity.id,
-          renderWidth,
-          renderHeight,
+          renderW,
+          renderH,
           weight,
           radius
         );
@@ -37,8 +37,8 @@ class RenderBorders extends EntityComponentSystem.System {
         this.canvases[entity.id],
         X - weight,
         Y - weight,
-        renderWidth + weight * 2,
-        renderHeight + weight * 2
+        renderW + weight * 2,
+        renderH + weight * 2
       );
     }
     this.ctx.restore();

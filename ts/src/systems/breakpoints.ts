@@ -28,11 +28,11 @@ export class BreakpointSystem extends EntityComponentSystem.System {
       this.setBreakpoint(Breakpoint);
 
       if (entity.has("Car")) {
-        Renderable.renderWidth = 25 * (2 / 3) * this.bpData.scale;
-        Renderable.renderHeight = 25 * (2 / 3) * this.bpData.scale;
+        Renderable.renderW = 25 * (2 / 3) * this.bpData.scale;
+        Renderable.renderH = 25 * (2 / 3) * this.bpData.scale;
       } else {
-        Renderable.renderWidth = this.bpData.width;
-        Renderable.renderHeight = this.bpData.height;
+        Renderable.renderW = this.bpData.width;
+        Renderable.renderH = this.bpData.height;
       }
 
       Renderable.breakpointScale = this.bpData.scale;
@@ -69,7 +69,7 @@ export class BreakpointSystem extends EntityComponentSystem.System {
 
   handleMapBreakpoint(mapEntity: Entity) {
     let {
-      Renderable: { renderWidth, renderHeight, visible },
+      Renderable: { renderW, renderH, visible },
       TileData,
       Border,
       Coordinates,
@@ -77,8 +77,8 @@ export class BreakpointSystem extends EntityComponentSystem.System {
 
     TileData.tileWidth = this.bpData.tileSize;
     TileData.tileHeight = this.bpData.tileSize;
-    Border.weight = renderWidth * 0.02;
-    Border.radius = renderWidth * 0.02;
+    Border.weight = renderW * 0.02;
+    Border.radius = renderW * 0.02;
 
     // if (!visible) return;
 
@@ -87,8 +87,8 @@ export class BreakpointSystem extends EntityComponentSystem.System {
       0,
       window.innerWidth,
       window.innerHeight,
-      renderWidth,
-      renderHeight,
+      renderW,
+      renderH,
       1,
       "horizontal"
     );

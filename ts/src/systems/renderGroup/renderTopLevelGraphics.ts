@@ -22,8 +22,8 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
           0,
           window.innerWidth,
           window.innerHeight,
-          entity.Renderable.renderWidth,
-          entity.Renderable.renderHeight,
+          entity.Renderable.renderW,
+          entity.Renderable.renderH,
         );
         entity.Coordinates.X = x;
         entity.Coordinates.Y = y;
@@ -31,15 +31,15 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
       this.ctx.save();
       this.ctx.globalAlpha = entity.Renderable.alpha;
       this.ctx.drawImage(
-        game.spritesheet,
+        game.spriteSheet,
         entity.Renderable.spriteX,
         entity.Renderable.spriteY,
-        entity.Renderable.spriteWidth,
-        entity.Renderable.spriteHeight,
+        entity.Renderable.spriteW,
+        entity.Renderable.spriteH,
         entity.Coordinates.X,
         entity.Coordinates.Y,
-        entity.Renderable.renderWidth,
-        entity.Renderable.renderHeight
+        entity.Renderable.renderW,
+        entity.Renderable.renderH
       );
       this.ctx.restore();
     }

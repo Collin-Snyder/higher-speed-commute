@@ -108,7 +108,7 @@ export class Game {
   private osmctx: CanvasRenderingContext2D;
   private OSEntCanvas: HTMLCanvasElement;
   private osectx: CanvasRenderingContext2D;
-  public spritesheet: HTMLImageElement;
+  public spriteSheet: HTMLImageElement;
   public background: HTMLImageElement;
   public spriteMap: { [entity: string]: { x: number; y: number; w: number; h: number; } };
   public spriteSheetIsLoaded: boolean;
@@ -199,7 +199,7 @@ export class Game {
     this.logTimers = new LogTimers(this);
     this.map = new ArcadeMap(40, 25);
     this.designModule = new DesignModule(this);
-    this.spritesheet = new Image();
+    this.spriteSheet = new Image();
     this.background = new Image();
     this.spriteSheetIsLoaded = false;
     this.backgroundIsLoaded = false;
@@ -210,7 +210,7 @@ export class Game {
     this.breakpoint = "regular";
 
     this.background.src = "../bgsheet-sm.png";
-    this.spritesheet.src = "../spritesheet.png";
+    this.spriteSheet.src = "../spriteSheet.png";
     // this.uictx.canvas.width = window.innerWidth;
     // this.uictx.canvas.height = window.innerHeight;
     // this.uictx.imageSmoothingEnabled = false;
@@ -234,8 +234,8 @@ export class Game {
       TileData: {},
       Coordinates: {},
       Renderable: {
-        renderWidth: 1000,
-        renderHeight: 625,
+        renderW: 1000,
+        renderH: 625,
         visible: false,
       },
       Border: {
@@ -320,8 +320,8 @@ export class Game {
       },
       Velocity: {},
       Renderable: {
-        renderWidth: 25 * (2 / 3),
-        renderHeight: 25 * (2 / 3),
+        renderW: 25 * (2 / 3),
+        renderH: 25 * (2 / 3),
       },
       Collision: { hb, cp },
       Breakpoint: [
@@ -343,8 +343,8 @@ export class Game {
         driver: "boss",
       },
       Renderable: {
-        renderWidth: 25 * (2 / 3),
-        renderHeight: 25 * (2 / 3),
+        renderW: 25 * (2 / 3),
+        renderH: 25 * (2 / 3),
       },
       Collision: { hb, cp },
       Breakpoint: [
@@ -379,7 +379,7 @@ export class Game {
       if (this.spriteSheetIsLoaded) this.buildWorld();
     };
 
-    this.spritesheet.onload = () => {
+    this.spriteSheet.onload = () => {
       this.spriteSheetIsLoaded = true;
       if (this.backgroundIsLoaded) this.buildWorld();
     };
@@ -523,7 +523,7 @@ export class Game {
     this.ecs.addSystem("animations", new BackgroundAnimation(this.ecs));
     this.ecs.addSystem("render", new RenderBackground(this.ecs, this.uictx));
 
-    // this.globalEntity.Global.spriteSheet = this.spritesheet;
+    // this.globalEntity.Global.spriteSheet = this.spriteSheet;
     // this.globalEntity.Global.spriteMap = this.spriteMap;
 
     let playerSpriteCoords = this.spriteMap[

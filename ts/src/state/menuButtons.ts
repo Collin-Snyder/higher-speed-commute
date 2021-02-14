@@ -340,10 +340,10 @@ export class MenuButtons {
         Renderable: {
           spriteX: coords.x,
           spriteY: coords.y,
-          spriteWidth: button.width,
-          spriteHeight: button.height,
-          renderWidth: button.width,
-          renderHeight: button.height,
+          spriteW: button.width,
+          spriteH: button.height,
+          renderW: button.width,
+          renderH: button.height,
         },
         Breakpoint: [
           {
