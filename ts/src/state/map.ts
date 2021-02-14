@@ -1,7 +1,7 @@
 import {
   calculateSurroundingSquareCount,
   randomNumBtwn,
-} from "../modules/gameMath";
+} from "gameMath";
 import Editor from "../modules/editor";
 import { updateUserMap, saveNewUserMap } from "./localDb";
 

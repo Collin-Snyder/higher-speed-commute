@@ -1,11 +1,5 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
-import {
-  getCenterPoint,
-  scaleVector,
-  VectorInterface,
-  findRotatedVertex,
-  centerWithin,
-} from "./modules/gameMath";
+import { getCenterPoint, scaleVector, findRotatedVertex } from "gameMath";
 import * as breakpoints from "./modules/breakpoints";
 //@ts-ignore
 import axios from "axios";
@@ -45,7 +39,10 @@ import {
 } from "./state/localDb";
 
 //@ts-ignore
-Number.prototype.times = function(cb: (currentNum: number) => any, index: number) {
+Number.prototype.times = function(
+  cb: (currentNum: number) => any,
+  index: number
+) {
   //@ts-ignore
   let num = parseInt(this);
   if (index !== 0 && index !== 1) index = 0;
@@ -53,19 +50,6 @@ Number.prototype.times = function(cb: (currentNum: number) => any, index: number
     cb(index ? i + 1 : i);
   }
 };
-
-declare global {
-  interface Window {
-    toggleModal: Function;
-    game: Game;
-    showAll: Function;
-    deleteUserMap: Function;
-    makeSeedData: Function;
-    recreateLocalDb: Function;
-    updateLevelName: Function;
-    updateLevelDescription: Function;
-  }
-}
 
 // window.makeSeedData = function() {
 //   axios
@@ -110,7 +94,9 @@ export class Game {
   private osectx: CanvasRenderingContext2D;
   public spriteSheet: HTMLImageElement;
   public background: HTMLImageElement;
-  public spriteMap: { [entity: string]: { x: number; y: number; w: number; h: number; } };
+  public spriteMap: {
+    [entity: string]: { x: number; y: number; w: number; h: number };
+  };
   public spriteSheetIsLoaded: boolean;
   public backgroundIsLoaded: boolean;
   public breakpoint: TBreakpoint;
@@ -282,7 +268,7 @@ export class Game {
       let { hb, cp } = entity.Collision;
       let c = entity.Coordinates;
 
-      hb = hb.map((v: VectorInterface) => ({
+      hb = hb.map((v: IVector) => ({
         X: v.X + c.X,
         Y: v.Y + c.Y,
       }));
@@ -293,7 +279,7 @@ export class Game {
       let deg = degrees ?? entity.Renderable.degrees;
       if (deg === 0) return hb;
 
-      return hb.map(({ X, Y }: VectorInterface) =>
+      return hb.map(({ X, Y }: IVector) =>
         findRotatedVertex(X, Y, cpx, cpy, deg)
       );
     };
@@ -486,7 +472,6 @@ export class Game {
 
     styleEl.innerHTML = styleHTML;
     document.head.appendChild(styleEl);
-
 
     this.ecs.createEntity({
       id: "bg",
@@ -708,7 +693,7 @@ export class Game {
     let { hb, cp } = player.Collision;
     let c = player.Coordinates;
 
-    hb = hb.map((v: VectorInterface) => ({ X: v.X + c.X, Y: v.Y + c.Y }));
+    hb = hb.map((v: IVector) => ({ X: v.X + c.X, Y: v.Y + c.Y }));
     let cpx = cp.X + c.X;
     let cpy = cp.Y + c.Y;
 

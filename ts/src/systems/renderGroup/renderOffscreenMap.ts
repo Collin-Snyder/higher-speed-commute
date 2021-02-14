@@ -1,6 +1,6 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { Game } from "../../main";
-import { getCenterPoint, degreesToRadians } from "../../modules/gameMath";
+import { getCenterPoint, degreesToRadians } from "gameMath";
 import { drawTileMap } from "../../modules/tileDrawer";
 import { Tile } from "../../state/map";
 

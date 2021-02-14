@@ -1,10 +1,10 @@
 import { Entity } from "@fritzy/ecs";
 import { Game } from "../main";
-import Race from "../modules/raceData";
-import { findCenteredElementSpread, getCenterPoint } from "../modules/gameMath";
-import { ArcadeMap, SandboxMap } from "./map";
+import {
+  centerWithin,
+} from "gameMath";
+import { SandboxMap } from "./map";
 import { Tool } from "../modules/designModule";
-import { DisabledButtons } from "../buttonModifiers";
 import { updateLastCompletedLevel } from "./localDb";
 export type Mode =
   | "init"
@@ -271,18 +271,16 @@ class GameModeMachine {
             },
           });
         }
-        Coordinates.X = findCenteredElementSpread(
+        let { x, y } = centerWithin(
+          0,
+          0,
           window.innerWidth,
-          Renderable.renderW,
-          1,
-          "spaceEvenly"
-        ).start;
-        Coordinates.Y = findCenteredElementSpread(
           window.innerHeight,
-          Renderable.renderH,
-          1,
-          "spaceEvenly"
-        ).start;
+          Renderable.renderW,
+          Renderable.renderH
+        );
+        Coordinates.X = x;
+        Coordinates.Y = y;
         Renderable.visible = true;
         if (mapEntity.has("NI")) mapEntity.removeTag("NI");
 

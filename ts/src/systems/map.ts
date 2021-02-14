@@ -1,9 +1,9 @@
 import EntityComponentSystem, { ECS, Entity } from "@fritzy/ecs";
 import {
-  findCenteredElementSpread,
+  centerWithin,
   getCenterPoint,
   getTileHitbox,
-} from "../modules/gameMath";
+} from "gameMath";
 
 export class MapSystem extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -41,18 +41,16 @@ export class MapSystem extends EntityComponentSystem.System {
       Renderable: { renderW, renderH },
     } = mapEntity;
 
-    Coordinates.X = findCenteredElementSpread(
+    let { x, y } = centerWithin(
+      0,
+      0,
       window.innerWidth,
-      renderW,
-      1,
-      "spaceEvenly"
-    ).start;
-    Coordinates.Y = findCenteredElementSpread(
       window.innerHeight,
-      renderH,
-      1,
-      "spaceEvenly"
-    ).start;
+      renderW,
+      renderH
+    );
+    Coordinates.X = x;
+    Coordinates.Y = y;
   }
 
   updateDriverEntities(newMap: any) {

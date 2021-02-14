@@ -281,7 +281,7 @@ const buttons: { [key: string]: ButtonInterface } = {
       const game = <Game>(<unknown>this);
       game.publish("setDesignTool", "eraser");
     },
-    tags: ["menu", "design", "config", "square"],
+    tags: ["menu", "design", "toolbar", "square"],
   },
   reset: {
     name: "reset",

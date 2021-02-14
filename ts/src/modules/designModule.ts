@@ -1,11 +1,7 @@
 import { Entity } from "@fritzy/ecs";
 import axios from "axios";
 import { capitalize } from "../modules/gameHelpers";
-import { centerWithin } from "../modules/gameMath";
-import { SandboxMap } from "../state/map";
 import Editor, { commands } from "./editor";
-import { DisabledButtons } from "../buttonModifiers";
-import { DesignMenuName, ButtonInterface } from "../state/menuButtons";
 import Game from "../main";
 import { deleteUserMap, loadUserMap } from "../state/localDb";
 

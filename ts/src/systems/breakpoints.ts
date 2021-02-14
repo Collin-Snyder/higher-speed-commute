@@ -1,6 +1,6 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { TBreakpoint } from "../main";
-import { centerWithin } from "../modules/gameMath";
+import { centerWithin } from "gameMath";
 
 export class BreakpointSystem extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -38,8 +38,14 @@ export class BreakpointSystem extends EntityComponentSystem.System {
       Renderable.breakpointScale = this.bpData.scale;
 
       if (entity.has("Text")) {
-        entity.Text.textRenderW = this.bp === "small" ? entity.Text.textSpriteW : entity.Text.textSpriteW / 0.76;
-        entity.Text.textRenderH = this.bp === "small" ? entity.Text.textSpriteH : entity.Text.textSpriteH / 0.76;
+        entity.Text.textRenderW =
+          this.bp === "small"
+            ? entity.Text.textSpriteW
+            : entity.Text.textSpriteW / 0.76;
+        entity.Text.textRenderH =
+          this.bp === "small"
+            ? entity.Text.textSpriteH
+            : entity.Text.textSpriteH / 0.76;
       }
 
       if (entity.id === "map") {
@@ -88,12 +94,10 @@ export class BreakpointSystem extends EntityComponentSystem.System {
       window.innerWidth,
       window.innerHeight,
       renderW,
-      renderH,
-      1,
-      "horizontal"
+      renderH
     );
 
-    Coordinates.X = x.start;
-    Coordinates.Y = y.start;
+    Coordinates.X = x;
+    Coordinates.Y = y;
   }
 }

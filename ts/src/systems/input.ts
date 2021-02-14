@@ -1,7 +1,7 @@
 import ECS, { Entity, BaseComponent } from "@fritzy/ecs";
 import { Game, InputEvents } from "../main";
 import keyCodes from "../keyCodes";
-import { checkForMouseCollision, normalize } from "../modules/gameMath";
+import { checkForMouseCollision, normalize } from "gameMath";
 
 export class InputSystem extends ECS.System {
   public keyPressMap: { [key: string]: boolean };
