@@ -59,7 +59,7 @@ export class MapSystem extends EntityComponentSystem.System {
   }
 
   updateDriverEntities(newMap: any) {
-    let game = window.game;
+    let { game } = this.ecs.getEntity("global").Global;
     let playerEntity = this.ecs.getEntity("player");
     let bossEntity = this.ecs.getEntity("boss");
 
@@ -83,7 +83,7 @@ export class MapSystem extends EntityComponentSystem.System {
 
   createLightEntities(newMap: any) {
     let lights = this.ecs.queryEntities({ has: ["Timer", "Color"] });
-    let spriteMap = this.ecs.getEntity("global").Global.spriteMap;
+    let spriteMap = this.ecs.getEntity("global").Global.game.spriteMap;
 
     for (let light of lights) {
       light.destroy();

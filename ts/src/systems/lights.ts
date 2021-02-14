@@ -51,7 +51,7 @@ export class LightTimer extends ECS.System {
   transition(lightEntity: any, action: string): void {
     let nextColor = <Color>this.states[lightEntity.Color.color].on[action];
     let lightCoords: { X: number; Y: number } =
-        this.global.spriteMap[`${nextColor}Light`];
+        this.ecs.getEntity("global").Global.game.spriteMap[`${nextColor}Light`];
     lightEntity.Color.color = nextColor;
     lightEntity.Timer.timeSinceLastInterval = 0;
     lightEntity.Renderable.spriteX = lightCoords.X;

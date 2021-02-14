@@ -204,51 +204,62 @@ export class LevelStartAnimation extends StateAnimation {
   }
 
   onCountdownStep(): void {
-    let spriteMap = this.ecs.getEntity("global").Global.spriteMap;
+    let spriteMap = this.ecs.getEntity("global").Global.game.spriteMap;
     if (this.currentTimeRemaining <= 1000 && this.countdownNum > 1) {
       this.countdownNum = 1;
       this.countdownAlpha = 1;
       let cd = this.ecs.getEntity("countdown");
-      let spriteCoords = spriteMap.countdown1;
-      cd.Renderable.spriteX = spriteCoords.X;
-      cd.Renderable.spriteY = spriteCoords.Y;
+      let sprite = spriteMap.countdown1;
+      for (let bp of cd.Breakpoint) {
+        if (bp.name === "small") bp.width = (sprite.w * small.countdownSize) / sprite.h;
+        else if (bp.name === "regular") bp.width = (sprite.w * regular.countdownSize) / sprite.h;
+      }
+      cd.Renderable.spriteX = sprite.x;
+      cd.Renderable.spriteY = sprite.y;
+      cd.Renderable.spriteWidth = sprite.w;
+      cd.Renderable.spriteHeight = sprite.h;
       cd.Renderable.alpha = this.countdownAlpha;
       return;
     } else if (this.currentTimeRemaining <= 2000 && this.countdownNum > 2) {
       this.countdownNum = 2;
       this.countdownAlpha = 1;
       let cd = this.ecs.getEntity("countdown");
-      let spriteCoords = spriteMap.countdown2;
-      cd.Renderable.spriteX = spriteCoords.X;
-      cd.Renderable.spriteY = spriteCoords.Y;
+      let sprite = spriteMap.countdown2;
+      for (let bp of cd.Breakpoint) {
+        if (bp.name === "small") bp.width = (sprite.w * small.countdownSize) / sprite.h;
+        else if (bp.name === "regular") bp.width = (sprite.w * regular.countdownSize) / sprite.h;
+      }
+      cd.Renderable.spriteX = sprite.x;
+      cd.Renderable.spriteY = sprite.y;
+      cd.Renderable.spriteWidth = sprite.w;
+      cd.Renderable.spriteHeight = sprite.h;
       cd.Renderable.alpha = this.countdownAlpha;
       return;
     } else if (this.currentTimeRemaining === 3000) {
       this.countdownNum = 3;
       this.countdownAlpha = 1;
-      console.log("creating countdown entity");
-      let spriteCoords = spriteMap[`countdown${this.countdownNum}`];
+      let sprite = spriteMap[`countdown${this.countdownNum}`];
       this.ecs
         .createEntity({
           id: "countdown",
           tags: ["anim"],
           Coordinates: {},
           Renderable: {
-            spriteX: spriteCoords.X,
-            spriteY: spriteCoords.Y,
-            spriteWidth: 75,
-            spriteHeight: 75,
+            spriteX: sprite.x,
+            spriteY: sprite.y,
+            spriteWidth: sprite.w,
+            spriteHeight: sprite.h,
             alpha: this.countdownAlpha,
           },
           Breakpoint: [
             {
               name: "small",
-              width: small.countdownSize,
+              width: (sprite.w * small.countdownSize) / sprite.h,
               height: small.countdownSize,
             },
             {
               name: "regular",
-              width: regular.countdownSize,
+              width: (sprite.w * regular.countdownSize) / sprite.h,
               height: regular.countdownSize,
             },
           ],

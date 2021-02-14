@@ -156,14 +156,14 @@ class GameModeMachine {
         let graphic = game.ecs.getEntity("wonGraphic");
 
         if (!graphic) {
-          let { X, Y } = game.spriteMap.wonGraphic;
+          let { x, y } = game.spriteMap.wonGraphic;
           graphic = game.ecs.createEntity({
             id: "wonGraphic",
             Coordinates: {},
-            Animation: { startSprite: game.spriteMap.shiny, degStep: 1 },
+            Animation: { startSprite: game.spriteMap.shine, degStep: 1 },
             Renderable: {
-              spriteX: X,
-              spriteY: Y,
+              spriteX: x,
+              spriteY: y,
             },
           });
         } else {
@@ -186,14 +186,14 @@ class GameModeMachine {
         let graphic = game.ecs.getEntity("crashGraphic");
 
         if (!graphic) {
-          let { X, Y } = game.spriteMap.crashGraphic;
+          let { x, y } = game.spriteMap.crashGraphic;
           graphic = game.ecs.createEntity({
             id: "crashGraphic",
             Coordinates: {},
-            Animation: { startSprite: game.spriteMap.badShiny, degStep: 1 },
+            Animation: { startSprite: game.spriteMap.badShine, degStep: 1 },
             Renderable: {
-              spriteX: X,
-              spriteY: Y,
+              spriteX: x,
+              spriteY: y,
             },
           });
         } else {

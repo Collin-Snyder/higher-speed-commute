@@ -36,14 +36,14 @@ class RenderViewBox extends EntityComponentSystem.System {
   }
 
   update(tick: number, entities: Set<Entity>) {
-    const global = this.ecs.getEntity("global").Global;
-    let mode = global.game.mode;
-    let zoom = global.game.currentZoom;
-    let mapView = global.game.mapView;
+    const { game } = this.ecs.getEntity("global").Global;
+    let mode = game.mode;
+    let zoom = game.currentZoom;
+    let mapView = game.mapView;
     if (!this.modeNames.includes(mode)) return;
 
     let mapEntity = <Entity>entities.values().next().value;
-    this.updateViewbox(mapEntity, global, mode);
+    this.updateViewbox(mapEntity, game, mode);
 
     let {
       ViewBox,
@@ -95,8 +95,8 @@ class RenderViewBox extends EntityComponentSystem.System {
       if (this.carInViewbox(this.bossEntity, ViewBox)) {
         this.renderCarSprite(
           this.bossEntity,
-          global.spriteSheet,
-          global.spriteMap,
+          game.spritesheet,
+          game.spriteMap,
           Coordinates,
           zoom,
           mapEntity
@@ -105,26 +105,26 @@ class RenderViewBox extends EntityComponentSystem.System {
       if (this.carInViewbox(this.playerEntity, ViewBox)) {
         this.renderCarSprite(
           this.playerEntity,
-          global.spriteSheet,
-          global.spriteMap,
+          game.spritesheet,
+          game.spriteMap,
           Coordinates,
           zoom,
           mapEntity
         );
       }
 
-      if (global.game.focusView === "boss") {
+      if (game.focusView === "boss") {
         this.drawBossBorder(X, Y, renderWidth, renderHeight);
       }
     }
   }
 
-  updateViewbox(mapEntity: Entity, global: BaseComponent, mode: string) {
+  updateViewbox(mapEntity: Entity, game: Game, mode: string) {
     let { ViewBox } = mapEntity;
     let mapOffscreen = <HTMLCanvasElement>(
       document.getElementById("map-offscreen")
     );
-    let focusEnt = this.ecs.getEntity(global.game.focusView);
+    let focusEnt = this.ecs.getEntity(game.focusView);
     let { X, Y } = focusEnt.Coordinates;
     let center = getCenterPoint(
       X,
@@ -132,8 +132,8 @@ class RenderViewBox extends EntityComponentSystem.System {
       focusEnt.Renderable.renderWidth,
       focusEnt.Renderable.renderHeight
     );
-    ViewBox.w = 1000 / global.game.currentZoom;
-    ViewBox.h = 625 / global.game.currentZoom;
+    ViewBox.w = 1000 / game.currentZoom;
+    ViewBox.h = 625 / game.currentZoom;
     let vbCenter = getCenterPoint(ViewBox.x, ViewBox.y, ViewBox.w, ViewBox.h);
 
     if (mode === "playing") {

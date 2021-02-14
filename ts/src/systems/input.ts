@@ -1,5 +1,5 @@
 import ECS, { Entity, BaseComponent } from "@fritzy/ecs";
-import { InputEvents } from "../main";
+import { Game, InputEvents } from "../main";
 import keyCodes from "../keyCodes";
 import { checkForMouseCollision, normalize } from "../modules/gameMath";
 
@@ -27,11 +27,13 @@ export class InputSystem extends ECS.System {
   }
 
   update(tick: number, entities: Set<Entity>) {
-    let mx = this.global.inputs.mouseX;
-    let my = this.global.inputs.mouseY;
-    let mousedown = this.global.inputs.mouseDown;
-    let mode = this.global.game.mode;
-    let dragging = this.global.inputs.dragging;
+    let { game, inputs } = this.ecs.getEntity("global").Global;
+
+    let mx = inputs.mouseX;
+    let my = inputs.mouseY;
+    let mousedown = inputs.mouseDown;
+    let mode = game.mode;
+    let dragging = inputs.dragging;
 
     //handle mouse inputs
     let clickable = this.ecs.queryEntities({
@@ -50,9 +52,9 @@ export class InputSystem extends ECS.System {
       (Math.abs(mx - this.startMouseX) > 5 ||
         Math.abs(my - this.startMouseY) > 5)
     ) {
-      this.global.inputs.startDrag();
-      this.global.game.designModule.startDrawing();
-      dragging = this.global.inputs.dragging;
+      inputs.startDrag();
+      game.designModule.startDrawing();
+      dragging = inputs.dragging;
     }
 
     for (let e of clickable) {
@@ -70,7 +72,7 @@ export class InputSystem extends ECS.System {
       );
 
       if (mouseCollision && !e.has("Disabled")) {
-        cursor = isMap ? window.game.designModule.mapCursor : "pointer";
+        cursor = isMap ? game.designModule.mapCursor : "pointer";
 
         if (dragging && isMap) clicked = e;
         else if (!dragging && mousedown && !this.lastMousedown) {
@@ -89,11 +91,11 @@ export class InputSystem extends ECS.System {
       this.startMouseX = 0;
       this.startMouseY = 0;
       if (dragging) {
-        this.global.inputs.endDrag();
-        this.global.game.designModule.stopDrawing();
+        inputs.endDrag();
+        game.designModule.stopDrawing();
       }
     }
-    this.global.game.UICanvas.style.cursor = cursor;
+    game.UICanvas.style.cursor = cursor;
 
     //handle keypress inputs
     if (mode === "playing" || mode === "paused") {
@@ -101,9 +103,9 @@ export class InputSystem extends ECS.System {
         const playerEntity = entities.values().next().value;
         playerEntity.Velocity.altVectors = this.getPotentialVectors();
       }
-      this.handleGameplayKeypress(mode);
+      this.handleGameplayKeypress(game, mode);
     } else if (mode === "designing") {
-      this.handleDesignKeypress();
+      this.handleDesignKeypress(game, inputs);
     }
   }
 
@@ -141,14 +143,12 @@ export class InputSystem extends ECS.System {
     return potentials;
   }
 
-  handleGameplayKeypress(mode: "paused" | "playing") {
-    let { game } = this.global;
+  handleGameplayKeypress(game: Game, mode: "paused" | "playing") {
+    // let { game } = this.global;
     this.debounceKeypress(
       "SPACE",
       (gameMode: "paused" | "playing") => {
-        gameMode === "paused"
-          ? game.publish("resume")
-          : game.publish("pause");
+        gameMode === "paused" ? game.publish("resume") : game.publish("pause");
       },
       mode
     );
@@ -159,14 +159,12 @@ export class InputSystem extends ECS.System {
       game.mapView = !game.mapView;
     });
     this.debounceKeypress("B", () => {
-      game.focusView =
-        game.focusView === "boss" ? "player" : "boss";
+      game.focusView = game.focusView === "boss" ? "player" : "boss";
     });
   }
 
-  handleDesignKeypress() {
-    let { shift, ctrl } = this.inputs;
-    let { game } = this.global;
+  handleDesignKeypress(game: Game, inputs: InputEvents) {
+    let { shift, ctrl } = inputs;
 
     this.debounceKeypress(
       "S",

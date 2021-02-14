@@ -23,8 +23,8 @@ class RenderOffscreenMap extends EntityComponentSystem.System {
   }
 
   update(tick: number, entities: Set<Entity> | Array<Entity>) {
-    const global = this.ecs.getEntity("global").Global;
-    let mode = global.game.mode;
+    let { game } = this.ecs.getEntity("global").Global;
+    let mode = game.mode;
     if (!this.modeNames.includes(mode)) return;
 
     const mapEntity = entities.values().next().value;
@@ -56,16 +56,16 @@ class RenderOffscreenMap extends EntityComponentSystem.System {
           a: number,
           deg: number
         ) => {
-          let tileCoords = global.spriteMap[type];
+          let tileCoords = game.spriteMap[type];
           let hasAlpha = a < 1;
           let hasRotation = deg !== 0;
           if (hasAlpha || hasRotation) this.ctx.save();
           if (hasAlpha) this.ctx.globalAlpha = a;
           if (hasRotation) this.ctx.rotate(degreesToRadians(deg));
           this.ctx.drawImage(
-            global.spriteSheet,
-            tileCoords.X,
-            tileCoords.Y,
+            game.spritesheet,
+            tileCoords.x,
+            tileCoords.y,
             25,
             25,
             x * 25,

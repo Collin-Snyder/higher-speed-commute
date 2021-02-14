@@ -11,13 +11,15 @@ import * as breakpoints from "./modules/breakpoints";
 import axios from "axios";
 import spriteMap from "./spriteMap";
 import bgMap from "./bgMap";
+import modalButtonMap from "./modalButtonMap";
 import keyCodes from "./keyCodes";
 import DesignModule from "./modules/designModule";
 import LogTimers from "./modules/logger";
 import { ArcadeMap, IArcadeMap } from "./state/map";
 import GameModeMachine, { Mode } from "./state/pubsub";
 import Race from "./modules/raceData";
-import { MenuButtons } from "./state/menuButtons";
+// import { MenuButtons } from "./state/menuButtons";
+import makeButtonEntities from "./state/buttonFactory";
 import Components from "./components/index";
 import Tags from "./tags/tags";
 import { BreakpointSystem } from "./systems/breakpoints";
@@ -108,7 +110,7 @@ export class Game {
   private osectx: CanvasRenderingContext2D;
   public spritesheet: HTMLImageElement;
   public background: HTMLImageElement;
-  public spriteMap: { [entity: string]: { X: number; Y: number } };
+  public spriteMap: { [entity: string]: { x: number; y: number; w: number; h: number; } };
   public spriteSheetIsLoaded: boolean;
   public backgroundIsLoaded: boolean;
   public breakpoint: TBreakpoint;
@@ -472,6 +474,20 @@ export class Game {
     } = RenderGroup;
     this.globalEntity.Global.bgSheet = this.background;
     this.globalEntity.Global.bgMap = bgMap;
+
+    ///// create modal button classes /////
+    let styleEl = document.createElement("style");
+    let styleHTML = "";
+
+    for (let name in modalButtonMap) {
+      let b = modalButtonMap[name];
+      styleHTML += `.${name}::after {background-position: -${b.x}px -${b.y}px;}\n`;
+    }
+
+    styleEl.innerHTML = styleHTML;
+    document.head.appendChild(styleEl);
+
+
     this.ecs.createEntity({
       id: "bg",
       ParallaxLayer: [
@@ -507,20 +523,21 @@ export class Game {
     this.ecs.addSystem("animations", new BackgroundAnimation(this.ecs));
     this.ecs.addSystem("render", new RenderBackground(this.ecs, this.uictx));
 
-    this.globalEntity.Global.spriteSheet = this.spritesheet;
-    this.globalEntity.Global.spriteMap = this.spriteMap;
+    // this.globalEntity.Global.spriteSheet = this.spritesheet;
+    // this.globalEntity.Global.spriteMap = this.spriteMap;
 
     let playerSpriteCoords = this.spriteMap[
       `${this.playerEntity.Car.color}Car`
     ];
-    this.playerEntity.Renderable.spriteX = playerSpriteCoords.X;
-    this.playerEntity.Renderable.spriteY = playerSpriteCoords.Y;
+    this.playerEntity.Renderable.spriteX = playerSpriteCoords.x;
+    this.playerEntity.Renderable.spriteY = playerSpriteCoords.y;
 
     let bossSpriteCoords = this.spriteMap[`${this.bossEntity.Car.color}Car`];
-    this.bossEntity.Renderable.spriteX = bossSpriteCoords.X;
-    this.bossEntity.Renderable.spriteY = bossSpriteCoords.Y;
+    this.bossEntity.Renderable.spriteX = bossSpriteCoords.x;
+    this.bossEntity.Renderable.spriteY = bossSpriteCoords.y;
 
-    MenuButtons.createEntities(this);
+    makeButtonEntities(this);
+    // MenuButtons.createEntities(this);
 
     this.ecs.addSystem("render", new RenderBorders(this.ecs, this.uictx));
     this.ecs.addSystem("render", new RenderOffscreenMap(this.ecs, this.osmctx));

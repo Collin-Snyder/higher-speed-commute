@@ -118,6 +118,13 @@ export function randomNumBtwn(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
+export function alignCenter(cx: number, cy: number, cw: number, ch: number, ew: number, eh: number) {
+  let x = (cw / 2) - (ew / 2) + cx;
+  let y = (ch / 2) - (eh / 2) + cy;
+
+  return {x, y}
+}
+
 export function centerWithin(
   cx: number,
   cy: number,

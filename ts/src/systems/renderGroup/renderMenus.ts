@@ -1,6 +1,6 @@
 import EntityComponentSystem, { Entity, ECS, BaseComponent } from "@fritzy/ecs";
 import { Game } from "../../main";
-import { centerWithin } from "../../modules/gameMath";
+import { centerWithin, alignCenter } from "../../modules/gameMath";
 
 class RenderMenus extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -21,8 +21,8 @@ class RenderMenus extends EntityComponentSystem.System {
     super(ecs);
     this.ctx = ctx;
     this.global = this.ecs.getEntity("global");
-    let { spriteSheet, spriteMap } = this.global.Global;
-    this.spriteSheet = spriteSheet;
+    let { spritesheet, spriteMap } = this.global.Global.game;
+    this.spriteSheet = spritesheet;
     this.spriteMap = spriteMap;
     this.menuTags = {
       menu: ["main"],
@@ -183,6 +183,47 @@ class RenderMenus extends EntityComponentSystem.System {
     }
   }
 
+  drawButtonText(buttonEntities: Entity[]) {
+    let textButtons = buttonEntities.filter((b) => b.has("Text"));
+
+    if (!textButtons.length) return;
+
+    // console.log(`About to draw ${textButtons.length} button texts`)
+    for (let entity of textButtons) {
+      let {
+        textSpriteX,
+        textSpriteY,
+        textSpriteW,
+        textSpriteH,
+        textRenderW,
+        textRenderH,
+      } = entity.Text;
+
+      let { x, y } = alignCenter(
+        entity.Coordinates.X,
+        entity.Coordinates.Y,
+        entity.Renderable.renderWidth,
+        entity.Renderable.renderHeight,
+        textRenderW,
+        textRenderH,
+      );
+
+      
+      
+      this.ctx.drawImage(
+        this.spriteSheet,
+        textSpriteX,
+        textSpriteY,
+        textSpriteW,
+        textSpriteH,
+        x,
+        y,
+        textRenderW,
+        textRenderH
+      );
+    }
+  }
+
   drawButtons(buttonEntities: Entity[]) {
     for (let entity of buttonEntities) {
       this.ctx.drawImage(
@@ -197,6 +238,7 @@ class RenderMenus extends EntityComponentSystem.System {
         entity.Renderable.renderHeight
       );
     }
+    this.drawButtonText(buttonEntities);
   }
 
   drawTitle() {
@@ -258,7 +300,7 @@ class RenderMenus extends EntityComponentSystem.System {
     graphicW: number,
     graphicH: number
   ) {
-    let graphic = window.game.ecs.getEntity(`${menu}Graphic`);
+    let graphic = this.ecs.getEntity(`${menu}Graphic`);
     let { degOffset, startSprite } = graphic.Animation;
     let shineCoords = startSprite;
     let spriteW = 75;

@@ -8,7 +8,7 @@ class RenderBackground extends EntityComponentSystem.System {
     this.ctx = ctx;
   }
   update(tick: number, entities: Set<Entity>) {
-    let game = window.game;
+    let { game } = this.ecs.getEntity("global").Global;
     let layers = this.ecs.getEntity("bg").ParallaxLayer;
 
     this.ctx.fillStyle = "#b8d5ff";

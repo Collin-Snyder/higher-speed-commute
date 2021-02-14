@@ -194,9 +194,23 @@ h1.modal-title {
 
 .action-button {
   display: inline-block;
+  width: 150px;
+  height: 60px;
+  background-color: black;
+  cursor: pointer;
+}
+
+.action-button:active::after {
+  opacity: 0.65;
+}
+
+.action-button::after {
+  display: block;
+  content: " ";
+  width: 100%;
+  height: 100%;
   background-image: url("./spritesheet.png");
   background-repeat: no-repeat;
-  cursor: pointer;
 }
 
 #modal-options {

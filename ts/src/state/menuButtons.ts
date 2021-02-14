@@ -323,7 +323,7 @@ export class MenuButtons {
   ) {
     for (let name in buttons) {
       let button = buttons[name];
-      let coords = game.ecs.getEntity("global").Global.spriteMap[
+      let coords = game.spriteMap[
         `${button.name}Button`
       ];
       let square = false;
@@ -338,8 +338,8 @@ export class MenuButtons {
         Clickable: { onClick: button.onClick },
         Coordinates: {},
         Renderable: {
-          spriteX: coords.X,
-          spriteY: coords.Y,
+          spriteX: coords.x,
+          spriteY: coords.y,
           spriteWidth: button.width,
           spriteHeight: button.height,
           renderWidth: button.width,

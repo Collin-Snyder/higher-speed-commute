@@ -20,8 +20,7 @@ export class BreakpointSystem extends EntityComponentSystem.System {
     this.prevGroupSize = 0;
   }
   update(tick: number, entities: Set<Entity>) {
-    this.bp = window.game.breakpoint;
-    if (this.bp === this.prevBP && entities.size === this.prevGroupSize) return;
+    this.bp = this.ecs.getEntity("global").Global.game.breakpoint;
 
     for (let entity of entities) {
       let { Breakpoint, Renderable } = entity;
@@ -37,6 +36,11 @@ export class BreakpointSystem extends EntityComponentSystem.System {
       }
 
       Renderable.breakpointScale = this.bpData.scale;
+
+      if (entity.has("Text")) {
+        entity.Text.textRenderW = this.bp === "small" ? entity.Text.textSpriteW : entity.Text.textSpriteW / 0.76;
+        entity.Text.textRenderH = this.bp === "small" ? entity.Text.textSpriteH : entity.Text.textSpriteH / 0.76;
+      }
 
       if (entity.id === "map") {
         this.handleMapBreakpoint(entity);
