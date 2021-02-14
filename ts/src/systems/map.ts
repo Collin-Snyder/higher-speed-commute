@@ -4,9 +4,6 @@ import {
   getCenterPoint,
   getTileHitbox,
 } from "../modules/gameMath";
-import { small, regular } from "../modules/breakpoints";
-import { drawTileMap } from "../modules/tileDrawer";
-import { Tile } from "../state/map";
 
 export class MapSystem extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {

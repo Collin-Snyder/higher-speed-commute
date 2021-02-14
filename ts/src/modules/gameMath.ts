@@ -189,6 +189,7 @@ export function subtractVectors(
 }
 
 export function isDiagonal(v: VectorInterface): boolean {
+  if (!v) return false;
   let { X, Y } = v;
   if (X !== 0 && Y !== 0) return true;
   return false;
