@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect, PointerEvent, MouseEvent } from "react";
 import { ModalInputContext } from "./modalInputContext";
-import { checkForMouseCollision } from "../modules/gameMath";
+import { checkForMouseCollision } from "gameMath";
 
 interface ActionButtonProps {
   buttonName: string;

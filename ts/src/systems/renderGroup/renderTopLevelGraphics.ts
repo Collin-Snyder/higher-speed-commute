@@ -1,6 +1,6 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { Game } from "../../main";
-import { alignCenter, centerWithin } from "../../modules/gameMath";
+import { centerWithin } from "gameMath";
 
 class RenderTopLevelGraphics extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -17,7 +17,7 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
     let { game } = this.ecs.getEntity("global").Global;
     //will render countdown numbers
     for (let entity of entities) {
-        let { x, y } = alignCenter(
+        let { x, y } = centerWithin(
           0,
           0,
           window.innerWidth,

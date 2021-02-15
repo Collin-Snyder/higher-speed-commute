@@ -1,14 +1,10 @@
 import ECS, { Entity } from "@fritzy/ecs";
 import {
   calculateSpeedConstant,
-  canHasFudge,
-  normalize,
-  checkVelocityZero,
   findDegFromVector,
-  VectorInterface,
   checkPointCollision,
   getTileHitbox,
-} from "../modules/gameMath";
+} from "gameMath";
 
 export class MovementSystem extends ECS.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -70,7 +66,7 @@ export class MovementSystem extends ECS.System {
     if (deg >= 0) entity.Renderable.degrees = deg;
   }
 
-  carInSquare(chb: VectorInterface[], shb: VectorInterface[]) {
+  carInSquare(chb: IVector[], shb: IVector[]) {
     for (let { X, Y } of chb) {
       if (!checkPointCollision(shb, X, Y)) return false;
     }

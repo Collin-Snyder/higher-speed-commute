@@ -1,7 +1,7 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
-import { centerWithin, getCenterPoint } from "../modules/gameMath";
+import { getCenterPoint } from "gameMath";
 import { small, regular } from "../modules/breakpoints";
-import { Tile, ITile } from "../state/map";
+import { ITile } from "../state/map";
 const { floor } = Math;
 
 interface AnimationStateInterface {

@@ -1,11 +1,9 @@
 import EntityComponentSystem, { Entity, ECS, BaseComponent } from "@fritzy/ecs";
 import { Game } from "../../main";
 import {
-  centerWithin,
   getCenterPoint,
   degreesToRadians,
-  VectorInterface,
-} from "../../modules/gameMath";
+} from "gameMath";
 
 class RenderViewBox extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -223,7 +221,7 @@ class RenderViewBox extends EntityComponentSystem.System {
     viewbox: any,
     showFrontCorners: boolean = false
   ) {
-    let scaledHb = entity.Collision.currentHb().map((v: VectorInterface) => ({
+    let scaledHb = entity.Collision.currentHb().map((v: IVector) => ({
       X: mapCoords.X + (v.X - viewbox.x) * zoomFactor * bpScale,
       Y: mapCoords.Y + (v.Y - viewbox.y) * zoomFactor * bpScale,
     }));
