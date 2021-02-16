@@ -32,30 +32,15 @@ const modalButtons: { [key: string]: ModalButton[] } = {
       name: "load",
     },
   ],
-  reset: [
-    { type: "cancel", name: "cancel" },
-    {
-      type: "submit",
-      name: "reset",
-    },
-  ],
   levelStart: [
     { type: "submit", name: "playEasy" },
     { type: "submit", name: "playMedium" },
     { type: "submit", name: "playHard" },
   ],
-  arcadeStart: [
-    { type: "cancel", name: "cancel" },
-    { type: "submit", name: "go" },
-  ],
-  quitGameConfirmation: [
-    { type: "cancel", name: "cancel" },
-    { type: "submit", name: "ok" },
-  ],
-  quitDesignConfirmation: [
-    { type: "cancel", name: "cancel" },
-    { type: "submit", name: "ok" },
-  ],
+  reset: [{ type: "cancel", name: "cancel" }],
+  arcadeStart: [{ type: "cancel", name: "cancel" }],
+  quitGameConfirmation: [{ type: "cancel", name: "cancel" }],
+  quitDesignConfirmation: [{ type: "cancel", name: "cancel" }],
 };
 
 const ModalButtonContainer = ({

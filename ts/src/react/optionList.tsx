@@ -11,20 +11,31 @@ export interface ModalOption {
 interface OptionListProps {
   listName: string;
   options: ModalOption[];
+  optionsWillSubmit: boolean;
 }
 
-const OptionList = ({ listName, options }: OptionListProps) => {
+const OptionList = ({ listName, options, optionsWillSubmit }: OptionListProps) => {
   let [inputState, dispatch] = useContext(ModalInputContext);
   let {toggleModal} = window;
 
-  let handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    dispatch({ type: "SET_INPUT_VALUE", payload: e.target.value });
-  };
+  let cssClass = listName === "loadMap" ? "columns" : "";
+  let handleChange = (e: ChangeEvent<HTMLInputElement>) => {};
+  
+  if (optionsWillSubmit) {
+    handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+      inputState.submitActions[e.target.value]();
+    }
+  } else  {
+    handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+      dispatch({ type: "SET_INPUT_VALUE", payload: e.target.value });
+    };
+  }
+
 
   return (
     <div
       id="modal-options"
-      className={listName === "loadMap" ? "columns" : ""}
+      className={cssClass}
       onKeyPress={(e) => {
         if (e.key === "Enter" && inputState.inputValue) {
           let input = inputState.inputValue === "" ? e : inputState.inputValue;
@@ -40,6 +51,7 @@ const OptionList = ({ listName, options }: OptionListProps) => {
           value={value}
           label={label}
           selected={inputState.inputValue == value}
+          willSubmit={optionsWillSubmit}
           handleChange={handleChange}
           key={value}
         />

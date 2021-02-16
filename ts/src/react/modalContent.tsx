@@ -18,22 +18,43 @@ export interface MapProperties {
 }
 
 const ModalContent = ({ modalName }: ModalContentProps) => {
-  console.log("Rendering modal content for modal: ", modalName)
+  console.log("Rendering modal content for modal: ", modalName);
+
+  let Content;
+  let cssClass = "border";
+
+  switch (modalName) {
+    case "save":
+      Content = SaveMapContent;
+      cssClass = "";
+      break;
+    case "levelStart":
+      Content = LevelStartContent;
+      cssClass = "";
+      break;
+    case "loadMap":
+      Content = LoadMapContent;
+      break;
+    case "arcadeStart":
+      Content = ArcadeStartContent;
+      break;
+    case "reset":
+      Content = ResetMapContent;
+      break;
+    case "quitGameConfirmation":
+      Content = QuitGameConfirmationContent;
+      break;
+    case "quitDesignConfirmation":
+      Content = QuitDesignConfirmationContent;
+      break;
+    default:
+      Content = () => <></>;
+  }
+
   return (
     <>
-      <div
-        id="modal-content"
-        className={
-          modalName === "save" || modalName === "levelStart" ? "" : "border"
-        }
-      >
-        {modalName === "loadMap" ? <LoadMapContent /> : <></>}
-        {modalName === "arcadeStart" ? <ArcadeStartContent /> : <></>}
-        {modalName === "save" ? <SaveMapContent /> : <></>}
-        {modalName === "reset" ? <ResetMapContent /> : <></>}
-        {modalName === "levelStart" ? <LevelStartContent /> : <></>}
-        {modalName === "quitGameConfirmation" ? <QuitGameConfirmationContent /> : <></>}
-        {modalName === "quitDesignConfirmation" ? <QuitDesignConfirmationContent /> : <></>}
+      <div id="modal-content" className={cssClass}>
+        <Content />
       </div>
     </>
   );

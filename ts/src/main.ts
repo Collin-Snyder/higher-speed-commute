@@ -29,7 +29,6 @@ import {
   BackgroundAnimation,
   Animation,
 } from "./systems/animations";
-
 import RenderGroup from "./systems/render";
 import {
   loadArcadeLevel,
@@ -38,7 +37,6 @@ import {
   getLastCompletedLevel,
 } from "./state/localDb";
 
-//@ts-ignore
 Number.prototype.times = function(
   cb: (currentNum: number) => any,
   start: number
@@ -51,20 +49,21 @@ Number.prototype.times = function(
     curr++;
   }
 };
-//@ts-ignore
-Array.prototype.deepMap = function (cb: (currentElement: any, i: number, currentArray: Array<any>) => any): Array<any> {
+
+Array.prototype.deepMap = function(
+  cb: (currentElement: any, i: number, currentArray: Array<any>) => any
+): Array<any> {
   let output = [];
   for (let i = 0; i < this.length; i++) {
-      let el = this[i];
-      if (Array.isArray(el)) {
-          //@ts-ignore
-          output.push(el.deepMap(cb))
-      } else {
-          output.push(cb(el, i, this));
-      }
+    let el = this[i];
+    if (Array.isArray(el)) {
+      output.push(el.deepMap(cb));
+    } else {
+      output.push(cb(el, i, this));
+    }
   }
   return output;
-}
+};
 
 // window.makeSeedData = function() {
 //   axios

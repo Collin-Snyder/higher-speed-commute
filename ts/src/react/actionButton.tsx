@@ -53,10 +53,7 @@ const ActionButton = ({
           if (inputState.inputValue === "" && buttonType === "submit") return;
           let input =
             inputState.inputValue === "useEvent" ? e : inputState.inputValue;
-          // toggleModal(false);
           buttonAction(input);
-          // dispatch({ type: "SET_INPUT_VALUE", payload: "" });
-          // dispatch({ type: "SET_SUBMIT_ACTIONS", payload: {} });
         }
       }}
     ></i>
