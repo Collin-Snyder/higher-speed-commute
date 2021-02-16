@@ -8,27 +8,27 @@ const spriteMap = {
   grass6: { x: 443, y: 124, w: 25, h: 25 },
   grass7: { x: 470, y: 124, w: 25, h: 25 },
   grass8: { x: 497, y: 124, w: 25, h: 25 },
-  house: { x: 832, y: 124, w: 25, h: 25 },
+  house: { x: 655, y: 124, w: 25, h: 25 },
   tree1: { x: 574, y: 124, w: 25, h: 25 },
   tree2: { x: 524, y: 124, w: 25, h: 25 },
   tree3: { x: 549, y: 124, w: 25, h: 25 },
-  street: { x: 601, y: 124, w: 25, h: 25 },
-  schoolZone: { x: 628, y: 124, w: 25, h: 25 },
+  street: { x: 682, y: 124, w: 25, h: 25 },
+  schoolZone: { x: 709, y: 124, w: 25, h: 25 },
 
   /// MAP TILES ///
-  playerHome: { x: 655, y: 124, w: 25, h: 25 },
-  bossHome: { x: 681, y: 124, w: 25, h: 25 },
-  office: { x: 709, y: 124, w: 25, h: 25 },
+  playerHome: { x: 601, y: 124, w: 25, h: 25 },
+  bossHome: { x: 628, y: 124, w: 25, h: 25 },
+  office: { x: 736, y: 124, w: 25, h: 25 },
 
   /// CARS ////
   blueCar: { x: 859, y: 124, w: 25, h: 25 },
   redCar: { x: 887, y: 124, w: 25, h: 25 },
 
   /// GAMEPLAY ENTITIES ///
-  redLight: { x: 734, y: 124, w: 25, h: 25 },
-  greenLight: { x: 780, y: 124, w: 25, h: 25 },
-  yellowLight: { x: 757, y: 124, w: 25, h: 25 },
-  coffee: { x: 805, y: 124, w: 25, h: 25 },
+  redLight: { x: 761, y: 124, w: 25, h: 25 },
+  greenLight: { x: 807, y: 124, w: 25, h: 25 },
+  yellowLight: { x: 784, y: 124, w: 25, h: 25 },
+  coffee: { x: 830, y: 124, w: 25, h: 25 },
   countdown3: { x: 308, y: 527, w: 70, h: 71 },
   countdown2: { x: 380, y: 527, w: 70, h: 71 },
   countdown1: { x: 452, y: 527, w: 22, h: 71 },

@@ -1,10 +1,7 @@
-import EntityComponentSystem, { Entity, ECS, BaseComponent } from "@fritzy/ecs";
+import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { Game } from "../../main";
-import {
-  centerWithin,
-  alignItems,
-  justifyItems,
-} from "gameMath";
+import { menuButtons, designMenuButtons } from "../../state/buttonFactory";
+import { centerWithin, alignItems, justifyItems } from "gameMath";
 
 class RenderMenus extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -72,21 +69,15 @@ class RenderMenus extends EntityComponentSystem.System {
 
     //calculate coordinates for buttons using button spacing logic and current state/size of game
     if (!this.modeNames.includes(mode)) return;
-    this.buttonEntities = this.selectButtons(mode, playMode);
     this.buttonEntities.forEach((e) => {
       if (e.has("NI")) e.removeTag("NI");
     });
     let {
-      MapData: { map },
       Border,
       Coordinates,
       Renderable: { renderW, renderH },
     } = this.ecs.getEntity("map");
 
-    // let { pixelWidth, pixelHeight } = map ?? {
-    //   pixelHeight: 0,
-    //   pixelWidth: 0,
-    // };
     let { weight } = Border ?? { weight: 0 };
     let { X, Y } = Coordinates ?? { X: 0, Y: 0 };
 
@@ -103,7 +94,7 @@ class RenderMenus extends EntityComponentSystem.System {
       case "won":
       case "lost":
       case "crash":
-        this.renderGameplayMenu(mode, X, Y, renderW, renderH);
+        this.renderGameplayMenu(mode, playMode, X, Y, renderW, renderH);
         return;
       case "designing":
         let { saved } = game.designModule;
@@ -126,17 +117,6 @@ class RenderMenus extends EntityComponentSystem.System {
     console.log(this.menuFont.family, "loaded successfully.");
     this.fontReady = true;
   };
-
-  selectButtons(mode: string, playMode: "arcade" | "custom" | "testing" | "") {
-    let btns = [
-      ...this.ecs.queryEntities({ has: ["menu", ...this.menuTags[mode]] }),
-    ];
-    if (playMode) {
-      if (mode === "won" || playMode === "testing")
-        btns = btns.filter((b) => b.has(playMode));
-    }
-    return btns;
-  }
 
   drawButtonText(buttonEntities: Entity[]) {
     let textButtons = buttonEntities.filter((b) => b.has("Text"));
@@ -224,19 +204,24 @@ class RenderMenus extends EntityComponentSystem.System {
   }
 
   renderMainMenu() {
+    let btns = menuButtons.main.deepMap((b) => {
+      let e = this.ecs.getEntity(`${b}Button`);
+      if (e.has("NI")) e.removeTag("NI");
+      return e;
+    });
     let { titleY, titleHeight } = this.drawTitle();
     let menuY = titleY + titleHeight;
     let menuH = (window.innerHeight / 3) * 2 - window.innerHeight / 8;
 
-    alignItems(
+    btns = alignItems(
       window.innerWidth / 2 - window.innerWidth / 4,
       menuY,
       window.innerWidth / 2,
       menuH,
-      this.buttonEntities,
+      btns,
       "spaceEvenly"
     );
-    this.drawButtons(this.buttonEntities);
+    this.drawButtons(btns);
   }
 
   drawShine(
@@ -424,11 +409,19 @@ class RenderMenus extends EntityComponentSystem.System {
 
   renderGameplayMenu(
     menu: "won" | "lost" | "paused" | "crash",
+    playMode: TPlayMode,
     mapX: number,
     mapY: number,
     mapWidth: number,
     mapHeight: number
   ) {
+    let menuName = "paused";
+    if (menu !== "paused") menuName = `${menu}_${playMode}`;
+    let btns = menuButtons[menuName as TMenuName].deepMap((b) => {
+      let e = this.ecs.getEntity(`${b}Button`);
+      if (e.has("NI")) e.removeTag("NI");
+      return e;
+    });
     //draw translucent dark rectangle over map
     this.ctx.save();
     this.ctx.globalAlpha = 0.75;
@@ -450,7 +443,6 @@ class RenderMenus extends EntityComponentSystem.System {
     //if the menu has text, draw it and retain size/position
     if (menu !== "paused") {
       let textH = mapHeight / 32;
-      // let textH = 75;
       let totalH = this.drawMenuText(
         menu,
         mapWidth / 2 + mapX,
@@ -462,28 +454,8 @@ class RenderMenus extends EntityComponentSystem.System {
       menuH -= totalH;
     }
 
-    //position and draw buttons based on location/size of menu graphic
-    // this.positionButtons(
-    //   mapX,
-    //   menuY,
-    //   mapWidth,
-    //   menuH,
-    //   200,
-    //   75,
-    //   "vertical",
-    //   this.buttonEntities,
-    //   "spaceEvenly"
-    // );
-
-    alignItems(
-      mapX,
-      menuY,
-      mapWidth,
-      menuH,
-      this.buttonEntities,
-      "spaceEvenly"
-    );
-    this.drawButtons(this.buttonEntities);
+    btns = alignItems(mapX, menuY, mapWidth, menuH, btns, "spaceEvenly");
+    this.drawButtons(btns);
   }
 
   renderDesignToolbarMenu(
@@ -493,25 +465,7 @@ class RenderMenus extends EntityComponentSystem.System {
     mapWidth: number,
     mapHeight: number
   ) {
-    // this.positionButtons(
-    //   mapX,
-    //   0,
-    //   mapWidth,
-    //   (window.innerHeight - mapHeight) / 2,
-    //   75,
-    //   75,
-    //   "horizontal",
-    //   toolbarBtns,
-    //   "spaceEvenly"
-    // );
-    justifyItems(
-      mapX,
-      0,
-      mapWidth,
-      (window.innerHeight - mapHeight) / 2,
-      toolbarBtns,
-      "spaceEvenly"
-    );
+    toolbarBtns = justifyItems(mapX, 0, mapWidth, mapY, toolbarBtns, "spaceEvenly");
     this.drawButtons(toolbarBtns);
   }
 
@@ -522,9 +476,9 @@ class RenderMenus extends EntityComponentSystem.System {
     mapWidth: number,
     mapHeight: number
   ) {
-    alignItems(
+    adminBtns = alignItems(
       mapX + mapWidth,
-      (window.innerHeight - mapHeight) / 2,
+      mapY,
       (window.innerWidth - mapWidth) / 2,
       mapHeight,
       adminBtns,
@@ -542,17 +496,18 @@ class RenderMenus extends EntityComponentSystem.System {
     mapWidth: number,
     mapHeight: number
   ) {
-    let formattedBtns = this.formatDesignConfigButtons(configBtns);
-
-    alignItems(
+    let padding = configBtns[0]?.Renderable
+      ? configBtns[0].Renderable.renderH / 2
+      : configBtns[0][0]?.Renderable.renderH / 2 || 0;
+    configBtns = alignItems(
       0,
       mapY,
       (window.innerWidth - mapWidth) / 2,
       mapHeight,
-      formattedBtns,
+      configBtns,
       "top",
       "center",
-      configBtns[0].Renderable.renderH / 2
+      padding
     );
     this.drawButtons(configBtns);
   }
@@ -564,16 +519,28 @@ class RenderMenus extends EntityComponentSystem.System {
     mapHeight: number,
     saved: boolean
   ) {
-    const toolbarBtns = this.buttonEntities.filter((e) => e.has("toolbar"));
-    const adminBtns = this.buttonEntities.filter((e) => {
-      let isAdmin = e.has("admin");
-      if (!saved) return isAdmin;
-      if (!isAdmin) return false;
-      let visible = !/save/.test(e.id);
-      if (!visible && !e.has("NI")) e.addTag("NI");
-      return visible;
+    const toolbarBtns = designMenuButtons.toolbar.deepMap((b) => {
+      let e = this.ecs.getEntity(`${b}Button`);
+      if (e.has("NI")) e.removeTag("NI");
+      return e;
     });
-    const configBtns = this.buttonEntities.filter((e) => e.has("config"));
+    const adminBtns = designMenuButtons.admin
+      .deepMap((b) => {
+        let e = this.ecs.getEntity(`${b}Button`);
+        if (e.has("NI")) e.removeTag("NI");
+        return e;
+      })
+      .filter((e) => {
+        if (!saved) return true;
+        let visible = !/save/.test(e.id);
+        if (!visible && !e.has("NI")) e.addTag("NI");
+        return visible;
+      });
+    const configBtns = designMenuButtons.config.deepMap((b) => {
+      let e = this.ecs.getEntity(`${b}Button`);
+      if (e.has("NI")) e.removeTag("NI");
+      return e;
+    });
 
     this.renderDesignToolbarMenu(toolbarBtns, mapX, mapY, mapWidth, mapHeight);
     this.renderDesignAdminMenu(adminBtns, mapX, mapY, mapWidth, mapHeight);
@@ -618,6 +585,11 @@ class RenderMenus extends EntityComponentSystem.System {
   }
 
   renderEndOfGameMenu() {
+    let btns = menuButtons.end.deepMap((b) => {
+      let e = this.ecs.getEntity(`${b}Button`);
+      if (e.has("NI")) e.removeTag("NI");
+      return e;
+    });
     let { graphicY, graphicHeight } = this.drawEndOfGameGraphic();
     let textY = graphicY + graphicHeight;
 
@@ -631,15 +603,8 @@ class RenderMenus extends EntityComponentSystem.System {
     let menuY = textY + textH;
     let menuH = window.innerHeight / 2 - textH;
 
-    alignItems(
-      0,
-      menuY,
-      window.innerWidth,
-      menuH,
-      this.buttonEntities,
-      "spaceEvenly"
-    );
-    this.drawButtons(this.buttonEntities);
+    btns = alignItems(0, menuY, window.innerWidth, menuH, btns, "spaceEvenly");
+    this.drawButtons(btns);
   }
 }
 

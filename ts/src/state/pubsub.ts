@@ -111,7 +111,6 @@ class GameModeMachine {
         }
       },
       onstart: function(level: number) {
-        //play starting animations
         let game = <Game>(<unknown>this);
         console.log("running onstart");
         game.loadLevel(level);
@@ -174,10 +173,17 @@ class GameModeMachine {
         let game = <Game>(<unknown>this);
         const wonGraphic = game.ecs.getEntity("wonGraphic");
         if (wonGraphic) wonGraphic.Renderable.visible = false;
+        const mapEntity = game.ecs.getEntity("map");
+        mapEntity.Renderable.visible = false;
       },
       onlose: function() {
         let game = <Game>(<unknown>this);
         console.log("YOU LOSE");
+      },
+      onleavelose: function () {
+        let game = <Game>(<unknown>this);
+        const mapEntity = game.ecs.getEntity("map");
+        mapEntity.Renderable.visible = false;
       },
       oncrash: function() {
         let game = <Game>(<unknown>this);
@@ -204,6 +210,8 @@ class GameModeMachine {
         let game = <Game>(<unknown>this);
         const crashGraphic = game.ecs.getEntity("crashGraphic");
         if (crashGraphic) crashGraphic.Renderable.visible = false;
+        const mapEntity = game.ecs.getEntity("map");
+        mapEntity.Renderable.visible = false;
       },
       onpause: function() {
         let game = <Game>(<unknown>this);
@@ -280,7 +288,7 @@ class GameModeMachine {
           Renderable.renderH
         );
         Coordinates.X = x;
-        Coordinates.Y = y;
+        Coordinates.Y = y + (y / 3);
         Renderable.visible = true;
         if (mapEntity.has("NI")) mapEntity.removeTag("NI");
 

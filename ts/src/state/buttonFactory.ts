@@ -3,7 +3,7 @@ import { getLastCompletedLevel } from "./localDb";
 import { small, regular } from "../modules/breakpoints";
 
 export interface ButtonInterface {
-  name: string;
+  name: TButtonName;
   hasText: boolean;
   color?: TButtonColors;
   selectable: boolean;
@@ -12,12 +12,10 @@ export interface ButtonInterface {
   [key: string]: any;
 }
 
-export type TButtonColors = "green" | "red" | "yellow" | "purple" | "orange";
-
 export type TDesignMenuName = "toolbar" | "admin" | "config";
 
 const buttons: { [key: string]: ButtonInterface } = {
-  play: {
+  playArcade: {
     name: "playArcade",
     hasText: true,
     color: "green",
@@ -293,6 +291,33 @@ const buttons: { [key: string]: ButtonInterface } = {
     },
     tags: ["menu", "design", "config", "square"],
   },
+};
+
+export const menuButtons: {[key in TMenuName] : TButtonName[]} = {
+  main: ["playArcade", "playCustom", "design"],
+  won_arcade: ["nextLevel", "restart", "quit"],
+  won_custom: ["chooseMap", "restart", "quit"],
+  lost_arcade: ["restart", "quit"],
+  lost_custom: ["chooseMap", "restart", "quit"],
+  paused: ["resume", "restart", "quit"],
+  crash_arcade: ["restart", "quit"],
+  crash_custom: ["chooseMap", "restart", "quit"],
+  end: ["quit"],
+};
+
+export const designMenuButtons = {
+  admin: ["home", "loadSaved", "save", "saveAs"],
+  toolbar: [
+    "playerHome",
+    "bossHome",
+    "office",
+    "street",
+    "schoolZone",
+    "light",
+    "coffee",
+    "eraser",
+  ],
+  config: [["undo", "redo"], "reset"],
 };
 
 function makeButtonEntities(game: Game) {

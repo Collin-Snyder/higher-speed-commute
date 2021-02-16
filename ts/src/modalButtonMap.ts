@@ -1,7 +1,7 @@
 const buttonImageMap: {[key: string]: any} = {
-  playEasy: { x: 200, y: 890, w: 200, h: 75 },
-  playMedium: { x: 200, y: 815, w: 200, h: 75 },
-  playHard: { x: 200, y: 740, w: 200, h: 75 },
+  playEasy: { x: 613, y: 659, w: 150, h: 60 },
+  playMedium: { x: 460, y: 659, w: 150, h: 60 },
+  playHard: { x: 308, y: 659, w: 150, h: 60 },
   cancel: { x: 460, y: 62, w: 150, h: 60 },
   load: { x: 308, y: 0, w: 150, h: 60 },
   reset: { x: 308, y: 62, w: 150, h: 60 },

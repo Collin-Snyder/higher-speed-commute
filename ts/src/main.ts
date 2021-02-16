@@ -41,15 +41,30 @@ import {
 //@ts-ignore
 Number.prototype.times = function(
   cb: (currentNum: number) => any,
-  index: number
+  start: number
 ) {
   //@ts-ignore
   let num = parseInt(this);
-  if (index !== 0 && index !== 1) index = 0;
+  let curr = start || 0;
   for (let i = 0; i < num; i++) {
-    cb(index ? i + 1 : i);
+    cb(curr);
+    curr++;
   }
 };
+//@ts-ignore
+Array.prototype.deepMap = function (cb: (currentElement: any, i: number, currentArray: Array<any>) => any): Array<any> {
+  let output = [];
+  for (let i = 0; i < this.length; i++) {
+      let el = this[i];
+      if (Array.isArray(el)) {
+          //@ts-ignore
+          output.push(el.deepMap(cb))
+      } else {
+          output.push(cb(el, i, this));
+      }
+  }
+  return output;
+}
 
 // window.makeSeedData = function() {
 //   axios
@@ -78,7 +93,7 @@ export class Game {
 
   // MODE //
   public mode: Mode;
-  public playMode: "arcade" | "custom" | "testing" | "";
+  public playMode: TPlayMode;
   public modeMachine: GameModeMachine;
 
   // EVENTS //
