@@ -6,11 +6,6 @@ import { loadAllUserMaps, loadCompletedLevels } from "../../state/localDb";
 const LoadMapContent = () => {
   let [inputState, dispatch] = useContext(ModalInputContext);
   let [mapOptions, setMapOptions] = useState<ModalOption[]>([]);
-  let [playMode, setPlayMode] = useState<string>("");
-
-  // useEffect(() => {
-  //   setPlayMode(window.game.playMode);
-  // }, []);
 
   useEffect(() => {
     dispatch({
@@ -46,17 +41,13 @@ const LoadMapContent = () => {
       .catch((err) => console.error(err));
   }, []);
 
-  useEffect(() => {
-    console.log("INPUT VALUE AT MODAL OPEN: ", inputState.inputValue)
-  }, [])
-
   if (!mapOptions.length)
     return (
       <p>
         You have no {window.game.playMode === "arcade" ? "completed levels" : "custom maps"}
       </p>
     );
-  return <OptionList listName="loadMap" options={mapOptions} />;
+  return <OptionList listName="loadMap" options={mapOptions} optionsWillSubmit={false} />;
 };
 
 export default LoadMapContent;

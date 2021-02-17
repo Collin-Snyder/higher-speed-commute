@@ -1,12 +1,9 @@
 import EntityComponentSystem, { ECS, Entity } from "@fritzy/ecs";
 import {
-  findCenteredElementSpread,
+  centerWithin,
   getCenterPoint,
   getTileHitbox,
-} from "../modules/gameMath";
-import { small, regular } from "../modules/breakpoints";
-import { drawTileMap } from "../modules/tileDrawer";
-import { Tile } from "../state/map";
+} from "gameMath";
 
 export class MapSystem extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -41,25 +38,23 @@ export class MapSystem extends EntityComponentSystem.System {
   positionMap(mapEntity: Entity) {
     let {
       Coordinates,
-      Renderable: { renderWidth, renderHeight },
+      Renderable: { renderW, renderH },
     } = mapEntity;
 
-    Coordinates.X = findCenteredElementSpread(
+    let { x, y } = centerWithin(
+      0,
+      0,
       window.innerWidth,
-      renderWidth,
-      1,
-      "spaceEvenly"
-    ).start;
-    Coordinates.Y = findCenteredElementSpread(
       window.innerHeight,
-      renderHeight,
-      1,
-      "spaceEvenly"
-    ).start;
+      renderW,
+      renderH
+    );
+    Coordinates.X = x;
+    Coordinates.Y = y;
   }
 
   updateDriverEntities(newMap: any) {
-    let game = window.game;
+    let { game } = this.ecs.getEntity("global").Global;
     let playerEntity = this.ecs.getEntity("player");
     let bossEntity = this.ecs.getEntity("boss");
 
@@ -83,7 +78,7 @@ export class MapSystem extends EntityComponentSystem.System {
 
   createLightEntities(newMap: any) {
     let lights = this.ecs.queryEntities({ has: ["Timer", "Color"] });
-    let spriteMap = this.ecs.getEntity("global").Global.spriteMap;
+    let spriteMap = this.ecs.getEntity("global").Global.game.spriteMap;
 
     for (let light of lights) {
       light.destroy();
@@ -108,10 +103,10 @@ export class MapSystem extends EntityComponentSystem.System {
         },
         Color: {},
         Renderable: {
-          spriteX: spriteMap.greenLight.X,
-          spriteY: spriteMap.greenLight.Y,
-          renderWidth: rw,
-          renderHeight: rh,
+          spriteX: spriteMap.greenLight.x,
+          spriteY: spriteMap.greenLight.y,
+          renderW: rw,
+          renderH: rh,
           visible: false,
         },
         Collision: {
@@ -140,6 +135,8 @@ export class MapSystem extends EntityComponentSystem.System {
 
   createCoffeeEntities(newMap: any) {
     let coffees = this.ecs.queryEntities({ has: ["Caffeine"] });
+    let spriteMap = this.ecs.getEntity("global").Global.game.spriteMap;
+
     for (let coffee of coffees) {
       coffee.destroy();
     }
@@ -155,10 +152,10 @@ export class MapSystem extends EntityComponentSystem.System {
           Y,
         },
         Renderable: {
-          spriteX: 250,
-          spriteY: 0,
-          renderWidth: rw,
-          renderHeight: rh,
+          spriteX: spriteMap.coffee.x,
+          spriteY: spriteMap.coffee.y,
+          renderW: rw,
+          renderH: rh,
           visible: false,
         },
         Collision: {
@@ -166,18 +163,6 @@ export class MapSystem extends EntityComponentSystem.System {
           cp: getCenterPoint(X, Y, rw, rh),
         },
         Caffeine: {},
-        // Breakpoint: [
-        //   {
-        //     name: "small",
-        //     width: Math.ceil(small.tileSize / 20),
-        //     height: Math.ceil(small.tileSize / 20),
-        //   },
-        //   {
-        //     name: "regular",
-        //     width: Math.ceil(regular.tileSize / 2),
-        //     height: Math.ceil(regular.tileSize / 2),
-        //   },
-        // ],
       });
       ent.Collision.currentHb = function() {
         //@ts-ignore

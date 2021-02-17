@@ -15,11 +15,10 @@ import {
   findRotatedVertex,
   findDegFromVector,
   checkCollision,
-  VectorInterface,
   getTileHitbox,
   isDiagonal,
   checkPointCollision,
-} from "../modules/gameMath";
+} from "gameMath";
 
 export class CollisionSystem extends ECS.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -123,10 +122,10 @@ export class CollisionSystem extends ECS.System {
     return "";
   }
 
-  checkValidDiagonalMove(entity: Entity, thb: VectorInterface[]): boolean {
+  checkValidDiagonalMove(entity: Entity, thb: IVector[]): boolean {
     let cp = entity.Collision.currentCp();
-    let w = entity.Renderable.renderWidth;
-    let h = entity.Renderable.renderHeight;
+    let w = entity.Renderable.renderW;
+    let h = entity.Renderable.renderH;
     let downLimit = { X: cp.X, Y: cp.Y + w / 2 };
     let upLimit = { X: cp.X, Y: cp.Y - w / 2 };
     let leftLimit = { X: cp.X - w / 2, Y: cp.Y };
@@ -134,7 +133,7 @@ export class CollisionSystem extends ECS.System {
     return true;
   }
 
-  checkEdgeCollision(hb: VectorInterface[]) {
+  checkEdgeCollision(hb: IVector[]) {
     let mw = this.map.pixelWidth;
     let mh = this.map.pixelHeight;
     for (let { X, Y } of hb) {
@@ -143,7 +142,7 @@ export class CollisionSystem extends ECS.System {
     return false;
   }
 
-  checkFrontOnlyCollision(hb: VectorInterface[], thb: VectorInterface[]) {
+  checkFrontOnlyCollision(hb: IVector[], thb: IVector[]) {
     let frontL = hb[0];
     let frontR = hb[1];
 
@@ -235,7 +234,7 @@ export class CollisionSystem extends ECS.System {
     let { hb, cp } = entity.Collision;
     let c = entity.Coordinates;
 
-    hb = hb.map((v: VectorInterface) => ({ X: v.X + c.X, Y: v.Y + c.Y }));
+    hb = hb.map((v: IVector) => ({ X: v.X + c.X, Y: v.Y + c.Y }));
     let cpx = cp.X + c.X;
     let cpy = cp.Y + c.Y;
 

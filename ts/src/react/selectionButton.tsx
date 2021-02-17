@@ -6,6 +6,7 @@ interface SelectionButtonProps {
   name: string;
   label: string;
   selected: boolean;
+  willSubmit: boolean;
   handleChange: (e: ChangeEvent<HTMLInputElement>) => void;
 }
 
@@ -14,6 +15,7 @@ const SelectionButton = ({
   name,
   label,
   selected,
+  willSubmit,
   handleChange,
 }: SelectionButtonProps) => {
   let isMapSelector = name === "loadMap";

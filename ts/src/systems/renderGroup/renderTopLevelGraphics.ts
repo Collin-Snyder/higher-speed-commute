@@ -1,6 +1,6 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { Game } from "../../main";
-import { centerWithin } from "../../modules/gameMath";
+import { centerWithin } from "gameMath";
 
 class RenderTopLevelGraphics extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -14,36 +14,32 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
   }
 
   update(tick: number, entities: Set<Entity>) {
-    const global = this.ecs.getEntity("global").Global;
+    let { game } = this.ecs.getEntity("global").Global;
     //will render countdown numbers
     for (let entity of entities) {
-      if (entity.Coordinates.X === 0 && entity.Coordinates.Y === 0) {
         let { x, y } = centerWithin(
           0,
           0,
           window.innerWidth,
           window.innerHeight,
-          entity.Renderable.renderWidth,
-          entity.Renderable.renderHeight,
-          1,
-          "vertical",
-          "spaceEvenly"
+          entity.Renderable.renderW,
+          entity.Renderable.renderH,
         );
-        entity.Coordinates.X = x.start;
-        entity.Coordinates.Y = y.start;
-      }
+        entity.Coordinates.X = x;
+        entity.Coordinates.Y = y;
+
       this.ctx.save();
       this.ctx.globalAlpha = entity.Renderable.alpha;
       this.ctx.drawImage(
-        global.spriteSheet,
+        game.spriteSheet,
         entity.Renderable.spriteX,
         entity.Renderable.spriteY,
-        entity.Renderable.spriteWidth,
-        entity.Renderable.spriteHeight,
+        entity.Renderable.spriteW,
+        entity.Renderable.spriteH,
         entity.Coordinates.X,
         entity.Coordinates.Y,
-        entity.Renderable.renderWidth,
-        entity.Renderable.renderHeight
+        entity.Renderable.renderW,
+        entity.Renderable.renderH
       );
       this.ctx.restore();
     }

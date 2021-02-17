@@ -16,19 +16,20 @@ const QuitGameConfirmationContent = () => {
     dispatch({
       type: "SET_SUBMIT_ACTIONS",
       payload: {
-        ok: (choice: "save" | "dontSave") => {
-          if (choice === "save") {
-            window.game.publish("saveProgress");
-          } else {
-            window.game.resetLastCompletedLevel();
-          }
+        save: () => {
+          window.game.publish("saveProgress"); 
           window.game.publish("quit");
           window.toggleModal(false);
         },
+        dontSave: () => {
+          window.game.resetLastCompletedLevel();
+          window.game.publish("quit");
+          window.toggleModal(false);
+        }
       },
     });
   }, []);
-  return <OptionList listName="quitGame" options={options} />;
+  return <OptionList listName="quitGame" options={options} optionsWillSubmit={true} />;
 };
 
 export default QuitGameConfirmationContent;

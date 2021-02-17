@@ -16,8 +16,8 @@ class RenderGameplayEntities extends EntityComponentSystem.System {
   }
 
   update(tick: number, entities: Set<Entity>) {
-    const global = this.ecs.getEntity("global").Global;
-    const mode = global.game.mode;
+    let { game } = this.ecs.getEntity("global").Global;
+    const mode = game.mode;
 
     if (mode === "playing" || mode === "levelStartAnimation") {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -25,12 +25,12 @@ class RenderGameplayEntities extends EntityComponentSystem.System {
         let {
           Renderable: {
             visible,
-            renderWidth,
-            renderHeight,
+            renderW,
+            renderH,
             spriteX,
             spriteY,
-            spriteWidth,
-            spriteHeight,
+            spriteW,
+            spriteH,
           },
           Coordinates: { X, Y },
         } = entity;
@@ -42,20 +42,20 @@ class RenderGameplayEntities extends EntityComponentSystem.System {
               entity.Color.color,
               X,
               Y,
-              renderWidth,
-              renderHeight
+              renderW,
+              renderH
             );
           }
           this.ctx.drawImage(
-            global.spriteSheet,
+            game.spriteSheet,
             spriteX,
             spriteY,
-            spriteWidth,
-            spriteHeight,
+            spriteW,
+            spriteH,
             X,
             Y,
-            renderWidth,
-            renderHeight
+            renderW,
+            renderH
           );
         }
       }

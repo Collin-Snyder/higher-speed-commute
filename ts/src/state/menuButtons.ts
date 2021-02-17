@@ -323,7 +323,7 @@ export class MenuButtons {
   ) {
     for (let name in buttons) {
       let button = buttons[name];
-      let coords = game.ecs.getEntity("global").Global.spriteMap[
+      let coords = game.spriteMap[
         `${button.name}Button`
       ];
       let square = false;
@@ -333,17 +333,17 @@ export class MenuButtons {
 
       game.ecs.createEntity({
         id: `${button.name}Button`,
-        tags: [...button.tags, "NI"],
+        tags: [...button.tags],
         Button: { name: button.name },
         Clickable: { onClick: button.onClick },
         Coordinates: {},
         Renderable: {
-          spriteX: coords.X,
-          spriteY: coords.Y,
-          spriteWidth: button.width,
-          spriteHeight: button.height,
-          renderWidth: button.width,
-          renderHeight: button.height,
+          spriteX: coords.x,
+          spriteY: coords.y,
+          spriteW: button.width,
+          spriteH: button.height,
+          renderW: button.width,
+          renderH: button.height,
         },
         Breakpoint: [
           {

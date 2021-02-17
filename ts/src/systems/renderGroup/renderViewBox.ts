@@ -1,11 +1,9 @@
 import EntityComponentSystem, { Entity, ECS, BaseComponent } from "@fritzy/ecs";
 import { Game } from "../../main";
 import {
-  centerWithin,
   getCenterPoint,
   degreesToRadians,
-  VectorInterface,
-} from "../../modules/gameMath";
+} from "gameMath";
 
 class RenderViewBox extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -36,19 +34,19 @@ class RenderViewBox extends EntityComponentSystem.System {
   }
 
   update(tick: number, entities: Set<Entity>) {
-    const global = this.ecs.getEntity("global").Global;
-    let mode = global.game.mode;
-    let zoom = global.game.currentZoom;
-    let mapView = global.game.mapView;
+    const { game } = this.ecs.getEntity("global").Global;
+    let mode = game.mode;
+    let zoom = game.currentZoom;
+    let mapView = game.mapView;
     if (!this.modeNames.includes(mode)) return;
 
     let mapEntity = <Entity>entities.values().next().value;
-    this.updateViewbox(mapEntity, global, mode);
+    this.updateViewbox(mapEntity, game, mode);
 
     let {
       ViewBox,
       Coordinates,
-      Renderable: { renderWidth, renderHeight },
+      Renderable: { renderW, renderH },
       MapData: { map },
       TileData: { tileWidth },
     } = mapEntity;
@@ -60,8 +58,8 @@ class RenderViewBox extends EntityComponentSystem.System {
         map,
         X,
         Y,
-        renderWidth,
-        renderHeight,
+        renderW,
+        renderH,
         tileWidth,
         ViewBox,
         tick
@@ -75,8 +73,8 @@ class RenderViewBox extends EntityComponentSystem.System {
         ViewBox.h,
         X,
         Y,
-        renderWidth,
-        renderHeight
+        renderW,
+        renderH
       );
       this.ctx.drawImage(
         <HTMLCanvasElement>document.getElementById("ents-offscreen"),
@@ -86,8 +84,8 @@ class RenderViewBox extends EntityComponentSystem.System {
         ViewBox.h,
         X,
         Y,
-        renderWidth,
-        renderHeight
+        renderW,
+        renderH
       );
 
       if (mode === "levelStartAnimation") return;
@@ -95,8 +93,8 @@ class RenderViewBox extends EntityComponentSystem.System {
       if (this.carInViewbox(this.bossEntity, ViewBox)) {
         this.renderCarSprite(
           this.bossEntity,
-          global.spriteSheet,
-          global.spriteMap,
+          game.spriteSheet,
+          game.spriteMap,
           Coordinates,
           zoom,
           mapEntity
@@ -105,35 +103,35 @@ class RenderViewBox extends EntityComponentSystem.System {
       if (this.carInViewbox(this.playerEntity, ViewBox)) {
         this.renderCarSprite(
           this.playerEntity,
-          global.spriteSheet,
-          global.spriteMap,
+          game.spriteSheet,
+          game.spriteMap,
           Coordinates,
           zoom,
           mapEntity
         );
       }
 
-      if (global.game.focusView === "boss") {
-        this.drawBossBorder(X, Y, renderWidth, renderHeight);
+      if (game.focusView === "boss") {
+        this.drawBossBorder(X, Y, renderW, renderH);
       }
     }
   }
 
-  updateViewbox(mapEntity: Entity, global: BaseComponent, mode: string) {
+  updateViewbox(mapEntity: Entity, game: Game, mode: string) {
     let { ViewBox } = mapEntity;
     let mapOffscreen = <HTMLCanvasElement>(
       document.getElementById("map-offscreen")
     );
-    let focusEnt = this.ecs.getEntity(global.game.focusView);
+    let focusEnt = this.ecs.getEntity(game.focusView);
     let { X, Y } = focusEnt.Coordinates;
     let center = getCenterPoint(
       X,
       Y,
-      focusEnt.Renderable.renderWidth,
-      focusEnt.Renderable.renderHeight
+      focusEnt.Renderable.renderW,
+      focusEnt.Renderable.renderH
     );
-    ViewBox.w = 1000 / global.game.currentZoom;
-    ViewBox.h = 625 / global.game.currentZoom;
+    ViewBox.w = 1000 / game.currentZoom;
+    ViewBox.h = 625 / game.currentZoom;
     let vbCenter = getCenterPoint(ViewBox.x, ViewBox.y, ViewBox.w, ViewBox.h);
 
     if (mode === "playing") {
@@ -179,13 +177,13 @@ class RenderViewBox extends EntityComponentSystem.System {
     let {
       Coordinates,
       Renderable: {
-        renderWidth,
-        renderHeight,
+        renderW,
+        renderH,
         degrees,
         spriteX,
         spriteY,
-        spriteWidth,
-        spriteHeight,
+        spriteW,
+        spriteH,
         breakpointScale,
       },
     } = entity;
@@ -193,8 +191,8 @@ class RenderViewBox extends EntityComponentSystem.System {
     let Y = Coordinates.Y - ViewBox.y;
     let dx = mapCoords.X + X * zoomFactor * breakpointScale;
     let dy = mapCoords.Y + Y * zoomFactor * breakpointScale;
-    let dw = renderWidth * zoomFactor;
-    let dh = renderHeight * zoomFactor;
+    let dw = renderW * zoomFactor;
+    let dh = renderH * zoomFactor;
     let trans = getCenterPoint(dx, dy, dw, dh);
     this.ctx.save();
     this.ctx.translate(trans.X, trans.Y);
@@ -204,8 +202,8 @@ class RenderViewBox extends EntityComponentSystem.System {
       spriteSheet,
       spriteX,
       spriteY,
-      spriteWidth,
-      spriteHeight,
+      spriteW,
+      spriteH,
       dx,
       dy,
       dw,
@@ -223,7 +221,7 @@ class RenderViewBox extends EntityComponentSystem.System {
     viewbox: any,
     showFrontCorners: boolean = false
   ) {
-    let scaledHb = entity.Collision.currentHb().map((v: VectorInterface) => ({
+    let scaledHb = entity.Collision.currentHb().map((v: IVector) => ({
       X: mapCoords.X + (v.X - viewbox.x) * zoomFactor * bpScale,
       Y: mapCoords.Y + (v.Y - viewbox.y) * zoomFactor * bpScale,
     }));

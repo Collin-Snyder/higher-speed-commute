@@ -16,20 +16,25 @@ const QuitDesignConfirmationContent = () => {
     dispatch({
       type: "SET_SUBMIT_ACTIONS",
       payload: {
-        ok: (choice: "save" | "dontSave") => {
-          if (choice === "save") {
-            window.game.designModule.quitting = true;
-            window.toggleModal(false);
-            window.game.publish("save");
-          } else {
-            window.game.publish("quit");
-            window.toggleModal(false);
-          }
+        save: () => {
+          window.game.designModule.quitting = true;
+          window.toggleModal(false);
+          window.game.publish("save");
+        },
+        dontSave: () => {
+          window.game.publish("quit");
+          window.toggleModal(false);
         },
       },
     });
   }, []);
-  return <OptionList listName="quitDesign" options={options} />;
+  return (
+    <OptionList
+      listName="quitDesign"
+      options={options}
+      optionsWillSubmit={true}
+    />
+  );
 };
 
 export default QuitDesignConfirmationContent;

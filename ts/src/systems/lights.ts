@@ -14,10 +14,7 @@ export class LightTimer extends ECS.System {
   };
   public global: BaseComponent;
 
-  constructor(
-    ecs: any,
-    private step: number
-  ) {
+  constructor(ecs: any, private step: number) {
     super(ecs);
     this.global = ecs.getEntity("global").Global;
     this.states = {
@@ -38,24 +35,25 @@ export class LightTimer extends ECS.System {
   update(tick: number, entities: Set<Entity>): void {
     const lightEntities = [...entities];
     for (let lightEntity of lightEntities) {
-      let interval: number =
-        this.states[lightEntity.Color.color].interval ??
-        lightEntity.Timer.interval;
-      lightEntity.Timer.timeSinceLastInterval += this.step;
-      if (lightEntity.Timer.timeSinceLastInterval >= interval) {
+      let { Timer } = lightEntity;
+      let interval =
+        this.states[lightEntity.Color.color].interval ?? Timer.interval;
+      Timer.timeSinceLastInterval += this.step;
+      if (Timer.timeSinceLastInterval >= interval) {
         this.transition(lightEntity, "TIMER");
       }
     }
   }
 
   transition(lightEntity: any, action: string): void {
-    let nextColor = <Color>this.states[lightEntity.Color.color].on[action];
-    let lightCoords: { X: number; Y: number } =
-        this.global.spriteMap[`${nextColor}Light`];
-    lightEntity.Color.color = nextColor;
-    lightEntity.Timer.timeSinceLastInterval = 0;
-    lightEntity.Renderable.spriteX = lightCoords.X;
-    lightEntity.Renderable.spriteY = lightCoords.Y;
+    let {Color, Timer, Renderable} = lightEntity;
+    let nextColor = <Color>this.states[Color.color].on[action];
+    let sprite = this.ecs.getEntity("global").Global.game.spriteMap[
+      `${nextColor}Light`
+    ];
+    Color.color = nextColor;
+    Timer.timeSinceLastInterval = 0;
+    Renderable.spriteX = sprite.x;
+    Renderable.spriteY = sprite.y;
   }
 }
-

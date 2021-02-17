@@ -1,23 +1,19 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
-import {
-  getCenterPoint,
-  scaleVector,
-  VectorInterface,
-  findRotatedVertex,
-  centerWithin,
-} from "./modules/gameMath";
+import { getCenterPoint, scaleVector, findRotatedVertex } from "gameMath";
 import * as breakpoints from "./modules/breakpoints";
 //@ts-ignore
 import axios from "axios";
 import spriteMap from "./spriteMap";
 import bgMap from "./bgMap";
+import modalButtonMap from "./modalButtonMap";
 import keyCodes from "./keyCodes";
 import DesignModule from "./modules/designModule";
 import LogTimers from "./modules/logger";
 import { ArcadeMap, IArcadeMap } from "./state/map";
 import GameModeMachine, { Mode } from "./state/pubsub";
 import Race from "./modules/raceData";
-import { MenuButtons } from "./state/menuButtons";
+// import { MenuButtons } from "./state/menuButtons";
+import makeButtonEntities from "./state/buttonFactory";
 import Components from "./components/index";
 import Tags from "./tags/tags";
 import { BreakpointSystem } from "./systems/breakpoints";
@@ -33,7 +29,6 @@ import {
   BackgroundAnimation,
   Animation,
 } from "./systems/animations";
-
 import RenderGroup from "./systems/render";
 import {
   loadArcadeLevel,
@@ -42,28 +37,33 @@ import {
   getLastCompletedLevel,
 } from "./state/localDb";
 
-//@ts-ignore
-Number.prototype.times = function(cb: (currentNum: number) => any, index: number) {
+Number.prototype.times = function(
+  cb: (currentNum: number) => any,
+  start: number
+) {
   //@ts-ignore
   let num = parseInt(this);
-  if (index !== 0 && index !== 1) index = 0;
+  let curr = start || 0;
   for (let i = 0; i < num; i++) {
-    cb(index ? i + 1 : i);
+    cb(curr);
+    curr++;
   }
 };
 
-declare global {
-  interface Window {
-    toggleModal: Function;
-    game: Game;
-    showAll: Function;
-    deleteUserMap: Function;
-    makeSeedData: Function;
-    recreateLocalDb: Function;
-    updateLevelName: Function;
-    updateLevelDescription: Function;
+Array.prototype.deepMap = function(
+  cb: (currentElement: any, i: number, currentArray: Array<any>) => any
+): Array<any> {
+  let output = [];
+  for (let i = 0; i < this.length; i++) {
+    let el = this[i];
+    if (Array.isArray(el)) {
+      output.push(el.deepMap(cb));
+    } else {
+      output.push(cb(el, i, this));
+    }
   }
-}
+  return output;
+};
 
 // window.makeSeedData = function() {
 //   axios
@@ -92,7 +92,7 @@ export class Game {
 
   // MODE //
   public mode: Mode;
-  public playMode: "arcade" | "custom" | "testing" | "";
+  public playMode: TPlayMode;
   public modeMachine: GameModeMachine;
 
   // EVENTS //
@@ -100,15 +100,17 @@ export class Game {
   public subscribers: { [key: string]: Function[] };
 
   // GRAPHICS //
-  private UICanvas: HTMLCanvasElement;
+  public UICanvas: HTMLCanvasElement;
   public uictx: CanvasRenderingContext2D;
   private OSMapCanvas: HTMLCanvasElement;
   private osmctx: CanvasRenderingContext2D;
   private OSEntCanvas: HTMLCanvasElement;
   private osectx: CanvasRenderingContext2D;
-  public spritesheet: HTMLImageElement;
+  public spriteSheet: HTMLImageElement;
   public background: HTMLImageElement;
-  public spriteMap: { [entity: string]: { X: number; Y: number } };
+  public spriteMap: {
+    [entity: string]: { x: number; y: number; w: number; h: number };
+  };
   public spriteSheetIsLoaded: boolean;
   public backgroundIsLoaded: boolean;
   public breakpoint: TBreakpoint;
@@ -197,7 +199,7 @@ export class Game {
     this.logTimers = new LogTimers(this);
     this.map = new ArcadeMap(40, 25);
     this.designModule = new DesignModule(this);
-    this.spritesheet = new Image();
+    this.spriteSheet = new Image();
     this.background = new Image();
     this.spriteSheetIsLoaded = false;
     this.backgroundIsLoaded = false;
@@ -208,7 +210,7 @@ export class Game {
     this.breakpoint = "regular";
 
     this.background.src = "../bgsheet-sm.png";
-    this.spritesheet.src = "../spritesheet.png";
+    this.spriteSheet.src = "../spriteSheet.png";
     // this.uictx.canvas.width = window.innerWidth;
     // this.uictx.canvas.height = window.innerHeight;
     // this.uictx.imageSmoothingEnabled = false;
@@ -232,8 +234,8 @@ export class Game {
       TileData: {},
       Coordinates: {},
       Renderable: {
-        renderWidth: 1000,
-        renderHeight: 625,
+        renderW: 1000,
+        renderH: 625,
         visible: false,
       },
       Border: {
@@ -280,7 +282,7 @@ export class Game {
       let { hb, cp } = entity.Collision;
       let c = entity.Coordinates;
 
-      hb = hb.map((v: VectorInterface) => ({
+      hb = hb.map((v: IVector) => ({
         X: v.X + c.X,
         Y: v.Y + c.Y,
       }));
@@ -291,7 +293,7 @@ export class Game {
       let deg = degrees ?? entity.Renderable.degrees;
       if (deg === 0) return hb;
 
-      return hb.map(({ X, Y }: VectorInterface) =>
+      return hb.map(({ X, Y }: IVector) =>
         findRotatedVertex(X, Y, cpx, cpy, deg)
       );
     };
@@ -318,8 +320,8 @@ export class Game {
       },
       Velocity: {},
       Renderable: {
-        renderWidth: 25 * (2 / 3),
-        renderHeight: 25 * (2 / 3),
+        renderW: 25 * (2 / 3),
+        renderH: 25 * (2 / 3),
       },
       Collision: { hb, cp },
       Breakpoint: [
@@ -341,8 +343,8 @@ export class Game {
         driver: "boss",
       },
       Renderable: {
-        renderWidth: 25 * (2 / 3),
-        renderHeight: 25 * (2 / 3),
+        renderW: 25 * (2 / 3),
+        renderH: 25 * (2 / 3),
       },
       Collision: { hb, cp },
       Breakpoint: [
@@ -377,7 +379,7 @@ export class Game {
       if (this.spriteSheetIsLoaded) this.buildWorld();
     };
 
-    this.spritesheet.onload = () => {
+    this.spriteSheet.onload = () => {
       this.spriteSheetIsLoaded = true;
       if (this.backgroundIsLoaded) this.buildWorld();
     };
@@ -472,6 +474,19 @@ export class Game {
     } = RenderGroup;
     this.globalEntity.Global.bgSheet = this.background;
     this.globalEntity.Global.bgMap = bgMap;
+
+    ///// create modal button classes /////
+    let styleEl = document.createElement("style");
+    let styleHTML = "";
+
+    for (let name in modalButtonMap) {
+      let b = modalButtonMap[name];
+      styleHTML += `.${name}::after {background-position: -${b.x}px -${b.y}px;}\n`;
+    }
+
+    styleEl.innerHTML = styleHTML;
+    document.head.appendChild(styleEl);
+
     this.ecs.createEntity({
       id: "bg",
       ParallaxLayer: [
@@ -507,20 +522,21 @@ export class Game {
     this.ecs.addSystem("animations", new BackgroundAnimation(this.ecs));
     this.ecs.addSystem("render", new RenderBackground(this.ecs, this.uictx));
 
-    this.globalEntity.Global.spriteSheet = this.spritesheet;
-    this.globalEntity.Global.spriteMap = this.spriteMap;
+    // this.globalEntity.Global.spriteSheet = this.spriteSheet;
+    // this.globalEntity.Global.spriteMap = this.spriteMap;
 
     let playerSpriteCoords = this.spriteMap[
       `${this.playerEntity.Car.color}Car`
     ];
-    this.playerEntity.Renderable.spriteX = playerSpriteCoords.X;
-    this.playerEntity.Renderable.spriteY = playerSpriteCoords.Y;
+    this.playerEntity.Renderable.spriteX = playerSpriteCoords.x;
+    this.playerEntity.Renderable.spriteY = playerSpriteCoords.y;
 
     let bossSpriteCoords = this.spriteMap[`${this.bossEntity.Car.color}Car`];
-    this.bossEntity.Renderable.spriteX = bossSpriteCoords.X;
-    this.bossEntity.Renderable.spriteY = bossSpriteCoords.Y;
+    this.bossEntity.Renderable.spriteX = bossSpriteCoords.x;
+    this.bossEntity.Renderable.spriteY = bossSpriteCoords.y;
 
-    MenuButtons.createEntities(this);
+    makeButtonEntities(this);
+    // MenuButtons.createEntities(this);
 
     this.ecs.addSystem("render", new RenderBorders(this.ecs, this.uictx));
     this.ecs.addSystem("render", new RenderOffscreenMap(this.ecs, this.osmctx));
@@ -691,7 +707,7 @@ export class Game {
     let { hb, cp } = player.Collision;
     let c = player.Coordinates;
 
-    hb = hb.map((v: VectorInterface) => ({ X: v.X + c.X, Y: v.Y + c.Y }));
+    hb = hb.map((v: IVector) => ({ X: v.X + c.X, Y: v.Y + c.Y }));
     let cpx = cp.X + c.X;
     let cpy = cp.Y + c.Y;
 

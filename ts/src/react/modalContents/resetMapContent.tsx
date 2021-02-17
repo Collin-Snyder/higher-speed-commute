@@ -16,14 +16,20 @@ const ResetMapContent = () => {
     dispatch({
       type: "SET_SUBMIT_ACTIONS",
       payload: {
-        reset: (resetChoice: "save" | "overwrite") => {
-          window.game.designModule.resetMap(resetChoice);
+        save: () => {
+          window.game.designModule.resetMap("save");
+          window.toggleModal(false);
+        },
+        overwrite: () => {
+          window.game.designModule.resetMap("overwrite");
           window.toggleModal(false);
         },
       },
     });
   }, []);
-  return <OptionList listName="reset" options={options} />;
+  return (
+    <OptionList listName="reset" options={options} optionsWillSubmit={true} />
+  );
 };
 
 export default ResetMapContent;

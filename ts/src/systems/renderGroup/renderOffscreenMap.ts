@@ -1,6 +1,6 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { Game } from "../../main";
-import { getCenterPoint, degreesToRadians } from "../../modules/gameMath";
+import { getCenterPoint, degreesToRadians } from "gameMath";
 import { drawTileMap } from "../../modules/tileDrawer";
 import { Tile } from "../../state/map";
 
@@ -23,8 +23,8 @@ class RenderOffscreenMap extends EntityComponentSystem.System {
   }
 
   update(tick: number, entities: Set<Entity> | Array<Entity>) {
-    const global = this.ecs.getEntity("global").Global;
-    let mode = global.game.mode;
+    let { game } = this.ecs.getEntity("global").Global;
+    let mode = game.mode;
     if (!this.modeNames.includes(mode)) return;
 
     const mapEntity = entities.values().next().value;
@@ -56,16 +56,16 @@ class RenderOffscreenMap extends EntityComponentSystem.System {
           a: number,
           deg: number
         ) => {
-          let tileCoords = global.spriteMap[type];
+          let tileCoords = game.spriteMap[type];
           let hasAlpha = a < 1;
           let hasRotation = deg !== 0;
           if (hasAlpha || hasRotation) this.ctx.save();
           if (hasAlpha) this.ctx.globalAlpha = a;
           if (hasRotation) this.ctx.rotate(degreesToRadians(deg));
           this.ctx.drawImage(
-            global.spriteSheet,
-            tileCoords.X,
-            tileCoords.Y,
+            game.spriteSheet,
+            tileCoords.x,
+            tileCoords.y,
             25,
             25,
             x * 25,
@@ -96,8 +96,8 @@ class RenderOffscreenMap extends EntityComponentSystem.System {
       let { X, Y } = entity.Coordinates;
       let dx = X;
       let dy = Y;
-      let dw = entity.Renderable.renderWidth;
-      let dh = entity.Renderable.renderHeight;
+      let dw = entity.Renderable.renderW;
+      let dh = entity.Renderable.renderH;
       let trans = getCenterPoint(dx, dy, dw, dh);
       ctx.save();
       ctx.translate(trans.X, trans.Y);
@@ -107,8 +107,8 @@ class RenderOffscreenMap extends EntityComponentSystem.System {
         spriteSheet,
         entity.Renderable.spriteX,
         entity.Renderable.spriteY,
-        entity.Renderable.spriteWidth,
-        entity.Renderable.spriteHeight,
+        entity.Renderable.spriteW,
+        entity.Renderable.spriteH,
         dx,
         dy,
         dw,

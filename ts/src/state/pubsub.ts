@@ -1,10 +1,8 @@
 import { Entity } from "@fritzy/ecs";
 import { Game } from "../main";
-import Race from "../modules/raceData";
-import { findCenteredElementSpread, getCenterPoint } from "../modules/gameMath";
-import { ArcadeMap, SandboxMap } from "./map";
+import { centerWithin } from "gameMath";
+import { SandboxMap } from "./map";
 import { Tool } from "../modules/designModule";
-import { DisabledButtons } from "../buttonModifiers";
 import { updateLastCompletedLevel } from "./localDb";
 export type Mode =
   | "init"
@@ -95,11 +93,10 @@ class GameModeMachine {
         let game = <Game>(<unknown>this);
         if (game.mode !== "menu") return;
         game.playMode = "";
-        //make map non-interactible and non-clickable
 
         let entities = game.ecs.queryEntities({ has: ["menu", "main"] });
         for (let entity of entities) {
-          entity.removeTag("NI");
+          entity.Interactable.enabled = true;
         }
         console.log("menu loaded");
       },
@@ -107,11 +104,10 @@ class GameModeMachine {
         let game = <Game>(<unknown>this);
         let entities = game.ecs.queryEntities({ has: ["menu", "main"] });
         for (let entity of entities) {
-          entity.addTag("NI");
+          entity.Interactable.enabled = false;
         }
       },
       onstart: function(level: number) {
-        //play starting animations
         let game = <Game>(<unknown>this);
         console.log("running onstart");
         game.loadLevel(level);
@@ -156,14 +152,14 @@ class GameModeMachine {
         let graphic = game.ecs.getEntity("wonGraphic");
 
         if (!graphic) {
-          let { X, Y } = game.spriteMap.wonGraphic;
+          let { x, y } = game.spriteMap.wonGraphic;
           graphic = game.ecs.createEntity({
             id: "wonGraphic",
             Coordinates: {},
-            Animation: { startSprite: game.spriteMap.shiny, degStep: 1 },
+            Animation: { startSprite: game.spriteMap.shine, degStep: 1 },
             Renderable: {
-              spriteX: X,
-              spriteY: Y,
+              spriteX: x,
+              spriteY: y,
             },
           });
         } else {
@@ -174,10 +170,29 @@ class GameModeMachine {
         let game = <Game>(<unknown>this);
         const wonGraphic = game.ecs.getEntity("wonGraphic");
         if (wonGraphic) wonGraphic.Renderable.visible = false;
+        const mapEntity = game.ecs.getEntity("map");
+        mapEntity.Renderable.visible = false;
+        let entities = game.ecs.queryEntities({
+          has: ["menu", "gameplay", "won"],
+        });
+        for (let entity of entities) {
+          entity.Interactable.enabled = false;
+        }
       },
       onlose: function() {
         let game = <Game>(<unknown>this);
         console.log("YOU LOSE");
+      },
+      onleavelose: function() {
+        let game = <Game>(<unknown>this);
+        const mapEntity = game.ecs.getEntity("map");
+        mapEntity.Renderable.visible = false;
+        let entities = game.ecs.queryEntities({
+          has: ["menu", "gameplay", "lost"],
+        });
+        for (let entity of entities) {
+          entity.Interactable.enabled = false;
+        }
       },
       oncrash: function() {
         let game = <Game>(<unknown>this);
@@ -186,14 +201,14 @@ class GameModeMachine {
         let graphic = game.ecs.getEntity("crashGraphic");
 
         if (!graphic) {
-          let { X, Y } = game.spriteMap.crashGraphic;
+          let { x, y } = game.spriteMap.crashGraphic;
           graphic = game.ecs.createEntity({
             id: "crashGraphic",
             Coordinates: {},
-            Animation: { startSprite: game.spriteMap.badShiny, degStep: 1 },
+            Animation: { startSprite: game.spriteMap.badShine, degStep: 1 },
             Renderable: {
-              spriteX: X,
-              spriteY: Y,
+              spriteX: x,
+              spriteY: y,
             },
           });
         } else {
@@ -204,6 +219,14 @@ class GameModeMachine {
         let game = <Game>(<unknown>this);
         const crashGraphic = game.ecs.getEntity("crashGraphic");
         if (crashGraphic) crashGraphic.Renderable.visible = false;
+        const mapEntity = game.ecs.getEntity("map");
+        mapEntity.Renderable.visible = false;
+        let entities = game.ecs.queryEntities({
+          has: ["menu", "gameplay", "crash"],
+        });
+        for (let entity of entities) {
+          entity.Interactable.enabled = false;
+        }
       },
       onpause: function() {
         let game = <Game>(<unknown>this);
@@ -213,10 +236,19 @@ class GameModeMachine {
           has: ["menu", "gameplay", "paused"],
         });
         for (let entity of entities) {
-          entity.removeTag("NI");
+          entity.Interactable.enabled = true;
         }
 
         Renderable.bgColor = "lightgray";
+      },
+      onleavepaused: function() {
+        let game = <Game>(<unknown>this);
+        let entities = game.ecs.queryEntities({
+          has: ["menu", "gameplay", "paused"],
+        });
+        for (let entity of entities) {
+          entity.Interactable.enabled = false;
+        }
       },
       onresume: function() {
         let game = <Game>(<unknown>this);
@@ -226,7 +258,7 @@ class GameModeMachine {
           has: ["menu", "gameplay", "paused"],
         });
         for (let entity of entities) {
-          if (!entity.has("NI")) entity.addTag("NI");
+          entity.Interactable.enabled = false;
         }
         Renderable.bgColor = "#81c76d";
         game.mapView = false;
@@ -235,23 +267,10 @@ class GameModeMachine {
         let game = <Game>(<unknown>this);
         let entities = game.ecs.queryEntities({ has: ["menu", "gameplay"] });
         for (let entity of entities) {
-          if (!entity.has("NI")) entity.addTag("NI");
+          entity.Interactable.enabled = false;
         }
-        // game.ecs.runSystemGroup("map");
         game.publish("chooseDifficulty");
       },
-      // onnextLevel: function() {
-      //   let game = <Game>(<unknown>this);
-      //   let next = game.currentLevel.number ? game.currentLevel.number + 1 : 1;
-
-      //   let entities = game.ecs.queryEntities({ has: ["menu", "gameplay"] });
-      //   for (let entity of entities) {
-      //     entity.addTag("NI");
-      //   }
-
-      //   if (next > game.arcadeLevels) game.publish("endOfGame");
-      //   else game.publish("start", next);
-      // },
       ondesign: function() {
         let game = <Game>(<unknown>this);
         let UICanvas = <HTMLCanvasElement>document.getElementById("ui");
@@ -264,31 +283,41 @@ class GameModeMachine {
         MapData.map = designMap;
         TileData.tiles = designMap.generateDesignTileMap();
         Renderable.bgColor = "lightgray";
-        if (!mapEntity.has("Clickable")) {
-          mapEntity.addComponent("Clickable", {
-            onClick: function() {
+        if (!mapEntity.has("Interactable")) {
+          mapEntity.addComponent("Interactable", {
+            enabled: true,
+            onHover: function() {
+              game.UICanvas.style.cursor = game.designModule.mapCursor;
+            },
+            onMouseDown: function() {
               game.designModule.editDesign();
+            },
+            onDrag: function() {
+              game.designModule.editDesign();
+            },
+            onDragStart: function() {
+              game.designModule.startDrawing();
+            },
+            onDragEnd: function() {
+              game.designModule.stopDrawing();
             },
           });
         }
-        Coordinates.X = findCenteredElementSpread(
+        let { x, y } = centerWithin(
+          0,
+          0,
           window.innerWidth,
-          Renderable.renderWidth,
-          1,
-          "spaceEvenly"
-        ).start;
-        Coordinates.Y = findCenteredElementSpread(
           window.innerHeight,
-          Renderable.renderHeight,
-          1,
-          "spaceEvenly"
-        ).start;
+          Renderable.renderW,
+          Renderable.renderH
+        );
+        Coordinates.X = x;
+        Coordinates.Y = y + y / 3;
         Renderable.visible = true;
-        if (mapEntity.has("NI")) mapEntity.removeTag("NI");
 
         let entities = game.ecs.queryEntities({ has: ["menu", "design"] });
         for (let entity of entities) {
-          if (entity.has("NI")) entity.removeTag("NI");
+          entity.Interactable.enabled = true;
         }
 
         game.designModule.setDesignTool("street");
@@ -308,6 +337,7 @@ class GameModeMachine {
       },
       onleavedesigning: function() {
         let game = <Game>(<unknown>this);
+        let mapEntity = game.ecs.getEntity("map");
         if (!game.designModule.saved) {
           game.designModule.clearMap();
           game.designModule.saved = true;
@@ -316,8 +346,10 @@ class GameModeMachine {
           has: ["menu", "design"],
         });
         for (let entity of designMenuButtons) {
-          if (!entity.has("NI")) entity.addTag("NI");
+          entity.Interactable.enabled = false;
         }
+        if (mapEntity.has("Interactable"))
+          mapEntity.removeComponentByType("Interactable");
       },
       onbeforetest: function() {
         //check for map issues - i.e. no valid path for boss or player
@@ -342,7 +374,7 @@ class GameModeMachine {
           has: ["menu", "gameplay"],
         });
         for (let entity of gameplayMenuButtons) {
-          if (!entity.has("NI")) entity.addTag("NI");
+          entity.Interactable.enabled = false;
         }
 
         let mapEntity = game.ecs.getEntity("map");
@@ -350,19 +382,11 @@ class GameModeMachine {
 
         MapData.map = null;
         Renderable.visible = false;
-        if (!mapEntity.has("NI")) mapEntity.addTag("NI");
       },
       onendOfGame: function() {
         let game = <Game>(<unknown>this);
         let { Renderable } = game.ecs.getEntity("map");
         console.log("YOU WON THE WHOLE GAME!");
-
-        let entities = game.ecs.queryEntities({
-          has: ["menu", "gameplay", "won"],
-        });
-        for (let entity of entities) {
-          entity.addTag("NI");
-        }
 
         Renderable.visible = false;
       },
@@ -386,7 +410,7 @@ class GameModeMachine {
           has: ["menu", "gameplay", outcome],
         });
         for (let button of buttons) {
-          button.removeTag("NI");
+          button.Interactable.enabled = true;
         }
 
         //reset the zoom and focus
@@ -408,7 +432,7 @@ class GameModeMachine {
 
         let entities = game.ecs.queryEntities({ has: ["menu", "gameplay"] });
         for (let entity of entities) {
-          entity.addTag("NI");
+          entity.Interactable.enabled = false;
         }
 
         if (next > game.arcadeLevels) game.publish("endOfGame");

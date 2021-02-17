@@ -20,15 +20,15 @@ class RenderBorders extends EntityComponentSystem.System {
     this.ctx.save();
     for (let entity of entities) {
       if (!entity.Renderable.visible) continue;
-      const { renderWidth, renderHeight, alpha } = entity.Renderable;
+      const { renderW, renderH, alpha } = entity.Renderable;
       const { X, Y } = entity.Coordinates;
       const { weight, radius } = entity.Border;
       this.ctx.globalAlpha = alpha;
       if (!this.canvases[entity.id]) {
         this.initializeCanvas(
           entity.id,
-          renderWidth,
-          renderHeight,
+          renderW,
+          renderH,
           weight,
           radius
         );
@@ -37,8 +37,8 @@ class RenderBorders extends EntityComponentSystem.System {
         this.canvases[entity.id],
         X - weight,
         Y - weight,
-        renderWidth + weight * 2,
-        renderHeight + weight * 2
+        renderW + weight * 2,
+        renderH + weight * 2
       );
     }
     this.ctx.restore();
@@ -65,6 +65,7 @@ class RenderBorders extends EntityComponentSystem.System {
 
     const ctx = <CanvasRenderingContext2D>canv.getContext("2d");
     this.drawChrome(ctx, sweight, sweight, sw, sh, sweight, sr);
+    // this.drawEntityPlaceholder(ctx, sweight, sweight, sw - (sweight / 2), sh);
   }
 
   roundRect(
@@ -134,6 +135,16 @@ class RenderBorders extends EntityComponentSystem.System {
 
     ctx.putImageData(pixels, x - t, y - t);
   }
+
+  // drawEntityPlaceholder(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
+  //   console.log("Inside draw cover rect")
+  //   ctx.save();
+  //   ctx.imageSmoothingEnabled = false;
+  //   ctx.globalAlpha = 0.75;
+  //   ctx.fillStyle = "#000";
+  //   ctx.fillRect(x, y, w, h);
+  //   ctx.restore();
+  // }
 }
 
 export default RenderBorders;

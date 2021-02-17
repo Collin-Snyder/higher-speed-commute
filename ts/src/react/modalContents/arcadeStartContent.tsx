@@ -16,19 +16,19 @@ const ArcadeStartContent = () => {
     dispatch({
       type: "SET_SUBMIT_ACTIONS",
       payload: {
-        go: (choice: "continue" | "playCompleted") => {
-          if (choice === "continue") {
-            window.toggleModal(false);
-            window.game.publish("start", window.game.lastCompletedLevel + 1);
-          }
-          if (choice === "playCompleted") {
-            window.toggleModal(true, "loadMap");
-          }
+        continue: () => {
+          window.toggleModal(false);
+          window.game.publish("start", window.game.lastCompletedLevel + 1);
+        },
+        playCompleted: () => {
+          window.toggleModal(true, "loadMap");
         },
       },
     });
   }, []);
-  return <OptionList listName="reset" options={options} />;
+  return (
+    <OptionList listName="reset" options={options} optionsWillSubmit={true} />
+  );
 };
 
 export default ArcadeStartContent;

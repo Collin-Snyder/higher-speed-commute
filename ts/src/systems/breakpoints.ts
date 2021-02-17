@@ -1,6 +1,7 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { TBreakpoint } from "../main";
-import { centerWithin } from "../modules/gameMath";
+import { centerWithin } from "gameMath";
+import { SandboxMap } from "../state/map";
 
 export class BreakpointSystem extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -20,8 +21,7 @@ export class BreakpointSystem extends EntityComponentSystem.System {
     this.prevGroupSize = 0;
   }
   update(tick: number, entities: Set<Entity>) {
-    this.bp = window.game.breakpoint;
-    if (this.bp === this.prevBP && entities.size === this.prevGroupSize) return;
+    this.bp = this.ecs.getEntity("global").Global.game.breakpoint;
 
     for (let entity of entities) {
       let { Breakpoint, Renderable } = entity;
@@ -29,14 +29,25 @@ export class BreakpointSystem extends EntityComponentSystem.System {
       this.setBreakpoint(Breakpoint);
 
       if (entity.has("Car")) {
-        Renderable.renderWidth = 25 * (2 / 3) * this.bpData.scale;
-        Renderable.renderHeight = 25 * (2 / 3) * this.bpData.scale;
+        Renderable.renderW = 25 * (2 / 3) * this.bpData.scale;
+        Renderable.renderH = 25 * (2 / 3) * this.bpData.scale;
       } else {
-        Renderable.renderWidth = this.bpData.width;
-        Renderable.renderHeight = this.bpData.height;
+        Renderable.renderW = this.bpData.width;
+        Renderable.renderH = this.bpData.height;
       }
 
       Renderable.breakpointScale = this.bpData.scale;
+
+      if (entity.has("Text")) {
+        entity.Text.textRenderW =
+          this.bp === "small"
+            ? entity.Text.textSpriteW
+            : entity.Text.textSpriteW / 0.76;
+        entity.Text.textRenderH =
+          this.bp === "small"
+            ? entity.Text.textSpriteH
+            : entity.Text.textSpriteH / 0.76;
+      }
 
       if (entity.id === "map") {
         this.handleMapBreakpoint(entity);
@@ -65,16 +76,17 @@ export class BreakpointSystem extends EntityComponentSystem.System {
 
   handleMapBreakpoint(mapEntity: Entity) {
     let {
-      Renderable: { renderWidth, renderHeight, visible },
+      Renderable: { renderW, renderH, visible },
       TileData,
       Border,
       Coordinates,
+      MapData: {map}
     } = mapEntity;
 
     TileData.tileWidth = this.bpData.tileSize;
     TileData.tileHeight = this.bpData.tileSize;
-    Border.weight = renderWidth * 0.02;
-    Border.radius = renderWidth * 0.02;
+    Border.weight = renderW * 0.02;
+    Border.radius = renderW * 0.02;
 
     // if (!visible) return;
 
@@ -83,13 +95,13 @@ export class BreakpointSystem extends EntityComponentSystem.System {
       0,
       window.innerWidth,
       window.innerHeight,
-      renderWidth,
-      renderHeight,
-      1,
-      "horizontal"
+      renderW,
+      renderH
     );
+    
+    if (map instanceof SandboxMap) y += y / 3;
 
-    Coordinates.X = x.start;
-    Coordinates.Y = y.start;
+    Coordinates.X = x;
+    Coordinates.Y = y;
   }
 }

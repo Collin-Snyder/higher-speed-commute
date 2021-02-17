@@ -1,6 +1,7 @@
-import EntityComponentSystem, { Entity, ECS, BaseComponent } from "@fritzy/ecs";
+import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { Game } from "../../main";
-import { centerWithin } from "../../modules/gameMath";
+import { menuButtons, designMenuButtons } from "../../state/buttonFactory";
+import { centerWithin, alignItems, justifyItems } from "gameMath";
 
 class RenderMenus extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -8,10 +9,11 @@ class RenderMenus extends EntityComponentSystem.System {
   };
   private ctx: CanvasRenderingContext2D;
   private spriteSheet: HTMLImageElement;
-  private spriteMap: { [key: string]: { X: number; Y: number } };
+  private spriteMap: {
+    [key: string]: { x: number; y: number; w: number; h: number };
+  };
   private menuTags: { [key: string]: Array<string> };
   private modeNames: string[];
-  private buttonEntities: Entity[];
   private global: Entity;
   private menuText: { [key: string]: string };
   private menuFont: FontFace;
@@ -21,7 +23,7 @@ class RenderMenus extends EntityComponentSystem.System {
     super(ecs);
     this.ctx = ctx;
     this.global = this.ecs.getEntity("global");
-    let { spriteSheet, spriteMap } = this.global.Global;
+    let { spriteSheet, spriteMap } = this.global.Global.game;
     this.spriteSheet = spriteSheet;
     this.spriteMap = spriteMap;
     this.menuTags = {
@@ -34,7 +36,6 @@ class RenderMenus extends EntityComponentSystem.System {
       end: ["end"],
     };
     this.modeNames = Object.keys(this.menuTags);
-    this.buttonEntities = [];
     this.menuText = {
       won: "Nice work!\nYour boss will never know.",
       lost: "Ouch, you're late.\nJust don't let it happen again.",
@@ -66,28 +67,20 @@ class RenderMenus extends EntityComponentSystem.System {
 
     //calculate coordinates for buttons using button spacing logic and current state/size of game
     if (!this.modeNames.includes(mode)) return;
-    this.buttonEntities = this.selectButtons(mode, playMode);
-    this.buttonEntities.forEach((e) => {
-      if (e.has("NI")) e.removeTag("NI");
-    });
+
     let {
-      MapData: { map },
       Border,
       Coordinates,
-      Renderable: { renderWidth, renderHeight },
+      Renderable: { renderW, renderH },
     } = this.ecs.getEntity("map");
 
-    // let { pixelWidth, pixelHeight } = map ?? {
-    //   pixelHeight: 0,
-    //   pixelWidth: 0,
-    // };
     let { weight } = Border ?? { weight: 0 };
     let { X, Y } = Coordinates ?? { X: 0, Y: 0 };
 
     let borderX = X - weight;
     let borderY = Y - weight;
-    let borderWidth = renderWidth + weight * 2;
-    let borderHeight = renderHeight + weight * 2;
+    let borderWidth = renderW + weight * 2;
+    let borderHeight = renderH + weight * 2;
 
     switch (mode) {
       case "menu":
@@ -97,7 +90,7 @@ class RenderMenus extends EntityComponentSystem.System {
       case "won":
       case "lost":
       case "crash":
-        this.renderGameplayMenu(mode, X, Y, renderWidth, renderHeight);
+        this.renderGameplayMenu(mode, playMode, X, Y, renderW, renderH);
         return;
       case "designing":
         let { saved } = game.designModule;
@@ -121,65 +114,71 @@ class RenderMenus extends EntityComponentSystem.System {
     this.fontReady = true;
   };
 
-  selectButtons(mode: string, playMode: "arcade" | "custom" | "testing" | "") {
-    let btns = [
-      ...this.ecs.queryEntities({ has: ["menu", ...this.menuTags[mode]] }),
-    ];
-    if (playMode) {
-      if (mode === "won" || playMode === "testing")
-        btns = btns.filter((b) => b.has(playMode));
+  getButtonEntity = (buttonName: TButtonName) => {
+    let e = <Entity>this.ecs.getEntity(`${buttonName}Button`);
+    e.Interactable.enabled = true;
+    return e;
+  };
+
+  drawButtonText(buttonEntities: Entity[]) {
+    let textButtons = buttonEntities.filter((b) => b.has("Text"));
+
+    if (!textButtons.length) return;
+
+    // console.log(`About to draw ${textButtons.length} button texts`)
+    for (let entity of textButtons) {
+      let {
+        textSpriteX,
+        textSpriteY,
+        textSpriteW,
+        textSpriteH,
+        textRenderW,
+        textRenderH,
+      } = entity.Text;
+
+      let { x, y } = centerWithin(
+        entity.Coordinates.X,
+        entity.Coordinates.Y,
+        entity.Renderable.renderW,
+        entity.Renderable.renderH,
+        textRenderW,
+        textRenderH
+      );
+
+      this.ctx.drawImage(
+        this.spriteSheet,
+        textSpriteX,
+        textSpriteY,
+        textSpriteW,
+        textSpriteH,
+        x,
+        y,
+        textRenderW,
+        textRenderH
+      );
     }
-    return btns;
   }
 
-  positionButtons(
-    cx: number,
-    cy: number,
-    cw: number,
-    ch: number,
-    ew: number,
-    eh: number,
-    dir: "horizontal" | "vertical",
-    buttons: Array<Entity | Array<Entity>>,
-    style: "spaceBetween" | "spaceEvenly" = "spaceEvenly"
-  ) {
-    let { x, y } = centerWithin(
-      cx,
-      cy,
-      cw,
-      ch,
-      ew,
-      eh,
-      buttons.length,
-      dir,
-      style
-    );
-    let newCoord = dir === "horizontal" ? x.start : y.start;
-    for (let btn of buttons) {
-      if (Array.isArray(btn)) {
-        let subx = dir === "horizontal" ? newCoord : x.start;
-        let suby = dir === "vertical" ? newCoord : y.start;
-        let subw = dir === "horizontal" ? x.step : ew;
-        let subh = dir === "vertical" ? y.step : eh;
-        let subew = btn[0].Renderable.renderWidth;
-        let subeh = btn[0].Renderable.renderHeight;
-        this.positionButtons(
-          subx,
-          suby,
-          subw,
-          subh,
-          subew,
-          subeh,
-          dir === "horizontal" ? "vertical" : "horizontal",
-          btn,
-          "spaceBetween"
-        );
-      } else {
-        btn.Coordinates.Y = dir === "vertical" ? newCoord : y.start;
-        btn.Coordinates.X = dir === "horizontal" ? newCoord : x.start;
+  showPressedButtons(buttonEntities: Entity[]) {
+    for (let be of buttonEntities) {
+      if (!be.Button.depressed) continue;
+      
+      let imageData = this.ctx.getImageData(
+        be.Coordinates.X,
+        be.Coordinates.Y,
+        be.Renderable.renderW,
+        be.Renderable.renderH
+      );
+
+      let { data } = imageData;
+
+      for (let p = 0; p < data.length; p += 4) {
+        data[p] = data[p] - 50;
+        data[p + 1] = data[p + 1] - 50;
+        data[p + 2] = data[p + 2] - 50;
       }
-      if (dir === "vertical") newCoord += y.step;
-      else if (dir === "horizontal") newCoord += x.step;
+
+      this.ctx.putImageData(imageData, be.Coordinates.X, be.Coordinates.Y);
     }
   }
 
@@ -189,42 +188,39 @@ class RenderMenus extends EntityComponentSystem.System {
         this.spriteSheet,
         entity.Renderable.spriteX,
         entity.Renderable.spriteY,
-        entity.Renderable.spriteWidth,
-        entity.Renderable.spriteHeight,
+        entity.Renderable.spriteW,
+        entity.Renderable.spriteH,
         entity.Coordinates.X,
         entity.Coordinates.Y,
-        entity.Renderable.renderWidth,
-        entity.Renderable.renderHeight
+        entity.Renderable.renderW,
+        entity.Renderable.renderH
       );
     }
+    this.drawButtonText(buttonEntities);
+    this.showPressedButtons(buttonEntities);
   }
 
   drawTitle() {
-    let spriteCoords = this.spriteMap.title;
-    let spriteW = 195;
-    let spriteH = 53;
+    let sprite = this.spriteMap.title;
     let renderH = window.innerHeight / 4;
-    let renderW = renderH * (spriteW / spriteH);
+    let renderW = renderH * (sprite.w / sprite.h);
 
-    let { x, y } = centerWithin(
+    let { x } = centerWithin(
       0,
       0,
       window.innerWidth,
       window.innerHeight / 3,
       renderW,
-      renderH,
-      1,
-      "vertical",
-      "spaceEvenly"
+      renderH
     );
 
     this.ctx.drawImage(
       this.spriteSheet,
-      spriteCoords.X,
-      spriteCoords.Y,
-      spriteW,
-      spriteH,
-      x.start,
+      sprite.x,
+      sprite.y,
+      sprite.w,
+      sprite.h,
+      x,
       window.innerHeight / 8,
       renderW,
       renderH
@@ -234,21 +230,20 @@ class RenderMenus extends EntityComponentSystem.System {
   }
 
   renderMainMenu() {
+    let btns = menuButtons.main.deepMap(this.getButtonEntity);
     let { titleY, titleHeight } = this.drawTitle();
     let menuY = titleY + titleHeight;
     let menuH = (window.innerHeight / 3) * 2 - window.innerHeight / 8;
-    this.positionButtons(
+
+    btns = alignItems(
       window.innerWidth / 2 - window.innerWidth / 4,
       menuY,
       window.innerWidth / 2,
       menuH,
-      200,
-      75,
-      "vertical",
-      this.buttonEntities,
+      btns,
       "spaceEvenly"
     );
-    this.drawButtons(this.buttonEntities);
+    this.drawButtons(btns);
   }
 
   drawShine(
@@ -258,14 +253,18 @@ class RenderMenus extends EntityComponentSystem.System {
     graphicW: number,
     graphicH: number
   ) {
-    let graphic = window.game.ecs.getEntity(`${menu}Graphic`);
+    let graphic = this.ecs.getEntity(`${menu}Graphic`);
     let { degOffset, startSprite } = graphic.Animation;
-    let shineCoords = startSprite;
-    let spriteW = 75;
-    let spriteH = 75;
+    let shineSprite = startSprite;
+    let spriteW = shineSprite.w;
+    let spriteH = shineSprite.h;
     let radians = (degOffset * Math.PI) / 180;
     let transX = graphicX + graphicW / 2;
     let transY = graphicY + graphicH / 2;
+    let shineRenderW = graphicW > graphicH ? graphicW : graphicH;
+    let graphicShrink = 0.7;
+    let shineXOffset = (shineRenderW - graphicW) / 2;
+    let shineYOffset = (shineRenderW - graphicH) / 2;
 
     //rotate and draw clockwise shine
     this.ctx.save();
@@ -274,14 +273,14 @@ class RenderMenus extends EntityComponentSystem.System {
     this.ctx.translate(-transX, -transY);
     this.ctx.drawImage(
       this.spriteSheet,
-      shineCoords.X,
-      shineCoords.Y,
+      shineSprite.x,
+      shineSprite.y,
       spriteW,
       spriteH,
-      graphicX,
-      graphicY,
-      graphicW,
-      graphicH
+      graphicX - shineXOffset,
+      graphicY - shineYOffset,
+      shineRenderW,
+      shineRenderW
     );
     this.ctx.restore();
 
@@ -292,14 +291,14 @@ class RenderMenus extends EntityComponentSystem.System {
     this.ctx.translate(-transX, -transY);
     this.ctx.drawImage(
       this.spriteSheet,
-      shineCoords.X,
-      shineCoords.Y,
+      shineSprite.x,
+      shineSprite.y,
       spriteW,
       spriteH,
-      graphicX,
-      graphicY,
-      graphicW,
-      graphicH
+      graphicX - shineXOffset,
+      graphicY - shineYOffset,
+      shineRenderW,
+      shineRenderW
     );
     this.ctx.restore();
 
@@ -309,15 +308,12 @@ class RenderMenus extends EntityComponentSystem.System {
       graphicY,
       graphicW,
       graphicH,
-      (graphicW *= 0.7),
-      (graphicH *= 0.7),
-      1,
-      "vertical",
-      "spaceEvenly"
+      (graphicW *= graphicShrink),
+      (graphicH *= graphicShrink)
     );
 
-    graphicX = trophyPosition.x.start;
-    graphicY = trophyPosition.y.start;
+    graphicX = trophyPosition.x;
+    graphicY = trophyPosition.y;
 
     //return position/dimensions of inner trophy graphic
     return { ix: graphicX, iy: graphicY, iw: graphicW, ih: graphicH };
@@ -376,12 +372,19 @@ class RenderMenus extends EntityComponentSystem.System {
     mapW: number,
     mapH: number
   ) {
-    let spriteCoords = this.spriteMap[`${menu}Graphic`];
     let hasShine = menu === "won" || menu === "crash";
-    let spriteW = 75;
-    let spriteH = 75;
-    let graphicH = mapH / 3;
-    let graphicW = graphicH;
+    let sprite = this.spriteMap[`${menu}Graphic`];
+    let heightToWidthRatio = sprite.h / sprite.w;
+    let graphicH, graphicW;
+
+    if (sprite.h >= sprite.w) {
+      graphicH = mapH / 2.8;
+      graphicW = graphicH / heightToWidthRatio;
+    } else {
+      graphicW = mapH / 2.8;
+      graphicH = graphicW * heightToWidthRatio;
+    }
+
     let graphicX, graphicY;
     let containerH = mapH / 2.5;
 
@@ -391,14 +394,11 @@ class RenderMenus extends EntityComponentSystem.System {
       mapW,
       containerH,
       graphicW,
-      graphicH,
-      1,
-      "vertical",
-      "spaceEvenly"
+      graphicH
     );
 
-    graphicX = x.start;
-    graphicY = y.start;
+    graphicX = x;
+    graphicY = y;
 
     if (hasShine) {
       let { ix, iy, ih, iw } = this.drawShine(
@@ -416,10 +416,10 @@ class RenderMenus extends EntityComponentSystem.System {
 
     this.ctx.drawImage(
       this.spriteSheet,
-      spriteCoords.X,
-      spriteCoords.Y,
-      spriteW,
-      spriteH,
+      sprite.x,
+      sprite.y,
+      sprite.w,
+      sprite.h,
       graphicX,
       graphicY,
       graphicW,
@@ -431,11 +431,15 @@ class RenderMenus extends EntityComponentSystem.System {
 
   renderGameplayMenu(
     menu: "won" | "lost" | "paused" | "crash",
+    playMode: TPlayMode,
     mapX: number,
     mapY: number,
     mapWidth: number,
     mapHeight: number
   ) {
+    let menuName = "paused";
+    if (menu !== "paused") menuName = `${menu}_${playMode}`;
+    let btns = menuButtons[menuName as TMenuName].deepMap(this.getButtonEntity);
     //draw translucent dark rectangle over map
     this.ctx.save();
     this.ctx.globalAlpha = 0.75;
@@ -457,7 +461,6 @@ class RenderMenus extends EntityComponentSystem.System {
     //if the menu has text, draw it and retain size/position
     if (menu !== "paused") {
       let textH = mapHeight / 32;
-      // let textH = 75;
       let totalH = this.drawMenuText(
         menu,
         mapWidth / 2 + mapX,
@@ -469,19 +472,8 @@ class RenderMenus extends EntityComponentSystem.System {
       menuH -= totalH;
     }
 
-    //position and draw buttons based on location/size of menu graphic
-    this.positionButtons(
-      mapX,
-      menuY,
-      mapWidth,
-      menuH,
-      200,
-      75,
-      "vertical",
-      this.buttonEntities,
-      "spaceEvenly"
-    );
-    this.drawButtons(this.buttonEntities);
+    btns = alignItems(mapX, menuY, mapWidth, menuH, btns, "spaceEvenly");
+    this.drawButtons(btns);
   }
 
   renderDesignToolbarMenu(
@@ -491,14 +483,11 @@ class RenderMenus extends EntityComponentSystem.System {
     mapWidth: number,
     mapHeight: number
   ) {
-    this.positionButtons(
+    toolbarBtns = justifyItems(
       mapX,
       0,
       mapWidth,
-      (window.innerHeight - mapHeight) / 2,
-      75,
-      75,
-      "horizontal",
+      mapY,
       toolbarBtns,
       "spaceEvenly"
     );
@@ -512,17 +501,15 @@ class RenderMenus extends EntityComponentSystem.System {
     mapWidth: number,
     mapHeight: number
   ) {
-    // let formattedBtns = this.formatDesignAdminButtons(adminBtns);
-    this.positionButtons(
+    adminBtns = alignItems(
       mapX + mapWidth,
-      (window.innerHeight - mapHeight) / 2,
+      mapY,
       (window.innerWidth - mapWidth) / 2,
       mapHeight,
-      200,
-      75,
-      "vertical",
       adminBtns,
-      "spaceEvenly"
+      "top",
+      "center",
+      adminBtns[0].Renderable.renderH / 2
     );
     this.drawButtons(adminBtns);
   }
@@ -534,17 +521,18 @@ class RenderMenus extends EntityComponentSystem.System {
     mapWidth: number,
     mapHeight: number
   ) {
-    let formattedBtns = this.formatDesignConfigButtons(configBtns);
-    this.positionButtons(
+    let padding = configBtns[0]?.Renderable
+      ? configBtns[0].Renderable.renderH / 2
+      : configBtns[0][0]?.Renderable.renderH / 2 || 0;
+    configBtns = alignItems(
       0,
-      (window.innerHeight - mapHeight) / 2,
+      mapY,
       (window.innerWidth - mapWidth) / 2,
       mapHeight,
-      200,
-      75,
-      "vertical",
-      formattedBtns,
-      "spaceEvenly"
+      configBtns,
+      "top",
+      "center",
+      padding
     );
     this.drawButtons(configBtns);
   }
@@ -556,16 +544,16 @@ class RenderMenus extends EntityComponentSystem.System {
     mapHeight: number,
     saved: boolean
   ) {
-    const toolbarBtns = this.buttonEntities.filter((e) => e.has("toolbar"));
-    const adminBtns = this.buttonEntities.filter((e) => {
-      let isAdmin = e.has("admin");
-      if (!saved) return isAdmin;
-      if (!isAdmin) return false;
-      let visible = !/save/.test(e.id);
-      if (!visible && !e.has("NI")) e.addTag("NI");
-      return visible;
-    });
-    const configBtns = this.buttonEntities.filter((e) => e.has("config"));
+    const toolbarBtns = designMenuButtons.toolbar.deepMap(this.getButtonEntity);
+    const adminBtns = designMenuButtons.admin
+      .deepMap(this.getButtonEntity)
+      .filter((e) => {
+        if (!saved) return true;
+        let visible = !/save/.test(e.id);
+        if (!visible) e.Interactable.enabled = false;
+        return visible;
+      });
+    const configBtns = designMenuButtons.config.deepMap(this.getButtonEntity);
 
     this.renderDesignToolbarMenu(toolbarBtns, mapX, mapY, mapWidth, mapHeight);
     this.renderDesignAdminMenu(adminBtns, mapX, mapY, mapWidth, mapHeight);
@@ -573,27 +561,21 @@ class RenderMenus extends EntityComponentSystem.System {
   }
 
   formatDesignConfigButtons(configBtns: Entity[]) {
-    const undoredo = configBtns.filter(
-      (b: Entity) => b.Button.name === "undo" || b.Button.name === "redo"
-    );
-    // const erasereset = adminBtns.filter(
-    //   (b) => b.Button.name === "eraser" || b.Button.name === "reset"
-    // );
-    let btns: Array<Entity | Array<Entity>> = configBtns.slice();
-    btns.splice(0, 2, undoredo);
-    btns = btns.map((b) => {
-      if (!Array.isArray(b)) return [b];
-      else return b;
-    });
-    // btns.splice(5, 2, erasereset);
+    let btns = [];
+    let subarray = [];
+
+    for (let b of configBtns) {
+      if (/undo|redo/.test(b.id)) subarray.push(b);
+      else btns.push(b);
+    }
+
+    btns.unshift(subarray);
 
     return btns;
   }
 
   drawEndOfGameGraphic() {
-    let spriteCoords = this.spriteMap.endGraphic;
-    let spriteW = 75;
-    let spriteH = 75;
+    let sprite = this.spriteMap.endGraphic;
     let renderH = window.innerHeight / 3;
     let renderW = renderH;
 
@@ -602,10 +584,10 @@ class RenderMenus extends EntityComponentSystem.System {
 
     this.ctx.drawImage(
       this.spriteSheet,
-      spriteCoords.X,
-      spriteCoords.Y,
-      spriteW,
-      spriteH,
+      sprite.x,
+      sprite.y,
+      sprite.w,
+      sprite.h,
       x,
       y,
       renderW,
@@ -616,6 +598,7 @@ class RenderMenus extends EntityComponentSystem.System {
   }
 
   renderEndOfGameMenu() {
+    let btns = menuButtons.end.deepMap(this.getButtonEntity);
     let { graphicY, graphicHeight } = this.drawEndOfGameGraphic();
     let textY = graphicY + graphicHeight;
 
@@ -628,18 +611,9 @@ class RenderMenus extends EntityComponentSystem.System {
     );
     let menuY = textY + textH;
     let menuH = window.innerHeight / 2 - textH;
-    this.positionButtons(
-      0,
-      menuY,
-      window.innerWidth,
-      menuH,
-      200,
-      75,
-      "vertical",
-      this.buttonEntities,
-      "spaceEvenly"
-    );
-    this.drawButtons(this.buttonEntities);
+
+    btns = alignItems(0, menuY, window.innerWidth, menuH, btns, "spaceEvenly");
+    this.drawButtons(btns);
   }
 }
 

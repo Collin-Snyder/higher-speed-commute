@@ -8,7 +8,7 @@ class RenderBackground extends EntityComponentSystem.System {
     this.ctx = ctx;
   }
   update(tick: number, entities: Set<Entity>) {
-    let game = window.game;
+    let { game } = this.ecs.getEntity("global").Global;
     let layers = this.ecs.getEntity("bg").ParallaxLayer;
 
     this.ctx.fillStyle = "#b8d5ff";
@@ -33,7 +33,7 @@ class RenderBackground extends EntityComponentSystem.System {
     }
   ) {
     let { X, Y, width, height, offset } = l;
-    let renderHeight = (height / (width / 2)) * window.innerWidth;
+    let renderH = (height / (width / 2)) * window.innerWidth;
     this.ctx.drawImage(
       bg,
       X + offset,
@@ -41,9 +41,9 @@ class RenderBackground extends EntityComponentSystem.System {
       width / 2,
       height,
       0,
-      window.innerHeight - renderHeight,
+      window.innerHeight - renderH,
       window.innerWidth,
-      renderHeight
+      renderH
     );
   }
 }

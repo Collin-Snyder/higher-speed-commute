@@ -1,11 +1,7 @@
 import { Entity } from "@fritzy/ecs";
 import axios from "axios";
 import { capitalize } from "../modules/gameHelpers";
-import { centerWithin } from "../modules/gameMath";
-import { SandboxMap } from "../state/map";
 import Editor, { commands } from "./editor";
-import { DisabledButtons } from "../buttonModifiers";
-import { DesignMenuName, ButtonInterface } from "../state/menuButtons";
 import Game from "../main";
 import { deleteUserMap, loadUserMap } from "../state/localDb";
 
@@ -30,6 +26,7 @@ class DesignModule {
   public lastEditedSquare: number;
   public mapCursor: "default" | "pointer" | "cell";
   public quitting: boolean;
+  public dragging: boolean;
 
   constructor(game: any) {
     this._game = game;
@@ -42,6 +39,7 @@ class DesignModule {
     this.gridOverlay = new Image();
     this.gridOverlay.src = "../design-grid.png";
     this.quitting = false;
+    this.dragging = false;
 
     this.gridOverlay.onload = () => {
       this.gridLoaded = true;
@@ -69,10 +67,8 @@ class DesignModule {
 
     let mx = global.inputs.mouseX;
     let my = global.inputs.mouseY;
-    let dragging = global.inputs.dragging;
 
     //find which square was clicked
-    console.log("BreakpointScale: ", breakpointScale)
     let square = map.getSquareByCoords(
       (mx - Coordinates.X) / breakpointScale,
       (my - Coordinates.Y) / breakpointScale
@@ -86,9 +82,9 @@ class DesignModule {
       return;
     }
 
-    if (dragging && square.id == this.lastEditedSquare) return;
+    if (this.dragging && square.id == this.lastEditedSquare) return;
     if (
-      dragging &&
+      this.dragging &&
       (this.selectedTool === "light" || this.selectedTool === "coffee")
     )
       return;
@@ -104,14 +100,14 @@ class DesignModule {
         actionType = capitalize(this.selectedTool);
     }
 
-    if (!dragging) this._editor.beginGroup();
+    if (!this.dragging) this._editor.beginGroup();
     const tileChanges = map[`handle${actionType}Action`](
       this._editor,
       square,
-      dragging,
+      this.dragging,
       this.selectedTool
     );
-    if (!dragging) this._editor.endGroup();
+    if (!this.dragging) this._editor.endGroup();
 
     //handle resulting changes to tile map
     let { tiles } = TileData;
@@ -225,11 +221,13 @@ class DesignModule {
   }
 
   startDrawing() {
+    this.dragging = true;
     this._editor.usePrevGroup();
     this._editor.beginGroup();
   }
 
   stopDrawing() {
+    this.dragging = false;
     this._editor.endGroup();
   }
 
