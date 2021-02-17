@@ -112,12 +112,6 @@ class GameModeMachine {
         console.log("running onstart");
         game.loadLevel(level);
       },
-      onloadLevel: function(level: number) {
-        let game = <Game>(<unknown>this);
-        console.log("running onloadLevel");
-        //render loading graphic
-        game.loadLevel(level);
-      },
       onchooseDifficulty: function() {
         let game = <Game>(<unknown>this);
         console.log("running onchooseDifficulty");
@@ -135,12 +129,6 @@ class GameModeMachine {
       },
       onplay: function() {
         let game = <Game>(<unknown>this);
-        // game.ecs.createEntity({
-        //   id: "schoolZone",
-        //   Animation: {
-        //     aStep: -0.05
-        //   }
-        // })
         game.mapView = false;
         game.startRace();
       },
@@ -189,7 +177,7 @@ class GameModeMachine {
         let game = <Game>(<unknown>this);
         console.log("YOU LOSE");
       },
-      onleavelose: function() {
+      onleavelost: function() {
         let game = <Game>(<unknown>this);
         const mapEntity = game.ecs.getEntity("map");
         mapEntity.Renderable.visible = false;
@@ -642,6 +630,7 @@ class GameModeMachine {
       console.log(
         `Attempted invalid state transition - ${event} event must transition from mode "${from}", but mode is currently "${current}"`
       );
+      debugger;
     }
 
     return valid;

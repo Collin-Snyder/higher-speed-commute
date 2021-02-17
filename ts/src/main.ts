@@ -430,13 +430,13 @@ export class Game {
     console.log("Subscribing events...");
     let validate = this.modeMachine.defaultActions.validate;
     for (let event of this.modeMachine.events) {
+      //this must be first
+      this.subscribe(event.name, validate.bind(this, event.name, event.from));
+
       let onbefore = this.modeMachine.defaultActions[`onbefore${event.name}`];
       let on = this.modeMachine.defaultActions[`on${event.name}`];
       let onNewState = this.modeMachine.defaultActions[`on${event.to}`];
-      this.subscribe(event.name, () => {
-        console.log(`Attempting event "${event.name}"`);
-      });
-      this.subscribe(event.name, validate.bind(this, event.name, event.from));
+
       this.subscribe(event.name, () => {
         let onleave = this.modeMachine.defaultActions[`onleave${this.mode}`];
         if (onleave) onleave.call(this);
@@ -635,7 +635,6 @@ export class Game {
       this.ecs.runSystemGroup("caffeine");
       this.ecs.runSystemGroup("move");
       this.ecs.runSystemGroup("collision");
-      this.ecs.runSystemGroup("viewbox");
       this.ecs.runSystemGroup("timers");
     }
 
@@ -657,6 +656,7 @@ export class Game {
   }
 
   publish(event: any, ...args: any[]) {
+    console.log(`Publishing ${event}`)
     if (this.subscribers && this.subscribers[event]) {
       const subs = this.subscribers[event];
       let start = 0;

@@ -1,13 +1,3 @@
-//CAR CRASH DETECTION (player, NPCs)
-//Broad Phase
-//Determine other cars within bounding box of given entity
-//Narrow Phase
-//Check if new coordinates are in collision with any cars within bounding box
-//If yes:
-//If player or boss, return new coordinates (some logic for rendering CRASH animation and game over happens)
-//If other NPC, return old coordinates (do not set speed to 0, otherwise will need method to check if car in front of it has moved)
-//Will need to ensure that NPCs are on paths that do not collide head-on
-
 import ECS, { Entity } from "@fritzy/ecs";
 import Game from "../main";
 import {
@@ -40,20 +30,21 @@ export class CollisionSystem extends ECS.System {
 
   update(tick: number, entities: Set<Entity>) {
     this.collidables = [...entities];
-    // this.game = this.globalEntity.Global.game;
     this.map = this.game.ecs.getEntity("map").MapData.map;
-    let changes = [...this.changes];
-    for (let change of changes) {
-      let entity = change.component.entity;
-      if (entity.has("Car")) {
-        let mapCollision = this.handleMapCollisions(entity);
-        let entityCollision = this.handleEntityCollisions(entity);
-        if (mapCollision !== "boundary" && entityCollision !== "redLight") {
-          let deg = findDegFromVector(entity.Velocity.vector);
-          if (deg >= 0) entity.Renderable.degrees = deg;
-        }
-        entity.Collision.prevHb = entity.Collision.currentHb();
+    let driverEntities = [
+      this.game.ecs.getEntity("player"),
+      this.game.ecs.getEntity("boss"),
+    ];
+    for (let driverEntity of driverEntities) {
+      let mapCollision = this.handleMapCollisions(driverEntity);
+      if (mapCollision === "office") return;
+      let entityCollision = this.handleEntityCollisions(driverEntity);
+      if (entityCollision === "car") return;
+      if (mapCollision !== "boundary" && entityCollision !== "redLight") {
+        let deg = findDegFromVector(driverEntity.Velocity.vector);
+        if (deg >= 0) driverEntity.Renderable.degrees = deg;
       }
+      driverEntity.Collision.prevHb = driverEntity.Collision.currentHb();
     }
   }
 
