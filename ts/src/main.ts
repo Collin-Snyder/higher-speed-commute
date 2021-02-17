@@ -100,7 +100,7 @@ export class Game {
   public subscribers: { [key: string]: Function[] };
 
   // GRAPHICS //
-  private UICanvas: HTMLCanvasElement;
+  public UICanvas: HTMLCanvasElement;
   public uictx: CanvasRenderingContext2D;
   private OSMapCanvas: HTMLCanvasElement;
   private osmctx: CanvasRenderingContext2D;

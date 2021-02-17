@@ -1,3 +1,4 @@
+import { Entity } from "@fritzy/ecs";
 import { Game } from "../main";
 import { getLastCompletedLevel } from "./localDb";
 import { small, regular } from "../modules/breakpoints";
@@ -20,8 +21,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: true,
     color: "green",
     selectable: false,
-    onClick: function() {
-      const game = <Game>(<unknown>this);
+    onClick: function(game: Game) {
       game.playMode = "arcade";
       if (game.lastCompletedLevel) window.toggleModal(true, "arcadeStart");
       else game.publish("start", game.firstLevel);
@@ -33,8 +33,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: true,
     color: "green",
     selectable: false,
-    onClick: function() {
-      const game = <Game>(<unknown>this);
+    onClick: function(game: Game) {
       game.playMode = "custom";
       game.publish("loadSaved");
     },
@@ -45,8 +44,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: true,
     color: "green",
     selectable: false,
-    onClick: function() {
-      const game = <Game>(<unknown>this);
+    onClick: function(game: Game) {
       game.publish("nextLevel");
     },
     tags: ["menu", "gameplay", "won", "arcade"],
@@ -56,8 +54,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: true,
     color: "green",
     selectable: false,
-    onClick: function() {
-      const game = <Game>(<unknown>this);
+    onClick: function(game: Game) {
       game.publish("loadSaved");
     },
     tags: ["menu", "gameplay", "won", "lost", "crash", "custom"],
@@ -67,8 +64,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: true,
     color: "green",
     selectable: false,
-    onClick: function() {
-      const game = <Game>(<unknown>this);
+    onClick: function(game: Game) {
       game.publish("resume");
     },
     tags: ["menu", "gameplay", "paused"],
@@ -78,8 +74,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: true,
     color: "yellow",
     selectable: false,
-    onClick: function() {
-      const game = <Game>(<unknown>this);
+    onClick: function(game: Game) {
       game.publish("restart");
     },
     tags: [
@@ -99,8 +94,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: true,
     color: "red",
     selectable: false,
-    onClick: async function() {
-      const game = <Game>(<unknown>this);
+    onClick: async function(game: Game) {
       try {
         let l = await getLastCompletedLevel();
         if (game.playMode === "arcade" && game.lastCompletedLevel > l) {
@@ -127,8 +121,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: true,
     color: "purple",
     selectable: false,
-    onClick: function() {
-      const game = <Game>(<unknown>this);
+    onClick: function(game: Game) {
       game.publish("leaveMenu");
       game.publish("design");
     },
@@ -138,8 +131,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     name: "playerHome",
     hasText: false,
     selectable: true,
-    onClick: function() {
-      const game = <Game>(<unknown>this);
+    onClick: function(game: Game) {
       game.publish("setDesignTool", "playerHome");
     },
     tags: ["menu", "design", "toolbar", "square"],
@@ -148,8 +140,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     name: "bossHome",
     hasText: false,
     selectable: true,
-    onClick: function() {
-      const game = <Game>(<unknown>this);
+    onClick: function(game: Game) {
       game.publish("setDesignTool", "bossHome");
     },
     tags: ["menu", "design", "toolbar", "square"],
@@ -158,8 +149,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     name: "office",
     hasText: false,
     selectable: true,
-    onClick: function() {
-      const game = <Game>(<unknown>this);
+    onClick: function(game: Game) {
       game.publish("setDesignTool", "office");
     },
     tags: ["menu", "design", "toolbar", "square"],
@@ -168,8 +158,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     name: "street",
     hasText: false,
     selectable: true,
-    onClick: function() {
-      const game = <Game>(<unknown>this);
+    onClick: function(game: Game) {
       game.publish("setDesignTool", "street");
     },
     tags: ["menu", "design", "toolbar", "square"],
@@ -178,8 +167,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     name: "light",
     hasText: false,
     selectable: true,
-    onClick: function() {
-      const game = <Game>(<unknown>this);
+    onClick: function(game: Game) {
       game.publish("setDesignTool", "light");
     },
     tags: ["menu", "design", "toolbar", "square"],
@@ -188,8 +176,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     name: "schoolZone",
     hasText: false,
     selectable: true,
-    onClick: function() {
-      const game = <Game>(<unknown>this);
+    onClick: function(game: Game) {
       game.publish("setDesignTool", "schoolZone");
     },
     tags: ["menu", "design", "toolbar", "square"],
@@ -198,8 +185,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     name: "coffee",
     hasText: false,
     selectable: true,
-    onClick: function() {
-      const game = <Game>(<unknown>this);
+    onClick: function(game: Game) {
       game.publish("setDesignTool", "coffee");
     },
     tags: ["menu", "design", "toolbar", "square"],
@@ -209,8 +195,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: true,
     color: "purple",
     selectable: false,
-    onClick: function() {
-      const game = <Game>(<unknown>this);
+    onClick: function(game: Game) {
       if (!game.designModule.saved) {
         window.toggleModal(true, "quitDesignConfirmation");
       } else game.publish("quit");
@@ -222,8 +207,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: true,
     color: "orange",
     selectable: false,
-    onClick: function() {
-      const game = <Game>(<unknown>this);
+    onClick: function(game: Game) {
       game.publish("loadSaved");
     },
     tags: ["menu", "design", "admin"],
@@ -233,8 +217,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: true,
     color: "orange",
     selectable: false,
-    onClick: function() {
-      const game = <Game>(<unknown>this);
+    onClick: function(game: Game) {
       game.publish("save");
     },
     tags: ["menu", "design", "admin"],
@@ -244,8 +227,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: true,
     color: "orange",
     selectable: false,
-    onClick: function() {
-      const game = <Game>(<unknown>this);
+    onClick: function(game: Game) {
       game.publish("saveAs");
       //on failure, display failure message
     },
@@ -255,8 +237,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     name: "undo",
     hasText: false,
     selectable: false,
-    onClick: function() {
-      const game = <Game>(<unknown>this);
+    onClick: function(game: Game) {
       game.publish("undo");
     },
     tags: ["menu", "design", "config", "square"],
@@ -265,8 +246,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     name: "redo",
     hasText: false,
     selectable: false,
-    onClick: function() {
-      const game = <Game>(<unknown>this);
+    onClick: function(game: Game) {
       game.publish("redo");
     },
     tags: ["menu", "design", "config", "square"],
@@ -275,8 +255,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     name: "eraser",
     hasText: false,
     selectable: true,
-    onClick: function() {
-      const game = <Game>(<unknown>this);
+    onClick: function(game: Game) {
       game.publish("setDesignTool", "eraser");
     },
     tags: ["menu", "design", "toolbar", "square"],
@@ -285,15 +264,14 @@ const buttons: { [key: string]: ButtonInterface } = {
     name: "reset",
     hasText: false,
     selectable: false,
-    onClick: function() {
-      const game = <Game>(<unknown>this);
+    onClick: function(game: Game) {
       game.publish("resetMap");
     },
     tags: ["menu", "design", "config", "square"],
   },
 };
 
-export const menuButtons: {[key in TMenuName] : TButtonName[]} = {
+export const menuButtons: { [key in TMenuName]: TButtonName[] } = {
   main: ["playArcade", "playCustom", "design"],
   won_arcade: ["nextLevel", "restart", "quit"],
   won_custom: ["chooseMap", "restart", "quit"],
@@ -337,9 +315,9 @@ function makeButtonEntities(game: Game) {
 
     let entity = game.ecs.createEntity({
       id: `${button.name}Button`,
-      tags: [...button.tags, "NI"],
+      tags: [...button.tags],
       Button: { name: button.name },
-      Clickable: { onClick: button.onClick.bind(game) },
+      Interactable: { enabled: false },
       Coordinates: {},
       Renderable: {
         spriteX: sprite.x,
@@ -360,6 +338,19 @@ function makeButtonEntities(game: Game) {
         },
       ],
     });
+
+    entity.Interactable.onHover = function(game: Game){
+      game.UICanvas.style.cursor = "pointer";
+    }.bind(entity, game)
+    entity.Interactable.onMouseDown = function(btnEntity: Entity) {
+      btnEntity.Button.depressed = true;
+    }.bind(entity, entity);
+    entity.Interactable.onMouseUp = function(btnEntity: Entity) {
+      btnEntity.Button.depressed = false;
+    }.bind(entity, entity);
+    entity.Interactable.onClick = function(game: Game) {
+      button.onClick(game);
+    }.bind(entity, game);
 
     if (textSprite) {
       let { x, y, w, h } = textSprite;

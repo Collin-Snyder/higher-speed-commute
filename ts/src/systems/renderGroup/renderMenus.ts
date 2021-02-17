@@ -14,7 +14,6 @@ class RenderMenus extends EntityComponentSystem.System {
   };
   private menuTags: { [key: string]: Array<string> };
   private modeNames: string[];
-  private buttonEntities: Entity[];
   private global: Entity;
   private menuText: { [key: string]: string };
   private menuFont: FontFace;
@@ -37,7 +36,6 @@ class RenderMenus extends EntityComponentSystem.System {
       end: ["end"],
     };
     this.modeNames = Object.keys(this.menuTags);
-    this.buttonEntities = [];
     this.menuText = {
       won: "Nice work!\nYour boss will never know.",
       lost: "Ouch, you're late.\nJust don't let it happen again.",
@@ -69,9 +67,7 @@ class RenderMenus extends EntityComponentSystem.System {
 
     //calculate coordinates for buttons using button spacing logic and current state/size of game
     if (!this.modeNames.includes(mode)) return;
-    this.buttonEntities.forEach((e) => {
-      if (e.has("NI")) e.removeTag("NI");
-    });
+
     let {
       Border,
       Coordinates,
@@ -118,6 +114,12 @@ class RenderMenus extends EntityComponentSystem.System {
     this.fontReady = true;
   };
 
+  getButtonEntity = (buttonName: TButtonName) => {
+    let e = <Entity>this.ecs.getEntity(`${buttonName}Button`);
+    e.Interactable.enabled = true;
+    return e;
+  };
+
   drawButtonText(buttonEntities: Entity[]) {
     let textButtons = buttonEntities.filter((b) => b.has("Text"));
 
@@ -157,6 +159,29 @@ class RenderMenus extends EntityComponentSystem.System {
     }
   }
 
+  showPressedButtons(buttonEntities: Entity[]) {
+    for (let be of buttonEntities) {
+      if (!be.Button.depressed) continue;
+      
+      let imageData = this.ctx.getImageData(
+        be.Coordinates.X,
+        be.Coordinates.Y,
+        be.Renderable.renderW,
+        be.Renderable.renderH
+      );
+
+      let { data } = imageData;
+
+      for (let p = 0; p < data.length; p += 4) {
+        data[p] = data[p] - 50;
+        data[p + 1] = data[p + 1] - 50;
+        data[p + 2] = data[p + 2] - 50;
+      }
+
+      this.ctx.putImageData(imageData, be.Coordinates.X, be.Coordinates.Y);
+    }
+  }
+
   drawButtons(buttonEntities: Entity[]) {
     for (let entity of buttonEntities) {
       this.ctx.drawImage(
@@ -172,6 +197,7 @@ class RenderMenus extends EntityComponentSystem.System {
       );
     }
     this.drawButtonText(buttonEntities);
+    this.showPressedButtons(buttonEntities);
   }
 
   drawTitle() {
@@ -204,11 +230,7 @@ class RenderMenus extends EntityComponentSystem.System {
   }
 
   renderMainMenu() {
-    let btns = menuButtons.main.deepMap((b) => {
-      let e = this.ecs.getEntity(`${b}Button`);
-      if (e.has("NI")) e.removeTag("NI");
-      return e;
-    });
+    let btns = menuButtons.main.deepMap(this.getButtonEntity);
     let { titleY, titleHeight } = this.drawTitle();
     let menuY = titleY + titleHeight;
     let menuH = (window.innerHeight / 3) * 2 - window.innerHeight / 8;
@@ -417,11 +439,7 @@ class RenderMenus extends EntityComponentSystem.System {
   ) {
     let menuName = "paused";
     if (menu !== "paused") menuName = `${menu}_${playMode}`;
-    let btns = menuButtons[menuName as TMenuName].deepMap((b) => {
-      let e = this.ecs.getEntity(`${b}Button`);
-      if (e.has("NI")) e.removeTag("NI");
-      return e;
-    });
+    let btns = menuButtons[menuName as TMenuName].deepMap(this.getButtonEntity);
     //draw translucent dark rectangle over map
     this.ctx.save();
     this.ctx.globalAlpha = 0.75;
@@ -465,7 +483,14 @@ class RenderMenus extends EntityComponentSystem.System {
     mapWidth: number,
     mapHeight: number
   ) {
-    toolbarBtns = justifyItems(mapX, 0, mapWidth, mapY, toolbarBtns, "spaceEvenly");
+    toolbarBtns = justifyItems(
+      mapX,
+      0,
+      mapWidth,
+      mapY,
+      toolbarBtns,
+      "spaceEvenly"
+    );
     this.drawButtons(toolbarBtns);
   }
 
@@ -519,28 +544,16 @@ class RenderMenus extends EntityComponentSystem.System {
     mapHeight: number,
     saved: boolean
   ) {
-    const toolbarBtns = designMenuButtons.toolbar.deepMap((b) => {
-      let e = this.ecs.getEntity(`${b}Button`);
-      if (e.has("NI")) e.removeTag("NI");
-      return e;
-    });
+    const toolbarBtns = designMenuButtons.toolbar.deepMap(this.getButtonEntity);
     const adminBtns = designMenuButtons.admin
-      .deepMap((b) => {
-        let e = this.ecs.getEntity(`${b}Button`);
-        if (e.has("NI")) e.removeTag("NI");
-        return e;
-      })
+      .deepMap(this.getButtonEntity)
       .filter((e) => {
         if (!saved) return true;
         let visible = !/save/.test(e.id);
-        if (!visible && !e.has("NI")) e.addTag("NI");
+        if (!visible) e.Interactable.enabled = false;
         return visible;
       });
-    const configBtns = designMenuButtons.config.deepMap((b) => {
-      let e = this.ecs.getEntity(`${b}Button`);
-      if (e.has("NI")) e.removeTag("NI");
-      return e;
-    });
+    const configBtns = designMenuButtons.config.deepMap(this.getButtonEntity);
 
     this.renderDesignToolbarMenu(toolbarBtns, mapX, mapY, mapWidth, mapHeight);
     this.renderDesignAdminMenu(adminBtns, mapX, mapY, mapWidth, mapHeight);
@@ -585,11 +598,7 @@ class RenderMenus extends EntityComponentSystem.System {
   }
 
   renderEndOfGameMenu() {
-    let btns = menuButtons.end.deepMap((b) => {
-      let e = this.ecs.getEntity(`${b}Button`);
-      if (e.has("NI")) e.removeTag("NI");
-      return e;
-    });
+    let btns = menuButtons.end.deepMap(this.getButtonEntity);
     let { graphicY, graphicHeight } = this.drawEndOfGameGraphic();
     let textY = graphicY + graphicHeight;
 

@@ -16,7 +16,6 @@ const tagGroups: { [group: string]: string[] } = {
     "testing",
     "end",
   ],
-  interactibility: ["NI"],
   animation: ["anim", "bg"],
   rendering: ["tileSized", "square"]
 };

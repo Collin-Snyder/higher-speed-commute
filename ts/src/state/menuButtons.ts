@@ -333,7 +333,7 @@ export class MenuButtons {
 
       game.ecs.createEntity({
         id: `${button.name}Button`,
-        tags: [...button.tags, "NI"],
+        tags: [...button.tags],
         Button: { name: button.name },
         Clickable: { onClick: button.onClick },
         Coordinates: {},

@@ -20,6 +20,19 @@ export const Text = {
   },
 };
 
+export const Interactable = {
+  properties: {
+    enabled: true,
+    onHover: () => {},
+    onMouseDown: () => {},
+    onMouseUp: () => {},
+    onClick: () => {},
+    onDrag: () => {},
+    onDragStart: () => {},
+    onDragEnd: () => {}
+  }
+}
+
 export const Clickable = {
   properties: {
     onClick: () => {},

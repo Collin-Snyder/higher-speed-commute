@@ -11,6 +11,11 @@ export class InputSystem extends ECS.System {
   public lastMousedown: boolean;
   public startMouseX: number;
   public startMouseY: number;
+  public mx: number;
+  public my: number;
+  public mouseDown: boolean;
+  public dragging: boolean;
+  public focusedEntity: Entity | null;
   static query: { has?: string[]; hasnt?: string[] } = {
     has: ["Car", "Velocity"],
   };
@@ -24,78 +29,105 @@ export class InputSystem extends ECS.System {
     this.lastMousedown = false;
     this.startMouseX = 0;
     this.startMouseY = 0;
+    this.mx = 0;
+    this.my = 0;
+    this.mouseDown = false;
+    this.dragging = false;
+    this.focusedEntity = null;
   }
 
   update(tick: number, entities: Set<Entity>) {
     let { game, inputs } = this.ecs.getEntity("global").Global;
 
-    let mx = inputs.mouseX;
-    let my = inputs.mouseY;
-    let mousedown = inputs.mouseDown;
+    game.UICanvas.style.cursor = "default";
+
+    this.mx = inputs.mouseX;
+    this.my = inputs.mouseY;
+    this.mouseDown = inputs.mouseDown;
+    this.dragging = inputs.dragging;
     let mode = game.mode;
-    let dragging = inputs.dragging;
 
     //handle mouse inputs
-    let clickable = this.ecs.queryEntities({
-      has: ["Clickable", "Coordinates"],
-      hasnt: ["NI"],
+    let interactable = this.ecs.queryEntities({
+      has: ["Interactable"],
     });
-    let cursor = "default";
-    let clicked;
+
+    let dragStarting = this.dragIsStarting();
+    let dragEnding = this.dragIsEnding();
+    let isMouseDownEvent = this.isMouseDownEvent();
+    let isMouseUpEvent = this.isMouseUpEvent();
 
     //check if dragging
     //RIGHT NOW DRAG EVENTS ARE ONLY REGISTERED ON "CLICKABLE" OBJECTS - I think this is the best way?
-    if (
-      !dragging &&
-      mousedown &&
-      this.lastMousedown &&
-      (Math.abs(mx - this.startMouseX) > 5 ||
-        Math.abs(my - this.startMouseY) > 5)
-    ) {
-      inputs.startDrag();
-      game.designModule.startDrawing();
-      dragging = inputs.dragging;
-    }
 
-    for (let e of clickable) {
-      let isMap = e.id === "map";
-      // let width = isMap ? e.MapData.map.pixelWidth : e.Renderable.renderW;
-      // let height = isMap ? e.MapData.map.pixelHeight : e.Renderable.renderH;
+    for (let e of interactable) {
+      if (!e.Interactable.enabled) continue;
 
       let mouseCollision = checkForMouseCollision(
-        mx,
-        my,
+        this.mx,
+        this.my,
         e.Coordinates.X,
         e.Coordinates.Y,
         e.Renderable.renderW,
         e.Renderable.renderH
       );
 
-      if (mouseCollision && !e.has("Disabled")) {
-        cursor = isMap ? game.designModule.mapCursor : "pointer";
+      if (!mouseCollision) continue;
 
-        if (dragging && isMap) clicked = e;
-        else if (!dragging && mousedown && !this.lastMousedown) {
-          clicked = e;
-          this.lastMousedown = mousedown;
-          this.startMouseX = mx;
-          this.startMouseY = my;
-        }
-        break;
+      let {
+        Interactable: {
+          onHover,
+          onMouseDown,
+          onDragStart,
+          onDrag,
+          onClick,
+          onMouseUp,
+          onDragEnd,
+        },
+      } = e;
+
+      onHover();
+
+      if (isMouseDownEvent) {
+        this.focusedEntity = e;
+        onMouseDown();
       }
-    }
-    if (clicked) clicked.Clickable.onClick();
+      if (dragStarting) onDragStart();
+      if (this.dragging) onDrag();
+      if (isMouseUpEvent) {
+        if (e === this.focusedEntity) onClick(); 
+      }
+      if (dragEnding) {
+        onDragEnd();
+      }
 
-    if (!mousedown && this.lastMousedown) {
-      this.lastMousedown = mousedown;
+      break;
+    }
+
+    if (dragStarting) {
+      inputs.startDrag();
+      this.dragging = inputs.dragging;
+    }
+
+    if (isMouseDownEvent) {
+      this.lastMousedown = this.mouseDown;
+      this.startMouseX = this.mx;
+      this.startMouseY = this.my;
+    }
+
+    if (dragEnding) {
+      this.focusedEntity?.Interactable.onDragEnd();
+      inputs.endDrag();
+      this.dragging = inputs.dragging;
+    }
+
+    if (isMouseUpEvent) {
+      this.focusedEntity?.Interactable.onMouseUp();
+      this.focusedEntity = null;
+      this.lastMousedown = this.mouseDown;
       this.startMouseX = 0;
       this.startMouseY = 0;
-      if (dragging) {
-        inputs.endDrag();
-        game.designModule.stopDrawing();
-      }
     }
-    game.UICanvas.style.cursor = cursor;
 
     //handle keypress inputs
     if (mode === "playing" || mode === "paused") {
@@ -107,6 +139,34 @@ export class InputSystem extends ECS.System {
     } else if (mode === "designing") {
       this.handleDesignKeypress(game, inputs);
     }
+  }
+
+  dragIsStarting() {
+    if (
+      !this.dragging &&
+      this.mouseDown &&
+      this.lastMousedown &&
+      (Math.abs(this.mx - this.startMouseX) > 5 ||
+        Math.abs(this.my - this.startMouseY) > 5)
+    )
+      return true;
+
+    return false;
+  }
+
+  dragIsEnding() {
+    if (!this.mouseDown && this.lastMousedown && this.dragging) return true;
+    return false;
+  }
+
+  isMouseDownEvent() {
+    if (this.mouseDown && !this.lastMousedown) return true;
+    return false;
+  }
+
+  isMouseUpEvent() {
+    if (!this.mouseDown && this.lastMousedown) return true;
+    return false;
   }
 
   getPotentialVectors() {
