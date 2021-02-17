@@ -135,8 +135,14 @@ class GameModeMachine {
       },
       onplay: function() {
         let game = <Game>(<unknown>this);
-        game.startRace();
+        // game.ecs.createEntity({
+        //   id: "schoolZone",
+        //   Animation: {
+        //     aStep: -0.05
+        //   }
+        // })
         game.mapView = false;
+        game.startRace();
       },
       onwin: function() {
         let game = <Game>(<unknown>this);

@@ -7,12 +7,14 @@ class RenderGameplayEntities extends EntityComponentSystem.System {
     hasnt: ["Button", "Car", "MapData"],
   };
 
+
   constructor(
     ecs: ECS,
     private ctx: CanvasRenderingContext2D,
     private canvas: HTMLCanvasElement
   ) {
     super(ecs);
+    
   }
 
   update(tick: number, entities: Set<Entity>) {
@@ -38,13 +40,7 @@ class RenderGameplayEntities extends EntityComponentSystem.System {
         if (spriteX === 0 && spriteY === 0) continue;
         if (visible && entity.id !== "countdown") {
           if (entity.Color) {
-            this.drawLightTile(
-              entity.Color.color,
-              X,
-              Y,
-              renderW,
-              renderH
-            );
+            this.drawLightTile(entity.Color.color, X, Y, renderW, renderH);
           }
           this.ctx.drawImage(
             game.spriteSheet,

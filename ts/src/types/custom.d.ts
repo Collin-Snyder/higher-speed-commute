@@ -63,6 +63,7 @@ declare global {
 
   interface Number {
     times: (cb: (currentNum: number) => any, start: number) => void;
+    between: (min: number, max: number, inclusive?: boolean) => boolean;
   }
 
   interface Array<T> {
@@ -73,4 +74,92 @@ declare global {
     X: number;
     Y: number;
   }
+
+  export interface IArcadeMap {
+    squares: ISquare[];
+    squareCount: number;
+    width: number;
+    height: number;
+    playerHome: number;
+    bossHome: number;
+    office: number;
+    lights: { [key: string]: number };
+    coffees: { [key: string]: boolean };
+    pixelWidth: number;
+    pixelHeight: number;
+    name?: string;
+    id?: number;
+    generateTileMap: Function;
+    getSquare: Function;
+    setSquare: Function;
+    findPath: Function;
+  }
+  
+  interface IMapObject {
+    squares: ISquare[];
+    boardWidth: number;
+    boardHeight: number;
+    playerHome: number;
+    bossHome: number;
+    office: number;
+    lights: { [key: string]: number };
+    coffees: { [key: string]: boolean };
+    id: number;
+    name: string;
+  }
+  
+  interface IMiniMapObject {
+    i: number;
+    n: string;
+    h: number;
+    w: number;
+    p: number;
+    b: number;
+    o: number;
+    l: { [key: string]: number };
+    c: number[];
+    s: any[];
+  }
+  
+  interface ISquare {
+    id: number;
+    row: number;
+    column: number;
+    borders: Borders | BordersCompressed;
+    drivable: boolean;
+    schoolZone: boolean;
+    [key: string]: any;
+  }
+  
+  interface ITile {
+    type: Tile | Tile[];
+    a: number;
+    w: number;
+    h: number;
+    deg: number;
+    display: boolean;
+    [key: string]: any;
+  }
+  
+  type Borders = {
+    [key in Direction]: ISquare | null;
+  };
+  
+  type BordersCompressed = {
+    [key in Direction]: number | null;
+  };
+  
+  type Direction = "up" | "down" | "left" | "right";
+  
+  type Tile =
+    | "street"
+    | "tree"
+    | "house"
+    | "playerHome"
+    | "bossHome"
+    | "office"
+    | "schoolZone"
+    | "greenLight"
+    | "coffee"
+    | "";
 }

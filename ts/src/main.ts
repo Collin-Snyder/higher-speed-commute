@@ -50,6 +50,12 @@ Number.prototype.times = function(
   }
 };
 
+Number.prototype.between = function(min: number, max: number, inclusive: boolean = true) {
+  let aboveMin = inclusive ? this >= min : this > min;
+  let belowMax = inclusive ? this <= max : this < max;
+  return aboveMin && belowMax;
+}
+
 Array.prototype.deepMap = function(
   cb: (currentElement: any, i: number, currentArray: Array<any>) => any
 ): Array<any> {
