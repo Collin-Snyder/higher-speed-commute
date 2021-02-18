@@ -3,7 +3,6 @@ import { getCenterPoint, scaleVector, findRotatedVertex } from "gameMath";
 import * as breakpoints from "./modules/breakpoints";
 //@ts-ignore
 import axios from "axios";
-import spriteMap from "./spriteMap";
 import bgMap from "./bgMap";
 import modalButtonMap from "./modalButtonMap";
 import keyCodes from "./keyCodes";
@@ -36,6 +35,8 @@ import {
   createUser,
   getLastCompletedLevel,
 } from "./state/localDb";
+import SpriteMap from "./spriteMapModule";
+import { forEachMapTile } from "./modules/tileDrawer";
 
 Number.prototype.times = function(
   cb: (currentNum: number) => any,
@@ -50,11 +51,15 @@ Number.prototype.times = function(
   }
 };
 
-Number.prototype.between = function(min: number, max: number, inclusive: boolean = true) {
+Number.prototype.between = function(
+  min: number,
+  max: number,
+  inclusive: boolean = true
+) {
   let aboveMin = inclusive ? this >= min : this > min;
   let belowMax = inclusive ? this <= max : this < max;
   return aboveMin && belowMax;
-}
+};
 
 Array.prototype.deepMap = function(
   cb: (currentElement: any, i: number, currentArray: Array<any>) => any
@@ -77,15 +82,6 @@ Array.prototype.deepMap = function(
 //     .then((result) => console.log(result))
 //     .catch((err) => console.error(err));
 // };
-
-interface InputEventsInterface {
-  mouseX: number;
-  mouseY: number;
-  mouseDown: boolean;
-  keyPressMap: { [keyCode: number]: boolean };
-}
-
-export type TBreakpoint = "small" | "regular";
 
 export class Game {
   // GAME TIME //
@@ -110,13 +106,13 @@ export class Game {
   public uictx: CanvasRenderingContext2D;
   private OSMapCanvas: HTMLCanvasElement;
   private osmctx: CanvasRenderingContext2D;
+  private OSMapBackgroundCanvas: HTMLCanvasElement;
+  private osmbgctx: CanvasRenderingContext2D;
   private OSEntCanvas: HTMLCanvasElement;
   private osectx: CanvasRenderingContext2D;
   public spriteSheet: HTMLImageElement;
   public background: HTMLImageElement;
-  public spriteMap: {
-    [entity: string]: { x: number; y: number; w: number; h: number };
-  };
+  public spriteMap: SpriteMap;
   public spriteSheetIsLoaded: boolean;
   public backgroundIsLoaded: boolean;
   public breakpoint: TBreakpoint;
@@ -133,6 +129,8 @@ export class Game {
 
   // USER //
   public lastCompletedLevel: number;
+  public carColor: string;
+  public terrainStyle: TTerrainStyle;
 
   // GAMEPLAY //
   public currentLevel: {
@@ -193,6 +191,14 @@ export class Game {
     // this.sounds = new Sounds(this);
     this.UICanvas = <HTMLCanvasElement>document.getElementById("ui");
     this.uictx = <CanvasRenderingContext2D>this.UICanvas.getContext("2d");
+    this.OSMapBackgroundCanvas = <HTMLCanvasElement>(
+      document.createElement("canvas")
+    );
+    this.OSMapBackgroundCanvas.width = 1000;
+    this.OSMapBackgroundCanvas.height = 625;
+    this.osmbgctx = <CanvasRenderingContext2D>(
+      this.OSMapBackgroundCanvas.getContext("2d")
+    );
     this.OSMapCanvas = <HTMLCanvasElement>(
       document.getElementById("map-offscreen")
     );
@@ -209,7 +215,9 @@ export class Game {
     this.background = new Image();
     this.spriteSheetIsLoaded = false;
     this.backgroundIsLoaded = false;
-    this.spriteMap = spriteMap;
+    this.carColor = "blue";
+    this.terrainStyle = "default";
+    this.spriteMap = new SpriteMap(this);
     this.autopilot = false;
     this.windowWidth = window.innerWidth;
     this.windowHeight = window.innerHeight;
@@ -481,18 +489,9 @@ export class Game {
     this.globalEntity.Global.bgSheet = this.background;
     this.globalEntity.Global.bgMap = bgMap;
 
-    ///// create modal button classes /////
-    let styleEl = document.createElement("style");
-    let styleHTML = "";
+    this.generateModalButtonCSSClasses();
 
-    for (let name in modalButtonMap) {
-      let b = modalButtonMap[name];
-      styleHTML += `.${name}::after {background-position: -${b.x}px -${b.y}px;}\n`;
-    }
-
-    styleEl.innerHTML = styleHTML;
-    document.head.appendChild(styleEl);
-
+    ///// create background entity with parallax layers /////
     this.ecs.createEntity({
       id: "bg",
       ParallaxLayer: [
@@ -525,25 +524,25 @@ export class Game {
         },
       ],
     });
-    this.ecs.addSystem("animations", new BackgroundAnimation(this.ecs));
-    this.ecs.addSystem("render", new RenderBackground(this.ecs, this.uictx));
 
-    // this.globalEntity.Global.spriteSheet = this.spriteSheet;
-    // this.globalEntity.Global.spriteMap = this.spriteMap;
+    ///// initialize map background canvas for given terrain type /////
+    this.updateMapTerrainBackground();
 
-    let playerSpriteCoords = this.spriteMap[
-      `${this.playerEntity.Car.color}Car`
-    ];
+    ///// set driver entity sprite info /////
+    let playerSpriteCoords = this.spriteMap.getPlayerCarSprite();
     this.playerEntity.Renderable.spriteX = playerSpriteCoords.x;
     this.playerEntity.Renderable.spriteY = playerSpriteCoords.y;
 
-    let bossSpriteCoords = this.spriteMap[`${this.bossEntity.Car.color}Car`];
+    let bossSpriteCoords = this.spriteMap.getBossCarSprite();
     this.bossEntity.Renderable.spriteX = bossSpriteCoords.x;
     this.bossEntity.Renderable.spriteY = bossSpriteCoords.y;
 
+    ///// make all button entities /////
     makeButtonEntities(this);
-    // MenuButtons.createEntities(this);
 
+    ///// add all animation/render systems /////
+    this.ecs.addSystem("animations", new BackgroundAnimation(this.ecs));
+    this.ecs.addSystem("render", new RenderBackground(this.ecs, this.uictx));
     this.ecs.addSystem("render", new RenderBorders(this.ecs, this.uictx));
     this.ecs.addSystem("render", new RenderOffscreenMap(this.ecs, this.osmctx));
     this.ecs.addSystem(
@@ -565,7 +564,32 @@ export class Game {
       new RenderTopLevelGraphics(this.ecs, this.uictx)
     );
 
+    ///// all set! /////
     this.publish("ready");
+  }
+
+  generateModalButtonCSSClasses() {
+    let styleEl = document.createElement("style");
+    let styleHTML = "";
+
+    for (let name in modalButtonMap) {
+      let b = modalButtonMap[name];
+      styleHTML += `.${name}::after {background-position: -${b.x}px -${b.y}px;}\n`;
+    }
+
+    styleEl.innerHTML = styleHTML;
+    document.head.appendChild(styleEl);
+  }
+
+  updateMapTerrainBackground() {
+    let sprite1 = <ISprite>this.spriteMap.getSprite("background1");
+    let sprite2 = <ISprite>this.spriteMap.getSprite("background2");
+    let spriteSheet = this.spriteSheet
+
+    forEachMapTile((i, x, y, w, h) => {
+      let sprite = Math.random() < 0.5 ? sprite1 : sprite2;
+      this.osmbgctx.drawImage(spriteSheet, sprite.x, sprite.y, sprite.w, sprite.h, x, y, w, h)
+    })
   }
 
   async loadLevel(
@@ -656,7 +680,7 @@ export class Game {
   }
 
   publish(event: any, ...args: any[]) {
-    console.log(`Publishing ${event}`)
+    console.log(`Publishing ${event}`);
     if (this.subscribers && this.subscribers[event]) {
       const subs = this.subscribers[event];
       let start = 0;
@@ -735,6 +759,11 @@ export class Game {
       hard: 2,
     };
     bossEntity.Velocity.speedConstant = speedConstants[d];
+  }
+
+  setTerrainStyle(style: TTerrainStyle) {
+    this.terrainStyle = style;
+    this.updateMapTerrainBackground();
   }
 
   updateCanvasSize() {

@@ -146,11 +146,11 @@ class GameModeMachine {
         let graphic = game.ecs.getEntity("wonGraphic");
 
         if (!graphic) {
-          let { x, y } = game.spriteMap.wonGraphic;
+          let { x, y } = <ISprite>game.spriteMap.getSprite("wonGraphic");
           graphic = game.ecs.createEntity({
             id: "wonGraphic",
             Coordinates: {},
-            Animation: { startSprite: game.spriteMap.shine, degStep: 1 },
+            Animation: { startSprite: game.spriteMap.getSprite("shine"), degStep: 1 },
             Renderable: {
               spriteX: x,
               spriteY: y,
@@ -195,11 +195,11 @@ class GameModeMachine {
         let graphic = game.ecs.getEntity("crashGraphic");
 
         if (!graphic) {
-          let { x, y } = game.spriteMap.crashGraphic;
+          let { x, y } = <ISprite>game.spriteMap.getSprite("crashGraphic");
           graphic = game.ecs.createEntity({
             id: "crashGraphic",
             Coordinates: {},
-            Animation: { startSprite: game.spriteMap.badShine, degStep: 1 },
+            Animation: { startSprite: game.spriteMap.getSprite("badShine"), degStep: 1 },
             Renderable: {
               spriteX: x,
               spriteY: y,

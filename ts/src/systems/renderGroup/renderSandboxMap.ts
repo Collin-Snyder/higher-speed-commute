@@ -82,7 +82,7 @@ class RenderSandboxMap extends EntityComponentSystem.System {
       ) => {
         if (type !== "greenLight" && type !== "coffee") return;
         let sprite =
-          type === "greenLight" ? spriteMap.designLight : spriteMap.coffee;
+          type === "greenLight" ? spriteMap.getSprite("designLight") : spriteMap.getSprite("coffee");
         this.ctx.drawImage(
           spriteSheet,
           sprite.x,

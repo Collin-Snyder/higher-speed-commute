@@ -301,11 +301,11 @@ export const designMenuButtons = {
 function makeButtonEntities(game: Game) {
   for (let name in buttons) {
     let button = buttons[name];
-    let sprite = game.spriteMap[`${button.color ?? button.name}Button`];
+    let sprite = game.spriteMap.getSprite(`${button.color ?? button.name}Button`);
     let textSprite;
 
     if (button.hasText) {
-      textSprite = game.spriteMap[`${button.name}ButtonText`];
+      textSprite = game.spriteMap.getSprite(`${button.name}ButtonText`);
     }
 
     let square = false;

@@ -1,5 +1,4 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
-import { TBreakpoint } from "../main";
 import { centerWithin } from "gameMath";
 import { SandboxMap } from "../state/map";
 

@@ -274,7 +274,7 @@ export class ArcadeMap implements IArcadeMap {
           // @ts-ignore
           if (Math.random() <= 0.07) type = "tree1";
           // @ts-ignore
-          else type = "tree" + Math.round(Math.random() * 1 + 2);
+          else type = "tree" + Math.round(Math.random() + 2);
         }
         else if (
           Math.random() < 0.3 &&
@@ -282,11 +282,16 @@ export class ArcadeMap implements IArcadeMap {
           s.borders.down?.drivable
         ) {
           type = "house";
+        } else if (Math.random() < 0.7) {
+          //@ts-ignore
+          if (Math.random() < 0.8) type = "smallObj" + Math.round(Math.random() * 3 + 1);
+          //@ts-ignore
+          else type = "medObj" + Math.round(Math.random() + 1);
         }
-        else {
-          // @ts-ignore
-          type = "grass" + Math.round(Math.random() * 7 + 1);
-        }
+        // else {
+        //   // @ts-ignore
+        //   type = "grass" + Math.round(Math.random() * 7 + 1);
+        // }
       }
 
       return {

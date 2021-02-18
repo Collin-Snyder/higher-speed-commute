@@ -40,13 +40,20 @@ class RenderOffscreenMap extends EntityComponentSystem.System {
       TileData: { tiles },
       MapData: { map },
       Renderable,
+      Coordinates,
     } = mapEntity;
 
     if (mode === "levelStartAnimation" || mode === "won" || mode === "lost") {
       this.ctx.save();
       this.ctx.globalAlpha = Renderable.alpha;
-      this.ctx.fillStyle = Renderable.bgColor;
-      this.ctx.fillRect(0, 0, map.pixelWidth, map.pixelHeight);
+      // this.ctx.fillStyle = Renderable.bgColor;
+      // this.ctx.fillRect(0, 0, map.pixelWidth, map.pixelHeight);
+      this.ctx.drawImage(
+        game.OSMapBackgroundCanvas,
+        0,
+        0
+      );
+
       drawTileMap(
         tiles,
         map.width,
@@ -60,7 +67,8 @@ class RenderOffscreenMap extends EntityComponentSystem.System {
           deg: number
         ) => {
           // if (type === "schoolZone") type = "street";
-          let sprite = game.spriteMap[type];
+          let sprite = game.spriteMap.getSprite(type);
+          if (sprite === null) debugger;
           let hasAlpha = a < 1;
           let hasRotation = deg !== 0;
           if (hasAlpha || hasRotation) this.ctx.save();
@@ -105,7 +113,7 @@ class RenderOffscreenMap extends EntityComponentSystem.System {
         deg: number
       ) => {
         if (type !== "schoolZone") return;
-        let sprite = game.spriteMap.schoolZone;
+        let sprite = <ISprite>game.spriteMap.getSprite("schoolZone");
         this.ctx.drawImage(
           game.spriteSheet,
           sprite.x,

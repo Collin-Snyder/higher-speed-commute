@@ -89,6 +89,7 @@ export class MapSystem extends EntityComponentSystem.System {
       const { X, Y } = square ? square.coordinates : { X: 0, Y: 0 };
       const rw = 25;
       const rh = 25;
+      let sprite = spriteMap.getSprite("greenLight");
 
       let ent = this.ecs.createEntity({
         id: `light${id}`,
@@ -103,8 +104,8 @@ export class MapSystem extends EntityComponentSystem.System {
         },
         Color: {},
         Renderable: {
-          spriteX: spriteMap.greenLight.x,
-          spriteY: spriteMap.greenLight.y,
+          spriteX: sprite.x,
+          spriteY: sprite.y,
           renderW: rw,
           renderH: rh,
           visible: false,
@@ -145,6 +146,7 @@ export class MapSystem extends EntityComponentSystem.System {
       const { X, Y } = square ? square.coordinates : { X: 0, Y: 0 };
       const rw = 12;
       const rh = 12;
+      let sprite = spriteMap.getSprite("coffee");
       let ent = this.ecs.createEntity({
         id: `coffee${id}`,
         Coordinates: {
@@ -152,8 +154,8 @@ export class MapSystem extends EntityComponentSystem.System {
           Y,
         },
         Renderable: {
-          spriteX: spriteMap.coffee.x,
-          spriteY: spriteMap.coffee.y,
+          spriteX: sprite.x,
+          spriteY: sprite.y,
           renderW: rw,
           renderH: rh,
           visible: false,

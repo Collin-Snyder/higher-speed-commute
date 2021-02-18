@@ -2,6 +2,7 @@ import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { Game } from "../../main";
 import { menuButtons, designMenuButtons } from "../../state/buttonFactory";
 import { centerWithin, alignItems, justifyItems } from "gameMath";
+import SpriteMap from "../../spriteMapModule";
 
 class RenderMenus extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -15,6 +16,7 @@ class RenderMenus extends EntityComponentSystem.System {
   private menuTags: { [key: string]: Array<string> };
   private modeNames: string[];
   private global: Entity;
+  private _game: Game;
   private menuText: { [key: string]: string };
   private menuFont: FontFace;
   private fontReady: boolean;
@@ -23,6 +25,7 @@ class RenderMenus extends EntityComponentSystem.System {
     super(ecs);
     this.ctx = ctx;
     this.global = this.ecs.getEntity("global");
+    this._game = this.global.Global.game;
     let { spriteSheet, spriteMap } = this.global.Global.game;
     this.spriteSheet = spriteSheet;
     this.spriteMap = spriteMap;
@@ -62,8 +65,8 @@ class RenderMenus extends EntityComponentSystem.System {
 
   update(tick: number, entities: Set<Entity>) {
     let global = this.ecs.getEntity("global").Global;
-    let game = <Game>global.game;
-    let { mode, playMode } = game;
+    this._game = <Game>global.game;
+    let { mode, playMode} = this._game;
 
     //calculate coordinates for buttons using button spacing logic and current state/size of game
     if (!this.modeNames.includes(mode)) return;
@@ -93,7 +96,7 @@ class RenderMenus extends EntityComponentSystem.System {
         this.renderGameplayMenu(mode, playMode, X, Y, renderW, renderH);
         return;
       case "designing":
-        let { saved } = game.designModule;
+        let { saved } = this._game.designModule;
         this.renderDesignMenus(
           borderX,
           borderY,
@@ -201,7 +204,7 @@ class RenderMenus extends EntityComponentSystem.System {
   }
 
   drawTitle() {
-    let sprite = this.spriteMap.title;
+    let sprite = <ISprite>this._game.spriteMap.getSprite("title");
     let renderH = window.innerHeight / 4;
     let renderW = renderH * (sprite.w / sprite.h);
 
@@ -373,7 +376,7 @@ class RenderMenus extends EntityComponentSystem.System {
     mapH: number
   ) {
     let hasShine = menu === "won" || menu === "crash";
-    let sprite = this.spriteMap[`${menu}Graphic`];
+    let sprite = <ISprite>this._game.spriteMap.getSprite(`${menu}Graphic`);
     let heightToWidthRatio = sprite.h / sprite.w;
     let graphicH, graphicW;
 
@@ -575,7 +578,7 @@ class RenderMenus extends EntityComponentSystem.System {
   }
 
   drawEndOfGameGraphic() {
-    let sprite = this.spriteMap.endGraphic;
+    let sprite = <ISprite>this._game.spriteMap.getSprite("endGraphic");
     let renderH = window.innerHeight / 3;
     let renderW = renderH;
 

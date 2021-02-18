@@ -41,6 +41,26 @@ declare global {
     | "end";
   type TDesignMenuName = "toolbar" | "admin" | "config";
   type TPlayMode = "arcade" | "custom" | "testing" | "";
+  type Borders = {
+    [key in Direction]: ISquare | null;
+  };
+  type BordersCompressed = {
+    [key in Direction]: number | null;
+  };
+  type Direction = "up" | "down" | "left" | "right";
+  type Tile =
+    | "street"
+    | "tree"
+    | "house"
+    | "playerHome"
+    | "bossHome"
+    | "office"
+    | "schoolZone"
+    | "greenLight"
+    | "coffee"
+    | "";
+  type TTerrainStyle = "default" | "desert" | "snow" | "underwater";
+  type TBreakpoint = "small" | "regular";
 
   // game math //
   type TEntityArrayItem = Entity | Array<Entity>;
@@ -141,25 +161,11 @@ declare global {
     [key: string]: any;
   }
   
-  type Borders = {
-    [key in Direction]: ISquare | null;
-  };
+  interface ISprite {
+    x: number,
+    y: number,
+    w: number,
+    h: number
+  }
   
-  type BordersCompressed = {
-    [key in Direction]: number | null;
-  };
-  
-  type Direction = "up" | "down" | "left" | "right";
-  
-  type Tile =
-    | "street"
-    | "tree"
-    | "house"
-    | "playerHome"
-    | "bossHome"
-    | "office"
-    | "schoolZone"
-    | "greenLight"
-    | "coffee"
-    | "";
 }

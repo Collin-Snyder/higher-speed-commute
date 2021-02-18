@@ -209,7 +209,7 @@ export class LevelStartAnimation extends StateAnimation {
       this.countdownNum = 1;
       this.countdownAlpha = 1;
       let cd = this.ecs.getEntity("countdown");
-      let sprite = spriteMap.countdown1;
+      let sprite = spriteMap.getSprite("countdown1");
       for (let bp of cd.Breakpoint) {
         if (bp.name === "small") bp.width = (sprite.w * small.countdownSize) / sprite.h;
         else if (bp.name === "regular") bp.width = (sprite.w * regular.countdownSize) / sprite.h;
@@ -224,7 +224,7 @@ export class LevelStartAnimation extends StateAnimation {
       this.countdownNum = 2;
       this.countdownAlpha = 1;
       let cd = this.ecs.getEntity("countdown");
-      let sprite = spriteMap.countdown2;
+      let sprite = spriteMap.getSprite("countdown2");
       for (let bp of cd.Breakpoint) {
         if (bp.name === "small") bp.width = (sprite.w * small.countdownSize) / sprite.h;
         else if (bp.name === "regular") bp.width = (sprite.w * regular.countdownSize) / sprite.h;
@@ -238,7 +238,7 @@ export class LevelStartAnimation extends StateAnimation {
     } else if (this.currentTimeRemaining === 3000) {
       this.countdownNum = 3;
       this.countdownAlpha = 1;
-      let sprite = spriteMap[`countdown${this.countdownNum}`];
+      let sprite = spriteMap.getSprite(`countdown${this.countdownNum}`);
       this.ecs
         .createEntity({
           id: "countdown",
