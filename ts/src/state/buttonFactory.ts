@@ -368,7 +368,7 @@ function makeButtonEntities(game: Game) {
     id: "buttonSelector",
     Renderable: {},
     Coordinates: {},
-    Selector: {gap: 11},
+    Selector: {gap: 15},
   });
 }
 

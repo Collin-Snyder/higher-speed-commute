@@ -1,6 +1,7 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { Game } from "../../main";
 import { centerWithin, degreesToRadians } from "gameMath";
+import { capitalize } from "../../modules/gameHelpers";
 const { abs } = Math;
 
 class RenderTopLevelGraphics extends EntityComponentSystem.System {
@@ -61,15 +62,21 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
         Coordinates,
       } = entity;
 
+      if (this._game.breakpoint === "small") gap = 12
+
       let selectorWidth = focusEntity.Renderable.renderW + gap * 2;
       let selectorHeight = focusEntity.Renderable.renderH + gap * 2;
       let buttonX = focusEntity.Coordinates.X;
       let buttonY = focusEntity.Coordinates.Y;
 
-      let sprite = <ISprite>this._game.spriteMap.getSprite(`${style}Selector`);
+      let sprite = <ISprite>(
+        this._game.spriteMap.getSprite(
+          `${style}Selector${capitalize(this._game.breakpoint)}`
+        )
+      );
 
-      Renderable.renderW = selectorWidth / 3;
-      Renderable.renderH = selectorHeight / 3;
+      Renderable.renderW = sprite.w;
+      Renderable.renderH = sprite.h;
 
       Coordinates.X += (buttonX - gap - Coordinates.X) * (1 / 4);
       Coordinates.Y += (buttonY - gap - Coordinates.Y) * (1 / 4);
@@ -99,8 +106,8 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
 
       for (let corner of corners) {
         this.ctx.save();
-        let transX = corner.x + Renderable.renderW / 2;
-        let transY = corner.y + Renderable.renderH / 2;
+        let transX = Math.floor(corner.x + Renderable.renderW / 2);
+        let transY = Math.floor(corner.y + Renderable.renderH / 2);
 
         this.ctx.translate(transX, transY);
         this.ctx.rotate(degreesToRadians(corner.deg));
@@ -112,10 +119,10 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
           sprite.y,
           sprite.w,
           sprite.h,
-          Math.round(corner.x),
-          Math.round(corner.y),
-          Math.round(Renderable.renderW),
-          Math.round(Renderable.renderH)
+          Math.floor(corner.x),
+          Math.floor(corner.y),
+          Math.floor(Renderable.renderW),
+          Math.floor(Renderable.renderH)
         );
         this.ctx.restore();
       }
