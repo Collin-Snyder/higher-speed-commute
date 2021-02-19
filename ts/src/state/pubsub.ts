@@ -484,6 +484,11 @@ class GameModeMachine {
           game.currentRace?.logRedLight(light);
         }
       },
+      onFocusSelector: function(selectorName: string, focusEntity: Entity) {
+        let game = <Game>(<unknown>this);
+        let selector = game.ecs.getEntity(`${selectorName}Selector`);
+        selector.Selector.focusEntity = focusEntity;
+      }
     };
     this.events = [
       { name: "ready", from: "init", to: "menu" },
@@ -614,6 +619,13 @@ class GameModeMachine {
           gmm.customActions.onResetMap();
         },
       },
+      {
+        name: "focusSelector",
+        action: function(selectorName: string, focusEntity: Entity) {
+          let gmm = <GameModeMachine>(<unknown>this);
+          gmm.customActions.onFocusSelector(selectorName, focusEntity);
+        }
+      }
     ];
     for (let event of this.customEvents) {
       event.action = event.action.bind(this);

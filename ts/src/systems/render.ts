@@ -6,7 +6,6 @@ import RenderGameplayEntities from "./renderGroup/renderGameplayEntities";
 import RenderSandboxMap from "./renderGroup/renderSandboxMap";
 import RenderViewBox from "./renderGroup/renderViewBox";
 import RenderMenus from "./renderGroup/renderMenus";
-import RenderButtonModifiers from "./renderGroup/renderButtonModifiers";
 import RenderTopLevelGraphics from "./renderGroup/renderTopLevelGraphics";
 
 export default {
@@ -17,6 +16,5 @@ export default {
   RenderSandboxMap,
   RenderViewBox,
   RenderMenus,
-  RenderButtonModifiers,
   RenderTopLevelGraphics,
 };

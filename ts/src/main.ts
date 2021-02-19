@@ -482,7 +482,6 @@ export class Game {
       RenderSandboxMap,
       RenderViewBox,
       RenderMenus,
-      RenderButtonModifiers,
       RenderTopLevelGraphics,
       RenderBorders,
     } = RenderGroup;
@@ -557,11 +556,7 @@ export class Game {
     this.ecs.addSystem("render", new RenderMenus(this.ecs, this.uictx));
     this.ecs.addSystem(
       "render",
-      new RenderButtonModifiers(this.ecs, this.uictx)
-    );
-    this.ecs.addSystem(
-      "render",
-      new RenderTopLevelGraphics(this.ecs, this.uictx)
+      new RenderTopLevelGraphics(this, this.ecs, this.uictx)
     );
 
     ///// all set! /////

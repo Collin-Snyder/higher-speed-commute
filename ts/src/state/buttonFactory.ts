@@ -301,7 +301,9 @@ export const designMenuButtons = {
 function makeButtonEntities(game: Game) {
   for (let name in buttons) {
     let button = buttons[name];
-    let sprite = game.spriteMap.getSprite(`${button.color ?? button.name}Button`);
+    let sprite = game.spriteMap.getSprite(
+      `${button.color ?? button.name}Button`
+    );
     let textSprite;
 
     if (button.hasText) {
@@ -339,9 +341,9 @@ function makeButtonEntities(game: Game) {
       ],
     });
 
-    entity.Interactable.onHover = function(game: Game){
+    entity.Interactable.onHover = function(game: Game) {
       game.UICanvas.style.cursor = "pointer";
-    }.bind(entity, game)
+    }.bind(entity, game);
     entity.Interactable.onMouseDown = function(btnEntity: Entity) {
       btnEntity.Button.depressed = true;
     }.bind(entity, entity);
@@ -362,6 +364,12 @@ function makeButtonEntities(game: Game) {
       });
     }
   }
+  game.ecs.createEntity({
+    id: "buttonSelector",
+    Renderable: {},
+    Coordinates: {},
+    Selector: {gap: 11},
+  });
 }
 
 export default makeButtonEntities;

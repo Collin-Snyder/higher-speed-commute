@@ -33,6 +33,14 @@ export const Interactable = {
   }
 }
 
+export const Selector = {
+  properties: {
+    style: "default",
+    focusEntity: null,
+    gap: 0
+  }
+}
+
 export const Clickable = {
   properties: {
     onClick: () => {},

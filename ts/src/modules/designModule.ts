@@ -53,6 +53,7 @@ class DesignModule {
   setDesignTool(tool: Tool) {
     this.selectedTool = tool;
     this.mapCursor = tool ? "cell" : "default";
+    this._game.publish("focusSelector", "button", this._game.ecs.getEntity(`${tool}Button`))
   }
 
   editDesign() {

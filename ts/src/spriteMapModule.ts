@@ -50,6 +50,7 @@ class SpriteMap {
       countdown1: { x: 452, y: 527, w: 22, h: 71 },
       /// DESIGN ENTITIES ///
       designLight: { x: 416, y: 124, w: 25, h: 25 },
+      defaultSelector: {x: 497, y: 124, w: 25, h: 25},
       /// DESIGN BUTTONS ///
       playerHomeButton: { x: 308, y: 373, w: 75, h: 75 },
       bossHomeButton: { x: 385, y: 373, w: 75, h: 75 },
