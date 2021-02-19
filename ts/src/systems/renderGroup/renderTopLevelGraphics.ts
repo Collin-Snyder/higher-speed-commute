@@ -94,7 +94,7 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
         y: DR.y,
         deg: 270,
       };
-      
+
       let corners = [UL, UR, DR, DL];
 
       for (let corner of corners) {
@@ -112,10 +112,10 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
           sprite.y,
           sprite.w,
           sprite.h,
-          corner.x,
-          corner.y,
-          Renderable.renderW,
-          Renderable.renderH
+          Math.round(corner.x),
+          Math.round(corner.y),
+          Math.round(Renderable.renderW),
+          Math.round(Renderable.renderH)
         );
         this.ctx.restore();
       }
