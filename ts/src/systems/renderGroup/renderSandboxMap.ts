@@ -5,7 +5,7 @@ import { Tile } from "../../state/map";
 
 class RenderSandboxMap extends EntityComponentSystem.System {
   private tileColors: { [type: string]: string };
-  constructor(ecs: ECS, private ctx: CanvasRenderingContext2D) {
+  constructor(private _game: Game, ecs: ECS, private ctx: CanvasRenderingContext2D) {
     super(ecs);
     this.tileColors = {
       street: "#1e1e1e",
@@ -17,8 +17,7 @@ class RenderSandboxMap extends EntityComponentSystem.System {
   }
 
   update(tick: number, entities: Set<Entity>) {
-    let { game } = this.ecs.getEntity("global").Global;
-    let { mode, designModule, spriteSheet, spriteMap } = game;
+    let { mode, designModule, spriteSheet, spriteMap } = this._game;
     if (this.changes.length > 0) console.log(this.changes);
 
     if (mode !== "designing") return;
@@ -82,7 +81,7 @@ class RenderSandboxMap extends EntityComponentSystem.System {
       ) => {
         if (type !== "greenLight" && type !== "coffee") return;
         let sprite =
-          type === "greenLight" ? spriteMap.getSprite("designLight") : spriteMap.getSprite("coffee");
+          type === "greenLight" ? <ISprite>spriteMap.getSprite("designLight") : <ISprite>spriteMap.getSprite("coffee");
         this.ctx.drawImage(
           spriteSheet,
           sprite.x,

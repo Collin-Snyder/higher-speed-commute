@@ -7,19 +7,18 @@ class RenderGameplayEntities extends EntityComponentSystem.System {
     hasnt: ["Button", "Car", "MapData"],
   };
 
-
   constructor(
+    private _game: Game,
     ecs: ECS,
     private ctx: CanvasRenderingContext2D,
     private canvas: HTMLCanvasElement
   ) {
     super(ecs);
-    
+
   }
 
   update(tick: number, entities: Set<Entity>) {
-    let { game } = this.ecs.getEntity("global").Global;
-    const mode = game.mode;
+    const mode = this._game.mode;
 
     if (mode === "playing" || mode === "levelStartAnimation") {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -43,7 +42,7 @@ class RenderGameplayEntities extends EntityComponentSystem.System {
             this.drawLightTile(entity.Color.color, X, Y, renderW, renderH);
           }
           this.ctx.drawImage(
-            game.spriteSheet,
+            this._game.spriteSheet,
             spriteX,
             spriteY,
             spriteW,

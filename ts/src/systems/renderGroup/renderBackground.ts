@@ -3,20 +3,20 @@ import { Game } from "../../main";
 
 class RenderBackground extends EntityComponentSystem.System {
   private ctx: CanvasRenderingContext2D;
-  constructor(ecs: ECS, ctx: CanvasRenderingContext2D) {
+
+  constructor(private _game: Game, ecs: ECS, ctx: CanvasRenderingContext2D) {
     super(ecs);
     this.ctx = ctx;
   }
   update(tick: number, entities: Set<Entity>) {
-    let { game } = this.ecs.getEntity("global").Global;
     let layers = this.ecs.getEntity("bg").ParallaxLayer;
 
     this.ctx.fillStyle = "#b8d5ff";
     this.ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
-    if (game.backgroundIsLoaded) {
+    if (this._game.backgroundIsLoaded) {
       for (let layer of layers) {
-        this.drawLayer(game.background, layer);
+        this.drawLayer(this._game.background, layer);
       }
     }
   }

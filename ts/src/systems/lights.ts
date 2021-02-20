@@ -1,20 +1,19 @@
 import ECS, { Entity, BaseComponent } from "@fritzy/ecs";
+import {Game} from "../main";
 
-interface StateInterface {
+interface ILightState {
   on: { [action: string]: string };
   [prop: string]: any;
 }
 
-type Color = "green" | "yellow" | "red";
-
-export class LightTimer extends ECS.System {
-  public states: { [state: string]: StateInterface };
+export class LightTimerSystem extends ECS.System {
+  public states: { [state: string]: ILightState };
   static query: { has?: string[]; hasnt?: string[] } = {
     has: ["Color", "Timer"],
   };
   public global: BaseComponent;
 
-  constructor(ecs: any, private step: number) {
+  constructor(private _game: Game, ecs: any, private step: number) {
     super(ecs);
     this.global = ecs.getEntity("global").Global;
     this.states = {
@@ -47,7 +46,7 @@ export class LightTimer extends ECS.System {
 
   transition(lightEntity: any, action: string): void {
     let { Color, Timer, Renderable } = lightEntity;
-    let nextColor = <Color>this.states[Color.color].on[action];
+    let nextColor = <TLightColor>this.states[Color.color].on[action];
     let sprite = this.ecs
       .getEntity("global")
       .Global.game.spriteMap.getSprite(`${nextColor}Light`);

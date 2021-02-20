@@ -19,11 +19,6 @@ export type Mode =
   | "designing"
   | "end";
 
-interface StateInterface {
-  on: { [action: string]: string };
-  [prop: string]: any;
-}
-
 interface EventInterface {
   name: string;
   from: Mode | Mode[];
@@ -31,63 +26,23 @@ interface EventInterface {
   [key: string]: any;
 }
 
-class GameModeMachine {
-  private states: { [state: string]: StateInterface };
-  public defaultActions: { [name: string]: Function };
-  public customActions: { [name: string]: Function };
-  public events: EventInterface[];
-  public customEvents: { name: string; action: Function }[];
+class PubSub {
+  public baseEventHandlers: { [name: string]: Function };
+  public nonBaseEventHandlers: { [name: string]: Function };
+  public baseEvents: EventInterface[];
+  public nonBaseEvents: { name: string; action: Function }[];
   public current: Mode;
 
   constructor(initial: Mode) {
     this.current = initial;
-    this.states = {
-      init: {
-        on: {
-          LOAD: "menu",
-        },
-      },
-      menu: {
-        on: {
-          PLAY: "playing",
-          DESIGN: "design",
-        },
-      },
-      playing: {
-        on: {
-          PAUSE: "paused",
-          QUIT: "menu",
-          WIN: "gameOver",
-          LOSE: "gameOver",
-        },
-      },
-      paused: {
-        on: {
-          RESUME: "playing",
-          QUIT: "menu",
-        },
-      },
-      gameOver: {
-        on: {
-          QUIT: "menu",
-          REPLAY: "playing",
-        },
-      },
-      design: {
-        on: {
-          TEST: "playing",
-          QUIT: "menu",
-        },
-      },
-    };
     //all actions are this-bound to the game instance in main.ts
-    this.defaultActions = {
+    this.baseEventHandlers = {
       validate: function() {
         let game = <Game>(<unknown>this);
         let [event, from] = [...arguments].slice(0, 2);
         let current = game.mode;
 
-        return GameModeMachine.validateTransition(from, current, event);
+        return PubSub.validateTransition(from, current, event);
       },
       onmenu: function() {
         let game = <Game>(<unknown>this);
@@ -385,7 +340,7 @@ class GameModeMachine {
         Renderable.visible = false;
       },
     };
-    this.customActions = {
+    this.nonBaseEventHandlers = {
       onRaceFinished: function(outcome: "won" | "lost" | "crash") {
         let game = <Game>(<unknown>this);
 
@@ -490,7 +445,7 @@ class GameModeMachine {
         selector.Selector.focusEntity = focusEntity;
       }
     };
-    this.events = [
+    this.baseEvents = [
       { name: "ready", from: "init", to: "menu" },
       {
         name: "start",
@@ -534,100 +489,100 @@ class GameModeMachine {
       // { name: "leaveMenu", from: "menu", to: ["starting", "designing"] },
       { name: "endOfGame", from: "won", to: "end" },
     ];
-    this.customEvents = [
+    this.nonBaseEvents = [
       {
         name: "raceFinished",
         action: function(outcome: "won" | "lost" | "crash") {
-          let gmm = <GameModeMachine>(<unknown>this);
-          gmm.customActions.onRaceFinished(outcome);
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onRaceFinished(outcome);
         },
       },
       {
         name: "nextLevel",
         action: function() {
-          let gmm = <GameModeMachine>(<unknown>this);
-          gmm.customActions.onNextLevel();
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onNextLevel();
         },
       },
       {
         name: "saveProgress",
         action: function() {
-          let gmm = <GameModeMachine>(<unknown>this);
-          gmm.customActions.onSaveProgress();
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onSaveProgress();
         },
       },
       {
         name: "redLight",
         action: function(driver: Entity, light: Entity) {
-          let gmm = <GameModeMachine>(<unknown>this);
-          gmm.customActions.onRedLight(driver, light);
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onRedLight(driver, light);
         },
       },
       {
         name: "caffeinate",
         action: function(driver: Entity, coffee: Entity) {
-          let gmm = <GameModeMachine>(<unknown>this);
-          gmm.customActions.onCaffeinate(driver, coffee);
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onCaffeinate(driver, coffee);
         },
       },
       {
         name: "setDesignTool",
         action: function(tool: Tool) {
-          let gmm = <GameModeMachine>(<unknown>this);
-          gmm.customActions.onSetDesignTool(tool);
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onSetDesignTool(tool);
         },
       },
       {
         name: "save",
         action: function() {
-          let gmm = <GameModeMachine>(<unknown>this);
-          gmm.customActions.onSave();
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onSave();
         },
       },
       {
         name: "saveAs",
         action: function() {
-          let gmm = <GameModeMachine>(<unknown>this);
-          gmm.customActions.onSaveAs();
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onSaveAs();
         },
       },
       {
         name: "loadSaved",
         action: function() {
-          let gmm = <GameModeMachine>(<unknown>this);
-          gmm.customActions.onLoadSaved();
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onLoadSaved();
         },
       },
       {
         name: "undo",
         action: function() {
-          let gmm = <GameModeMachine>(<unknown>this);
-          gmm.customActions.onUndo();
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onUndo();
         },
       },
       {
         name: "redo",
         action: function() {
-          let gmm = <GameModeMachine>(<unknown>this);
-          gmm.customActions.onRedo();
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onRedo();
         },
       },
       {
         name: "resetMap",
         action: function() {
-          let gmm = <GameModeMachine>(<unknown>this);
-          gmm.customActions.onResetMap();
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onResetMap();
         },
       },
       {
         name: "focusSelector",
         action: function(selectorName: string, focusEntity: Entity) {
-          let gmm = <GameModeMachine>(<unknown>this);
-          gmm.customActions.onFocusSelector(selectorName, focusEntity);
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onFocusSelector(selectorName, focusEntity);
         }
       }
     ];
-    for (let event of this.customEvents) {
+    for (let event of this.nonBaseEvents) {
       event.action = event.action.bind(this);
     }
   }
@@ -649,4 +604,4 @@ class GameModeMachine {
   }
 }
 
-export default GameModeMachine;
+export default PubSub;

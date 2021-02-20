@@ -8,7 +8,7 @@ class RenderBorders extends EntityComponentSystem.System {
   private ctx: CanvasRenderingContext2D;
   private canvases: { [entityId: string]: HTMLCanvasElement };
 
-  constructor(ecs: ECS, ctx: CanvasRenderingContext2D) {
+  constructor(private _game: Game, ecs: ECS, ctx: CanvasRenderingContext2D) {
     super(ecs);
     this.ctx = ctx;
     this.canvases = {};

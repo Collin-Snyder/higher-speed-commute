@@ -1,6 +1,7 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { centerWithin } from "gameMath";
 import { SandboxMap } from "../state/map";
+import {Game} from "../main";
 
 export class BreakpointSystem extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -12,7 +13,7 @@ export class BreakpointSystem extends EntityComponentSystem.System {
   public prevBP: TBreakpoint | "";
   public prevGroupSize: number;
 
-  constructor(ecs: ECS) {
+  constructor(private _game: Game, ecs: ECS) {
     super(ecs);
     this.bpData = {};
     this.bp = "regular";
@@ -20,7 +21,7 @@ export class BreakpointSystem extends EntityComponentSystem.System {
     this.prevGroupSize = 0;
   }
   update(tick: number, entities: Set<Entity>) {
-    this.bp = this.ecs.getEntity("global").Global.game.breakpoint;
+    this.bp = this._game.breakpoint;
 
     for (let entity of entities) {
       let { Breakpoint, Renderable } = entity;
@@ -75,7 +76,7 @@ export class BreakpointSystem extends EntityComponentSystem.System {
 
   handleMapBreakpoint(mapEntity: Entity) {
     let {
-      Renderable: { renderW, renderH, visible },
+      Renderable: { renderW, renderH },
       TileData,
       Border,
       Coordinates,

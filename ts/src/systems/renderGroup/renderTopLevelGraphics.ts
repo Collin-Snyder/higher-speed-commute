@@ -9,16 +9,13 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
     has: ["Coordinates", "Renderable", "anim"],
   };
   private ctx: CanvasRenderingContext2D;
-  private _game: Game;
 
-  constructor(game: Game, ecs: ECS, ctx: CanvasRenderingContext2D) {
+  constructor(private _game: Game, ecs: ECS, ctx: CanvasRenderingContext2D) {
     super(ecs);
     this.ctx = ctx;
-    this._game = game;
   }
 
   update(tick: number, entities: Set<Entity>) {
-    let { game } = this.ecs.getEntity("global").Global;
     //will render countdown numbers
     for (let entity of entities) {
       let { x, y } = centerWithin(
@@ -35,7 +32,7 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
       this.ctx.save();
       this.ctx.globalAlpha = entity.Renderable.alpha;
       this.ctx.drawImage(
-        game.spriteSheet,
+        this._game.spriteSheet,
         entity.Renderable.spriteX,
         entity.Renderable.spriteY,
         entity.Renderable.spriteW,
@@ -47,7 +44,7 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
       );
       this.ctx.restore();
     }
-    if (game.mode === "designing") this.renderSelectors();
+    if (this._game.mode === "designing") this.renderSelectors();
   }
 
   renderSelectors() {

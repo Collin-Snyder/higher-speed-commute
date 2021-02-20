@@ -6,7 +6,6 @@ import { checkForMouseCollision, normalize } from "gameMath";
 export class InputSystem extends ECS.System {
   public keyPressMap: { [key: string]: boolean };
   public global: BaseComponent;
-  public inputs: InputEvents;
   public lastKeyDowns: Map<string, boolean>;
   public lastMousedown: boolean;
   public startMouseX: number;
@@ -20,11 +19,10 @@ export class InputSystem extends ECS.System {
     has: ["Car", "Velocity"],
   };
 
-  constructor(ecs: any) {
+  constructor(private _game: Game, ecs: any) {
     super(ecs);
     this.global = this.ecs.getEntity("global")["Global"];
-    this.inputs = this.global.inputs;
-    this.keyPressMap = this.inputs.keyPressMap;
+    this.keyPressMap = this.global.inputs.keyPressMap;
     this.lastKeyDowns = new Map();
     this.lastMousedown = false;
     this.startMouseX = 0;
@@ -37,15 +35,16 @@ export class InputSystem extends ECS.System {
   }
 
   update(tick: number, entities: Set<Entity>) {
-    let { game, inputs } = this.ecs.getEntity("global").Global;
+    let { inputs } = this.global;
+    let { mouseX, mouseY, mouseDown, dragging } = inputs;
 
-    game.UICanvas.style.cursor = "default";
+    this._game.UICanvas.style.cursor = "default";
 
-    this.mx = inputs.mouseX;
-    this.my = inputs.mouseY;
-    this.mouseDown = inputs.mouseDown;
-    this.dragging = inputs.dragging;
-    let mode = game.mode;
+    this.mx = mouseX;
+    this.my = mouseY;
+    this.mouseDown = mouseDown;
+    this.dragging = dragging;
+    let mode = this._game.mode;
 
     //handle mouse inputs
     let interactable = this.ecs.queryEntities({
@@ -95,7 +94,7 @@ export class InputSystem extends ECS.System {
       if (dragStarting) onDragStart();
       if (this.dragging) onDrag();
       if (isMouseUpEvent) {
-        if (e === this.focusedEntity) onClick(); 
+        if (e === this.focusedEntity) onClick();
       }
       if (dragEnding) {
         onDragEnd();
@@ -135,9 +134,9 @@ export class InputSystem extends ECS.System {
         const playerEntity = entities.values().next().value;
         playerEntity.Velocity.altVectors = this.getPotentialVectors();
       }
-      this.handleGameplayKeypress(game, mode);
+      this.handleGameplayKeypress(mode);
     } else if (mode === "designing") {
-      this.handleDesignKeypress(game, inputs);
+      this.handleDesignKeypress(inputs);
     }
   }
 
@@ -203,12 +202,13 @@ export class InputSystem extends ECS.System {
     return potentials;
   }
 
-  handleGameplayKeypress(game: Game, mode: "paused" | "playing") {
-    // let { game } = this.global;
+  handleGameplayKeypress(mode: "paused" | "playing") {
     this.debounceKeypress(
       "SPACE",
       (gameMode: "paused" | "playing") => {
-        gameMode === "paused" ? game.publish("resume") : game.publish("pause");
+        gameMode === "paused"
+          ? this._game.publish("resume")
+          : this._game.publish("pause");
       },
       mode
     );
@@ -216,20 +216,21 @@ export class InputSystem extends ECS.System {
     if (mode === "paused") return;
 
     this.debounceKeypress("M", () => {
-      game.mapView = !game.mapView;
+      this._game.mapView = !this._game.mapView;
     });
     this.debounceKeypress("B", () => {
-      game.focusView = game.focusView === "boss" ? "player" : "boss";
+      this._game.focusView =
+        this._game.focusView === "boss" ? "player" : "boss";
     });
   }
 
-  handleDesignKeypress(game: Game, inputs: InputEvents) {
+  handleDesignKeypress(inputs: InputEvents) {
     let { shift, ctrl } = inputs;
 
     this.debounceKeypress(
       "S",
       (ctrlPressed: boolean) => {
-        if (ctrlPressed) game.publish("save");
+        if (ctrlPressed) this._game.publish("save");
       },
       ctrl
     );
@@ -238,11 +239,11 @@ export class InputSystem extends ECS.System {
       "Z",
       (ctrlPressed: boolean, shiftPressed: boolean) => {
         if (ctrlPressed && shiftPressed) {
-          game.publish("redo");
+          this._game.publish("redo");
         } else if (ctrlPressed) {
-          game.publish("undo");
+          this._game.publish("undo");
         } else {
-          game.publish("setDesignTool", "schoolZone");
+          this._game.publish("setDesignTool", "schoolZone");
         }
       },
       ctrl,
@@ -253,8 +254,8 @@ export class InputSystem extends ECS.System {
       "L",
       (ctrlPressed: boolean) => {
         if (ctrlPressed) {
-          game.publish("loadSaved");
-        } else game.publish("setDesignTool", "light");
+          this._game.publish("loadSaved");
+        } else this._game.publish("setDesignTool", "light");
       },
       ctrl
     );
@@ -262,28 +263,28 @@ export class InputSystem extends ECS.System {
     this.debounceKeypress(
       "Q",
       (ctrlPressed: boolean) => {
-        if (ctrlPressed) game.publish("quit");
+        if (ctrlPressed) this._game.publish("quit");
       },
       ctrl
     );
 
     this.debounceKeypress("P", () => {
-      game.publish("setDesignTool", "playerHome");
+      this._game.publish("setDesignTool", "playerHome");
     });
     this.debounceKeypress("B", () => {
-      game.publish("setDesignTool", "bossHome");
+      this._game.publish("setDesignTool", "bossHome");
     });
     this.debounceKeypress("O", () => {
-      game.publish("setDesignTool", "office");
+      this._game.publish("setDesignTool", "office");
     });
     this.debounceKeypress("R", () => {
-      game.publish("setDesignTool", "street");
+      this._game.publish("setDesignTool", "street");
     });
     this.debounceKeypress("C", () => {
-      game.publish("setDesignTool", "coffee");
+      this._game.publish("setDesignTool", "coffee");
     });
     this.debounceKeypress("E", () => {
-      game.publish("setDesignTool", "eraser");
+      this._game.publish("setDesignTool", "eraser");
     });
   }
 

@@ -15,6 +15,7 @@ class RenderViewBox extends EntityComponentSystem.System {
   private modeNames: string[];
 
   constructor(
+    private _game: Game,
     ecs: ECS,
     private ctx: CanvasRenderingContext2D,
     private step: number
@@ -34,14 +35,13 @@ class RenderViewBox extends EntityComponentSystem.System {
   }
 
   update(tick: number, entities: Set<Entity>) {
-    const { game } = this.ecs.getEntity("global").Global;
-    let mode = game.mode;
-    let zoom = game.currentZoom;
-    let mapView = game.mapView;
+    let mode = this._game.mode;
+    let zoom = this._game.currentZoom;
+    let mapView = this._game.mapView;
     if (!this.modeNames.includes(mode)) return;
 
     let mapEntity = <Entity>entities.values().next().value;
-    this.updateViewbox(mapEntity, game, mode);
+    this.updateViewbox(mapEntity, this._game, mode);
 
     let {
       ViewBox,
@@ -93,8 +93,8 @@ class RenderViewBox extends EntityComponentSystem.System {
       if (this.carInViewbox(this.bossEntity, ViewBox)) {
         this.renderCarSprite(
           this.bossEntity,
-          game.spriteSheet,
-          game.spriteMap,
+          this._game.spriteSheet,
+          this._game.spriteMap,
           Coordinates,
           zoom,
           mapEntity
@@ -103,15 +103,15 @@ class RenderViewBox extends EntityComponentSystem.System {
       if (this.carInViewbox(this.playerEntity, ViewBox)) {
         this.renderCarSprite(
           this.playerEntity,
-          game.spriteSheet,
-          game.spriteMap,
+          this._game.spriteSheet,
+          this._game.spriteMap,
           Coordinates,
           zoom,
           mapEntity
         );
       }
 
-      if (game.focusView === "boss") {
+      if (this._game.focusView === "boss") {
         this.drawBossBorder(X, Y, renderW, renderH);
       }
     }
@@ -148,11 +148,6 @@ class RenderViewBox extends EntityComponentSystem.System {
       ViewBox.x = mapOffscreen.width - ViewBox.w;
     if (ViewBox.y + ViewBox.h > mapOffscreen.height)
       ViewBox.y = mapOffscreen.height - ViewBox.h;
-
-    // ViewBox.x = Math.floor(ViewBox.x);
-    // ViewBox.y = Math.floor(ViewBox.y);
-    // ViewBox.w = Math.floor(ViewBox.w);
-    // ViewBox.h = Math.floor(ViewBox.h);
   }
 
   getCarRotationRadians(entity: Entity) {

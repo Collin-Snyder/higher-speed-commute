@@ -16,24 +16,22 @@ export class CollisionSystem extends ECS.System {
   };
   public collidables: Entity[];
   public map: any;
-  public game: Game;
   public globalEntity: Entity;
 
   static subscriptions: string[] = ["Coordinates"];
 
-  constructor(ecs: any) {
+  constructor(private _game: Game, ecs: any) {
     super(ecs);
     this.collidables = [];
     this.globalEntity = this.ecs.getEntity("global");
-    this.game = this.globalEntity.Global.game;
   }
 
   update(tick: number, entities: Set<Entity>) {
     this.collidables = [...entities];
-    this.map = this.game.ecs.getEntity("map").MapData.map;
+    this.map = this._game.ecs.getEntity("map").MapData.map;
     let driverEntities = [
-      this.game.ecs.getEntity("player"),
-      this.game.ecs.getEntity("boss"),
+      this._game.ecs.getEntity("player"),
+      this._game.ecs.getEntity("boss"),
     ];
     for (let driverEntity of driverEntities) {
       let mapCollision = this.handleMapCollisions(driverEntity);
@@ -77,8 +75,8 @@ export class CollisionSystem extends ECS.System {
     }
 
     if (mapCollision === "office") {
-      if (entity.id === "player") this.game.publish("raceFinished", "won");
-      else if (entity.id === "boss") this.game.publish("raceFinished", "lost");
+      if (entity.id === "player") this._game.publish("raceFinished", "won");
+      else if (entity.id === "boss") this._game.publish("raceFinished", "lost");
     }
 
     return mapCollision;
@@ -167,22 +165,22 @@ export class CollisionSystem extends ECS.System {
     let collisions = this.detectEntityCollisions(entity);
     let outcome: "car" | "redLight" | "coffee" | "" = "";
     for (let c of collisions) {
-      if (c.has("Car") && this.game.mode !== "lost") {
-        this.game.publish("raceFinished", "crash");
+      if (c.has("Car") && this._game.mode !== "lost") {
+        this._game.publish("raceFinished", "crash");
         outcome = "car";
         break;
       }
       if (c.has("Timer") && c.has("Color") && c.Color.color === "red") {
         //if car is moving AND if car's pre-move location is NOT colliding with the light, then stop car
         if (this.checkForValidLightCollision(entity, c)) {
-          this.game.publish("redLight", entity, c);
+          this._game.publish("redLight", entity, c);
           this.revert(entity);
           outcome = "redLight";
           break;
         }
       }
       if (c.has("Caffeine")) {
-        this.game.publish("caffeinate", entity, c);
+        this._game.publish("caffeinate", entity, c);
         this.collidables = this.collidables.filter((e) => e !== c);
         outcome = "coffee";
       }

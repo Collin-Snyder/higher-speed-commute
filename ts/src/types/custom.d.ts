@@ -61,6 +61,7 @@ declare global {
     | "";
   type TTerrainStyle = "default" | "desert" | "snow" | "underwater";
   type TBreakpoint = "small" | "regular";
+  type TLightColor = "green" | "yellow" | "red";
 
   // game math //
   type TEntityArrayItem = Entity | Array<Entity>;
@@ -166,6 +167,11 @@ declare global {
     y: number,
     w: number,
     h: number
+  }
+
+  interface ILightStateInterface {
+    on: { [action: string]: string };
+    [prop: string]: any;
   }
   
 }

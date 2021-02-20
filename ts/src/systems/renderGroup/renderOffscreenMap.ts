@@ -15,7 +15,7 @@ class RenderOffscreenMap extends EntityComponentSystem.System {
   private schoolZoneAlphaMin: number;
   private schoolZoneAlphaMax: number;
 
-  constructor(ecs: ECS, private ctx: CanvasRenderingContext2D) {
+  constructor(private _game: Game, ecs: ECS, private ctx: CanvasRenderingContext2D) {
     super(ecs);
     this.modeNames = [
       "playing",
@@ -31,8 +31,7 @@ class RenderOffscreenMap extends EntityComponentSystem.System {
   }
 
   update(tick: number, entities: Set<Entity> | Array<Entity>) {
-    let { game } = this.ecs.getEntity("global").Global;
-    let mode = game.mode;
+    let mode = this._game.mode;
     if (!this.modeNames.includes(mode)) return;
 
     const mapEntity = entities.values().next().value;
@@ -40,7 +39,6 @@ class RenderOffscreenMap extends EntityComponentSystem.System {
       TileData: { tiles },
       MapData: { map },
       Renderable,
-      Coordinates,
     } = mapEntity;
 
     if (mode === "levelStartAnimation" || mode === "won" || mode === "lost") {
@@ -49,7 +47,7 @@ class RenderOffscreenMap extends EntityComponentSystem.System {
       // this.ctx.fillStyle = Renderable.bgColor;
       // this.ctx.fillRect(0, 0, map.pixelWidth, map.pixelHeight);
       this.ctx.drawImage(
-        game.OSMapBackgroundCanvas,
+        this._game.OSMapBackgroundCanvas,
         0,
         0
       );
@@ -67,7 +65,7 @@ class RenderOffscreenMap extends EntityComponentSystem.System {
           deg: number
         ) => {
           // if (type === "schoolZone") type = "street";
-          let sprite = game.spriteMap.getSprite(type);
+          let sprite = <ISprite>this._game.spriteMap.getSprite(type);
           if (sprite === null) debugger;
           let hasAlpha = a < 1;
           let hasRotation = deg !== 0;
@@ -75,7 +73,7 @@ class RenderOffscreenMap extends EntityComponentSystem.System {
           if (hasAlpha) this.ctx.globalAlpha = a;
           if (hasRotation) this.ctx.rotate(degreesToRadians(deg));
           this.ctx.drawImage(
-            game.spriteSheet,
+            this._game.spriteSheet,
             sprite.x,
             sprite.y,
             25,
@@ -90,11 +88,11 @@ class RenderOffscreenMap extends EntityComponentSystem.System {
       );
       this.ctx.restore();
     }
-    if (mode === "playing") this.renderSchoolZoneTiles(game, tiles, map.width);
+    if (mode === "playing") this.renderSchoolZoneTiles(tiles, map.width);
     // this.renderMiniCars(global.spriteSheet);
   }
 
-  renderSchoolZoneTiles(game: Game, tileArray: ITile[], mapWidth: number) {
+  renderSchoolZoneTiles(tileArray: ITile[], mapWidth: number) {
     this.ctx.save();
     this.ctx.fillStyle = "#ffd300";
     this.schoolZoneAlpha += this.schoolZoneAlphaStep;
@@ -113,9 +111,9 @@ class RenderOffscreenMap extends EntityComponentSystem.System {
         deg: number
       ) => {
         if (type !== "schoolZone") return;
-        let sprite = <ISprite>game.spriteMap.getSprite("schoolZone");
+        let sprite = <ISprite>this._game.spriteMap.getSprite("schoolZone");
         this.ctx.drawImage(
-          game.spriteSheet,
+          this._game.spriteSheet,
           sprite.x,
           sprite.y,
           25,

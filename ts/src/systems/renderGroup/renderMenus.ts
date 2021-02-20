@@ -16,16 +16,14 @@ class RenderMenus extends EntityComponentSystem.System {
   private menuTags: { [key: string]: Array<string> };
   private modeNames: string[];
   private global: Entity;
-  private _game: Game;
   private menuText: { [key: string]: string };
   private menuFont: FontFace;
   private fontReady: boolean;
 
-  constructor(ecs: ECS, ctx: CanvasRenderingContext2D) {
+  constructor(private _game: Game, ecs: ECS, ctx: CanvasRenderingContext2D) {
     super(ecs);
     this.ctx = ctx;
     this.global = this.ecs.getEntity("global");
-    this._game = this.global.Global.game;
     let { spriteSheet, spriteMap } = this.global.Global.game;
     this.spriteSheet = spriteSheet;
     this.spriteMap = spriteMap;
@@ -64,8 +62,6 @@ class RenderMenus extends EntityComponentSystem.System {
   }
 
   update(tick: number, entities: Set<Entity>) {
-    let global = this.ecs.getEntity("global").Global;
-    this._game = <Game>global.game;
     let { mode, playMode} = this._game;
 
     //calculate coordinates for buttons using button spacing logic and current state/size of game

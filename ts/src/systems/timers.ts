@@ -1,5 +1,7 @@
 import ECS, { Entity } from "@fritzy/ecs";
 
+import {Game} from "../main";
+
 interface RaceDataObjectInterface {
     levelId: number;
     outcome: "win" | "lose" | "crash" | null;
@@ -18,17 +20,15 @@ interface RaceDataObjectInterface {
 export class RaceTimerSystem extends ECS.System {
     private step: number;
 
-    constructor(ecs: any, step: number) {
+    constructor(private _game: Game, ecs: any, step: number) {
       super(ecs);
       this.step = step;
     }
   
     update(tick: number, entities: Set<Entity>) {
-        let game = this.ecs.getEntity("global").Global.game;
+        if (this._game.mode !== "playing") return;
 
-        if (game.mode !== "playing") return;
-
-        let race = game.currentRace;
+        let race = this._game.currentRace;
 
         if (!race) return;
 

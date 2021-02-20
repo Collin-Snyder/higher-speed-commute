@@ -3,6 +3,7 @@ import { getCenterPoint } from "gameMath";
 import { small, regular } from "../modules/breakpoints";
 import { ITile } from "../state/map";
 const { floor } = Math;
+import {Game} from "../main";
 
 interface AnimationStateInterface {
   duration: number;
@@ -77,7 +78,7 @@ export class LevelStartAnimation extends StateAnimation {
   private revealElapsedTime: number;
   private zoomStep: number;
 
-  constructor(ecs: any, step: number, ctx: CanvasRenderingContext2D) {
+  constructor(private _game: Game, ecs: any, step: number, ctx: CanvasRenderingContext2D) {
     super(ecs, step);
     this.ctx = ctx;
     this.states = {
@@ -167,9 +168,8 @@ export class LevelStartAnimation extends StateAnimation {
   }
 
   isAnimationRunning(): boolean {
-    let global = this.ecs.getEntity("global").Global;
     this.map = this.ecs.getEntity("map").MapData.map;
-    return global.game.mode === "levelStartAnimation" && this.map;
+    return this._game.mode === "levelStartAnimation" && this.map;
   }
 
   onGameBoardStep(): void {
@@ -204,12 +204,12 @@ export class LevelStartAnimation extends StateAnimation {
   }
 
   onCountdownStep(): void {
-    let spriteMap = this.ecs.getEntity("global").Global.game.spriteMap;
+    let spriteMap = this._game.spriteMap;
     if (this.currentTimeRemaining <= 1000 && this.countdownNum > 1) {
       this.countdownNum = 1;
       this.countdownAlpha = 1;
       let cd = this.ecs.getEntity("countdown");
-      let sprite = spriteMap.getSprite("countdown1");
+      let sprite = <ISprite>spriteMap.getSprite("countdown1");
       for (let bp of cd.Breakpoint) {
         if (bp.name === "small") bp.width = (sprite.w * small.countdownSize) / sprite.h;
         else if (bp.name === "regular") bp.width = (sprite.w * regular.countdownSize) / sprite.h;
@@ -224,7 +224,7 @@ export class LevelStartAnimation extends StateAnimation {
       this.countdownNum = 2;
       this.countdownAlpha = 1;
       let cd = this.ecs.getEntity("countdown");
-      let sprite = spriteMap.getSprite("countdown2");
+      let sprite = <ISprite>spriteMap.getSprite("countdown2");
       for (let bp of cd.Breakpoint) {
         if (bp.name === "small") bp.width = (sprite.w * small.countdownSize) / sprite.h;
         else if (bp.name === "regular") bp.width = (sprite.w * regular.countdownSize) / sprite.h;
@@ -238,7 +238,7 @@ export class LevelStartAnimation extends StateAnimation {
     } else if (this.currentTimeRemaining === 3000) {
       this.countdownNum = 3;
       this.countdownAlpha = 1;
-      let sprite = spriteMap.getSprite(`countdown${this.countdownNum}`);
+      let sprite = <ISprite>spriteMap.getSprite(`countdown${this.countdownNum}`);
       this.ecs
         .createEntity({
           id: "countdown",
@@ -340,15 +340,13 @@ export class LevelStartAnimation extends StateAnimation {
   }
 
   onZoomStep(): void {
-    let game = this.ecs.getEntity("global").Global.game;
-    game.currentZoom +=
-      (game.defaultGameZoom - game.currentZoom) * this.zoomStep;
+    this._game.currentZoom +=
+      (this._game.defaultGameZoom - this._game.currentZoom) * this.zoomStep;
   }
 
   onZoomDone(): string {
-    let game = this.ecs.getEntity("global").Global.game;
-    if (game.currentZoom !== game.defaultGameZoom)
-      game.currentZoom = game.defaultGameZoom;
+    if (this._game.currentZoom !== this._game.defaultGameZoom)
+      this._game.currentZoom = this._game.defaultGameZoom;
     const vb = this.ecs.getEntity("map").ViewBox;
     const { Coordinates, Renderable } = this.ecs.getEntity("player");
     const center = getCenterPoint(
@@ -384,9 +382,7 @@ export class LevelStartAnimation extends StateAnimation {
     let {
       TileData: { tiles },
     } = this.ecs.getEntity("map");
-    let spriteMap = this.ecs.getEntity("global").Global.spriteMap;
 
-    // console.log("resetting tilemap");
     tiles.forEach((t: ITile) => {
       t.display = false;
     });
@@ -395,17 +391,15 @@ export class LevelStartAnimation extends StateAnimation {
   }
 
   done(): void {
-    let game = this.ecs.getEntity("global").Global.game;
-
     this.ecs.getEntity("countdown").destroy();
 
-    game.publish("play");
+    this._game.publish("play");
     this.reset();
   }
 }
 
 export class BackgroundAnimation extends EntityComponentSystem.System {
-  constructor(ecs: any) {
+  constructor(private _game: Game, ecs: any) {
     super(ecs);
   }
 
@@ -421,8 +415,7 @@ export class BackgroundAnimation extends EntityComponentSystem.System {
   }
 
   isAnimationRunning() {
-    const game = this.ecs.getEntity("global").Global.game;
-    return game.mode === "menu";
+    return this._game.mode === "menu";
   }
 }
 
@@ -431,7 +424,7 @@ export class Animation extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
     has: ["Animation"],
   };
-  constructor(ecs: any) {
+  constructor(private _game: Game, ecs: any) {
     super(ecs);
   }
 

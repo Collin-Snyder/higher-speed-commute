@@ -9,7 +9,7 @@ import keyCodes from "./keyCodes";
 import DesignModule from "./modules/designModule";
 import LogTimers from "./modules/logger";
 import { ArcadeMap, IArcadeMap } from "./state/map";
-import GameModeMachine, { Mode } from "./state/pubsub";
+import PubSub, { Mode } from "./state/pubsub";
 import Race from "./modules/raceData";
 // import { MenuButtons } from "./state/menuButtons";
 import makeButtonEntities from "./state/buttonFactory";
@@ -17,7 +17,7 @@ import Components from "./components/index";
 import Tags from "./tags/tags";
 import { BreakpointSystem } from "./systems/breakpoints";
 import { MapSystem } from "./systems/map";
-import { LightTimer } from "./systems/lights";
+import { LightTimerSystem } from "./systems/lights";
 import { InputSystem } from "./systems/input";
 import { MovementSystem } from "./systems/move";
 import { CollisionSystem } from "./systems/collision";
@@ -95,7 +95,7 @@ export class Game {
   // MODE //
   public mode: Mode;
   public playMode: TPlayMode;
-  public modeMachine: GameModeMachine;
+  public pubSub: PubSub;
 
   // EVENTS //
   public inputs: InputEvents;
@@ -106,7 +106,7 @@ export class Game {
   public uictx: CanvasRenderingContext2D;
   private OSMapCanvas: HTMLCanvasElement;
   private osmctx: CanvasRenderingContext2D;
-  private OSMapBackgroundCanvas: HTMLCanvasElement;
+  public OSMapBackgroundCanvas: HTMLCanvasElement;
   private osmbgctx: CanvasRenderingContext2D;
   private OSEntCanvas: HTMLCanvasElement;
   private osectx: CanvasRenderingContext2D;
@@ -167,7 +167,7 @@ export class Game {
     this.tickTimes = [];
     this.mode = "init";
     this.playMode = "";
-    this.modeMachine = new GameModeMachine("init");
+    this.pubSub = new PubSub("init");
     this.ecs = new EntityComponentSystem.ECS();
     this.firstLevel = 1;
     this.arcadeLevels = 9;
@@ -386,7 +386,7 @@ export class Game {
 
     this.globalEntity.Global.player = this.playerEntity;
 
-    this.ecs.addSystem("render", new BreakpointSystem(this.ecs));
+    this.ecs.addSystem("render", new BreakpointSystem(this, this.ecs));
 
     this.background.onload = () => {
       this.backgroundIsLoaded = true;
@@ -397,18 +397,18 @@ export class Game {
       this.spriteSheetIsLoaded = true;
       if (this.backgroundIsLoaded) this.buildWorld();
     };
-    this.ecs.addSystem("timers", new RaceTimerSystem(this.ecs, this.step));
-    this.ecs.addSystem("lights", new LightTimer(this.ecs, this.step));
-    this.ecs.addSystem("caffeine", new CaffeineSystem(this.ecs, this.step));
-    this.ecs.addSystem("input", new InputSystem(this.ecs));
-    this.ecs.addSystem("move", new MovementSystem(this.ecs));
-    this.ecs.addSystem("collision", new CollisionSystem(this.ecs));
-    this.ecs.addSystem("map", new MapSystem(this.ecs));
+    this.ecs.addSystem("timers", new RaceTimerSystem(this, this.ecs, this.step));
+    this.ecs.addSystem("lights", new LightTimerSystem(this, this.ecs, this.step));
+    this.ecs.addSystem("caffeine", new CaffeineSystem(this, this.ecs, this.step));
+    this.ecs.addSystem("input", new InputSystem(this, this.ecs));
+    this.ecs.addSystem("move", new MovementSystem(this, this.ecs));
+    this.ecs.addSystem("collision", new CollisionSystem(this, this.ecs));
+    this.ecs.addSystem("map", new MapSystem(this, this.ecs));
     this.ecs.addSystem(
       "animations",
-      new LevelStartAnimation(this.ecs, this.step, this.uictx)
+      new LevelStartAnimation(this, this.ecs, this.step, this.uictx)
     );
-    this.ecs.addSystem("animations", new Animation(this.ecs));
+    this.ecs.addSystem("animations", new Animation(this, this.ecs));
 
     // this.enableAutopilot();
   }
@@ -436,17 +436,17 @@ export class Game {
 
   registerSubscribers(): void {
     console.log("Subscribing events...");
-    let validate = this.modeMachine.defaultActions.validate;
-    for (let event of this.modeMachine.events) {
+    let validate = this.pubSub.baseEventHandlers.validate;
+    for (let event of this.pubSub.baseEvents) {
       //this must be first
       this.subscribe(event.name, validate.bind(this, event.name, event.from));
 
-      let onbefore = this.modeMachine.defaultActions[`onbefore${event.name}`];
-      let on = this.modeMachine.defaultActions[`on${event.name}`];
-      let onNewState = this.modeMachine.defaultActions[`on${event.to}`];
+      let onbefore = this.pubSub.baseEventHandlers[`onbefore${event.name}`];
+      let on = this.pubSub.baseEventHandlers[`on${event.name}`];
+      let onNewState = this.pubSub.baseEventHandlers[`on${event.to}`];
 
       this.subscribe(event.name, () => {
-        let onleave = this.modeMachine.defaultActions[`onleave${this.mode}`];
+        let onleave = this.pubSub.baseEventHandlers[`onleave${this.mode}`];
         if (onleave) onleave.call(this);
       });
       if (onbefore) {
@@ -463,28 +463,18 @@ export class Game {
       }
     }
 
-    for (let action in this.modeMachine.customActions) {
-      this.modeMachine.customActions[action] = this.modeMachine.customActions[
+    for (let action in this.pubSub.nonBaseEventHandlers) {
+      this.pubSub.nonBaseEventHandlers[action] = this.pubSub.nonBaseEventHandlers[
         action
       ].bind(this);
     }
 
-    for (let event of this.modeMachine.customEvents) {
+    for (let event of this.pubSub.nonBaseEvents) {
       this.subscribe(event.name, event.action);
     }
   }
 
   buildWorld(): void {
-    let {
-      RenderBackground,
-      RenderOffscreenMap,
-      RenderGameplayEntities,
-      RenderSandboxMap,
-      RenderViewBox,
-      RenderMenus,
-      RenderTopLevelGraphics,
-      RenderBorders,
-    } = RenderGroup;
     this.globalEntity.Global.bgSheet = this.background;
     this.globalEntity.Global.bgMap = bgMap;
 
@@ -540,27 +530,42 @@ export class Game {
     makeButtonEntities(this);
 
     ///// add all animation/render systems /////
-    this.ecs.addSystem("animations", new BackgroundAnimation(this.ecs));
-    this.ecs.addSystem("render", new RenderBackground(this.ecs, this.uictx));
-    this.ecs.addSystem("render", new RenderBorders(this.ecs, this.uictx));
-    this.ecs.addSystem("render", new RenderOffscreenMap(this.ecs, this.osmctx));
+    this.addGraphicsSystems();
+
+    ///// all set! /////
+    this.publish("ready");
+  }
+
+  addGraphicsSystems() {
+    let {
+      RenderBackground,
+      RenderOffscreenMap,
+      RenderGameplayEntities,
+      RenderSandboxMap,
+      RenderViewBox,
+      RenderMenus,
+      RenderTopLevelGraphics,
+      RenderBorders,
+    } = RenderGroup;
+
+    this.ecs.addSystem("animations", new BackgroundAnimation(this, this.ecs));
+    this.ecs.addSystem("render", new RenderBackground(this, this.ecs, this.uictx));
+    this.ecs.addSystem("render", new RenderBorders(this, this.ecs, this.uictx));
+    this.ecs.addSystem("render", new RenderOffscreenMap(this, this.ecs, this.osmctx));
     this.ecs.addSystem(
       "render",
-      new RenderGameplayEntities(this.ecs, this.osectx, this.OSEntCanvas)
+      new RenderGameplayEntities(this, this.ecs, this.osectx, this.OSEntCanvas)
     );
-    this.ecs.addSystem("render", new RenderSandboxMap(this.ecs, this.uictx));
+    this.ecs.addSystem("render", new RenderSandboxMap(this, this.ecs, this.uictx));
     this.ecs.addSystem(
       "render",
-      new RenderViewBox(this.ecs, this.uictx, this.step)
+      new RenderViewBox(this, this.ecs, this.uictx, this.step)
     );
-    this.ecs.addSystem("render", new RenderMenus(this.ecs, this.uictx));
+    this.ecs.addSystem("render", new RenderMenus(this, this.ecs, this.uictx));
     this.ecs.addSystem(
       "render",
       new RenderTopLevelGraphics(this, this.ecs, this.uictx)
     );
-
-    ///// all set! /////
-    this.publish("ready");
   }
 
   generateModalButtonCSSClasses() {

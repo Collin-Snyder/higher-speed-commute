@@ -5,19 +5,19 @@ import {
   checkPointCollision,
   getTileHitbox,
 } from "gameMath";
+import { Game } from "../main";
 
 export class MovementSystem extends ECS.System {
   static query: { has?: string[]; hasnt?: string[] } = {
     has: ["Car", "Velocity", "Coordinates"],
   };
 
-  constructor(ecs: any) {
+  constructor(private _game: Game, ecs: any) {
     super(ecs);
   }
 
   update(tick: number, entities: Set<Entity>) {
-    let game = this.ecs.getEntity("global").Global.game;
-    let { mode, focusView, mapView } = game;
+    let { mode, focusView, mapView } = this._game;
     if (mode !== "playing") return;
 
     for (let entity of entities) {
@@ -33,8 +33,6 @@ export class MovementSystem extends ECS.System {
     entity.Velocity.vector = entity.Velocity.altVectors.shift();
     entity.Coordinates.X += entity.Velocity.vector.X * playerSpeedConstant;
     entity.Coordinates.Y += entity.Velocity.vector.Y * playerSpeedConstant;
-    // let deg = findDegFromVector(entity.Velocity.vector);
-    // if (deg >= 0) entity.Renderable.degrees = deg;
   }
 
   handleNPCMovement(entity: Entity): void {
@@ -51,7 +49,6 @@ export class MovementSystem extends ECS.System {
       let [newX, newY] = path[path.length - 2];
       let Xdiff = newX - X;
       let Ydiff = newY - Y;
-      // entity.Velocity.prevVector = entity.Velocity.vector;
       if (Math.abs(Xdiff) > Math.abs(Ydiff)) {
         entity.Velocity.vector = { X: Math.sign(Xdiff), Y: 0 };
       } else {

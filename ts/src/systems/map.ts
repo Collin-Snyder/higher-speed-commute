@@ -1,9 +1,6 @@
-import EntityComponentSystem, { ECS, Entity } from "@fritzy/ecs";
-import {
-  centerWithin,
-  getCenterPoint,
-  getTileHitbox,
-} from "gameMath";
+import EntityComponentSystem, { Entity } from "@fritzy/ecs";
+import { Game } from "../main";
+import { centerWithin, getCenterPoint, getTileHitbox } from "gameMath";
 
 export class MapSystem extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -12,7 +9,7 @@ export class MapSystem extends EntityComponentSystem.System {
   private mapOffscreen: HTMLCanvasElement;
   private mapCtx: CanvasRenderingContext2D;
 
-  constructor(ecs: any) {
+  constructor(private _game: Game, ecs: any) {
     super(ecs);
     this.mapOffscreen = <HTMLCanvasElement>(
       document.getElementById("map-offscreen")
@@ -54,7 +51,6 @@ export class MapSystem extends EntityComponentSystem.System {
   }
 
   updateDriverEntities(newMap: any) {
-    let { game } = this.ecs.getEntity("global").Global;
     let playerEntity = this.ecs.getEntity("player");
     let bossEntity = this.ecs.getEntity("boss");
 
@@ -73,12 +69,12 @@ export class MapSystem extends EntityComponentSystem.System {
     bossEntity.Coordinates.Y = bossCoords.Y;
 
     this.findDriverPath(bossEntity, newMap);
-    if (game.autopilot) this.findDriverPath(playerEntity, newMap);
+    if (this._game.autopilot) this.findDriverPath(playerEntity, newMap);
   }
 
   createLightEntities(newMap: any) {
     let lights = this.ecs.queryEntities({ has: ["Timer", "Color"] });
-    let spriteMap = this.ecs.getEntity("global").Global.game.spriteMap;
+    let { spriteMap } = this._game;
 
     for (let light of lights) {
       light.destroy();
@@ -89,7 +85,7 @@ export class MapSystem extends EntityComponentSystem.System {
       const { X, Y } = square ? square.coordinates : { X: 0, Y: 0 };
       const rw = 25;
       const rh = 25;
-      let sprite = spriteMap.getSprite("greenLight");
+      let sprite = <ISprite>spriteMap.getSprite("greenLight");
 
       let ent = this.ecs.createEntity({
         id: `light${id}`,
@@ -128,7 +124,7 @@ export class MapSystem extends EntityComponentSystem.System {
 
   createCoffeeEntities(newMap: any) {
     let coffees = this.ecs.queryEntities({ has: ["Caffeine"] });
-    let spriteMap = this.ecs.getEntity("global").Global.game.spriteMap;
+    let { spriteMap } = this._game;
 
     for (let coffee of coffees) {
       coffee.destroy();
@@ -138,7 +134,7 @@ export class MapSystem extends EntityComponentSystem.System {
       const { X, Y } = square ? square.coordinates : { X: 0, Y: 0 };
       const rw = 12;
       const rh = 12;
-      let sprite = spriteMap.getSprite("coffee");
+      let sprite = <ISprite>spriteMap.getSprite("coffee");
       let ent = this.ecs.createEntity({
         id: `coffee${id}`,
         Coordinates: {
