@@ -9,7 +9,7 @@ import keyCodes from "./keyCodes";
 import DesignModule from "./modules/designModule";
 import LogTimers from "./modules/logger";
 import { ArcadeMap, IArcadeMap } from "./state/map";
-import PubSub, { Mode } from "./state/pubsub";
+import PubSub from "./state/pubsub";
 import Race from "./modules/raceData";
 // import { MenuButtons } from "./state/menuButtons";
 import makeButtonEntities from "./state/buttonFactory";
@@ -93,7 +93,7 @@ export class Game {
   private tickTimes: number[];
 
   // MODE //
-  public mode: Mode;
+  public mode: TMode;
   public playMode: TPlayMode;
   public pubSub: PubSub;
 
@@ -439,7 +439,7 @@ export class Game {
     let validate = this.pubSub.baseEventHandlers.validate;
     for (let event of this.pubSub.baseEvents) {
       //this must be first
-      this.subscribe(event.name, validate.bind(this, event.name, event.from));
+      this.subscribe(event.name, validate.bind(this, this, event.name, event.from));
 
       let onbefore = this.pubSub.baseEventHandlers[`onbefore${event.name}`];
       let on = this.pubSub.baseEventHandlers[`on${event.name}`];
@@ -447,26 +447,26 @@ export class Game {
 
       this.subscribe(event.name, () => {
         let onleave = this.pubSub.baseEventHandlers[`onleave${this.mode}`];
-        if (onleave) onleave.call(this);
+        if (onleave) onleave.call(this, this);
       });
       if (onbefore) {
-        this.subscribe(event.name, onbefore.bind(this));
+        this.subscribe(event.name, onbefore.bind(this, this));
       }
       if (on) {
-        this.subscribe(event.name, on.bind(this));
+        this.subscribe(event.name, on.bind(this, this));
       }
       this.subscribe(event.name, () => {
         this.mode = event.to;
       });
       if (onNewState) {
-        this.subscribe(event.name, onNewState.bind(this));
+        this.subscribe(event.name, onNewState.bind(this, this));
       }
     }
 
-    for (let action in this.pubSub.nonBaseEventHandlers) {
-      this.pubSub.nonBaseEventHandlers[action] = this.pubSub.nonBaseEventHandlers[
-        action
-      ].bind(this);
+    for (let name in this.pubSub.nonBaseEventHandlers) {
+      this.pubSub.nonBaseEventHandlers[name] = this.pubSub.nonBaseEventHandlers[
+        name
+      ].bind(this, this);
     }
 
     for (let event of this.pubSub.nonBaseEvents) {

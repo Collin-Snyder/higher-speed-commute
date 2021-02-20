@@ -62,6 +62,20 @@ declare global {
   type TTerrainStyle = "default" | "desert" | "snow" | "underwater";
   type TBreakpoint = "small" | "regular";
   type TLightColor = "green" | "yellow" | "red";
+  type TMode =
+  | "init"
+  | "menu"
+  | "starting"
+  | "loadLevel"
+  | "chooseDifficulty"
+  | "levelStartAnimation"
+  | "playing"
+  | "paused"
+  | "won"
+  | "lost"
+  | "crash"
+  | "designing"
+  | "end";
 
   // game math //
   type TEntityArrayItem = Entity | Array<Entity>;

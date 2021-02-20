@@ -4,25 +4,11 @@ import { centerWithin } from "gameMath";
 import { SandboxMap } from "./map";
 import { Tool } from "../modules/designModule";
 import { updateLastCompletedLevel } from "./localDb";
-export type Mode =
-  | "init"
-  | "menu"
-  | "starting"
-  | "loadLevel"
-  | "chooseDifficulty"
-  | "levelStartAnimation"
-  | "playing"
-  | "paused"
-  | "won"
-  | "lost"
-  | "crash"
-  | "designing"
-  | "end";
 
 interface EventInterface {
   name: string;
-  from: Mode | Mode[];
-  to: Mode;
+  from: TMode | TMode[];
+  to: TMode;
   [key: string]: any;
 }
 
@@ -31,21 +17,16 @@ class PubSub {
   public nonBaseEventHandlers: { [name: string]: Function };
   public baseEvents: EventInterface[];
   public nonBaseEvents: { name: string; action: Function }[];
-  public current: Mode;
+  public current: TMode;
 
-  constructor(initial: Mode) {
+  constructor(initial: TMode) {
     this.current = initial;
     //all actions are this-bound to the game instance in main.ts
     this.baseEventHandlers = {
-      validate: function() {
-        let game = <Game>(<unknown>this);
-        let [event, from] = [...arguments].slice(0, 2);
-        let current = game.mode;
-
-        return PubSub.validateTransition(from, current, event);
+      validate: function(game: Game, eventName: string, from: TMode) {
+        return PubSub.validateTransition(from, game.mode, eventName);
       },
-      onmenu: function() {
-        let game = <Game>(<unknown>this);
+      onmenu: function(game: Game) {
         if (game.mode !== "menu") return;
         game.playMode = "";
 
@@ -55,26 +36,21 @@ class PubSub {
         }
         console.log("menu loaded");
       },
-      onleavemenu: function() {
-        let game = <Game>(<unknown>this);
+      onleavemenu: function(game: Game) {
         let entities = game.ecs.queryEntities({ has: ["menu", "main"] });
         for (let entity of entities) {
           entity.Interactable.enabled = false;
         }
       },
-      onstart: function(level: number) {
-        let game = <Game>(<unknown>this);
+      onstart: function(game: Game, level: number) {
         console.log("running onstart");
         game.loadLevel(level);
       },
-      onchooseDifficulty: function() {
-        let game = <Game>(<unknown>this);
+      onchooseDifficulty: function(game: Game) {
         console.log("running onchooseDifficulty");
         window.toggleModal(true, "levelStart");
       },
-      onstartingAnimation: function() {
-        const game = <Game>(<unknown>this);
-        console.log("running onstartingAnimation");
+      onstartingAnimation: function(game: Game) {
         const { Renderable } = game.ecs.getEntity("map");
         game.ecs.runSystemGroup("map");
         game.currentZoom = 1;
@@ -82,13 +58,11 @@ class PubSub {
         Renderable.alpha = 0;
         Renderable.visible = true;
       },
-      onplay: function() {
-        let game = <Game>(<unknown>this);
+      onplay: function(game: Game) {
         game.mapView = false;
         game.startRace();
       },
-      onwin: function() {
-        let game = <Game>(<unknown>this);
+      onwin: function(game: Game) {
         console.log("YOU WIN!");
 
         let currentLevel = game.currentLevel.number || 0;
@@ -105,7 +79,10 @@ class PubSub {
           graphic = game.ecs.createEntity({
             id: "wonGraphic",
             Coordinates: {},
-            Animation: { startSprite: game.spriteMap.getSprite("shine"), degStep: 1 },
+            Animation: {
+              startSprite: game.spriteMap.getSprite("shine"),
+              degStep: 1,
+            },
             Renderable: {
               spriteX: x,
               spriteY: y,
@@ -115,8 +92,7 @@ class PubSub {
           graphic.Renderable.visible = true;
         }
       },
-      onleavewon: function() {
-        let game = <Game>(<unknown>this);
+      onleavewon: function(game: Game) {
         const wonGraphic = game.ecs.getEntity("wonGraphic");
         if (wonGraphic) wonGraphic.Renderable.visible = false;
         const mapEntity = game.ecs.getEntity("map");
@@ -128,12 +104,10 @@ class PubSub {
           entity.Interactable.enabled = false;
         }
       },
-      onlose: function() {
-        let game = <Game>(<unknown>this);
+      onlose: function(game: Game) {
         console.log("YOU LOSE");
       },
-      onleavelost: function() {
-        let game = <Game>(<unknown>this);
+      onleavelost: function(game: Game) {
         const mapEntity = game.ecs.getEntity("map");
         mapEntity.Renderable.visible = false;
         let entities = game.ecs.queryEntities({
@@ -143,8 +117,7 @@ class PubSub {
           entity.Interactable.enabled = false;
         }
       },
-      oncrash: function() {
-        let game = <Game>(<unknown>this);
+      oncrash: function(game: Game) {
         console.log("CRASH! YOU LOSE BIG TIME");
 
         let graphic = game.ecs.getEntity("crashGraphic");
@@ -154,7 +127,10 @@ class PubSub {
           graphic = game.ecs.createEntity({
             id: "crashGraphic",
             Coordinates: {},
-            Animation: { startSprite: game.spriteMap.getSprite("badShine"), degStep: 1 },
+            Animation: {
+              startSprite: game.spriteMap.getSprite("badShine"),
+              degStep: 1,
+            },
             Renderable: {
               spriteX: x,
               spriteY: y,
@@ -164,8 +140,7 @@ class PubSub {
           graphic.Renderable.visible = true;
         }
       },
-      onleavecrash: function() {
-        let game = <Game>(<unknown>this);
+      onleavecrash: function(game: Game) {
         const crashGraphic = game.ecs.getEntity("crashGraphic");
         if (crashGraphic) crashGraphic.Renderable.visible = false;
         const mapEntity = game.ecs.getEntity("map");
@@ -177,8 +152,7 @@ class PubSub {
           entity.Interactable.enabled = false;
         }
       },
-      onpause: function() {
-        let game = <Game>(<unknown>this);
+      onpause: function(game: Game) {
         let { Renderable } = game.ecs.getEntity("map");
 
         let entities = game.ecs.queryEntities({
@@ -190,8 +164,7 @@ class PubSub {
 
         Renderable.bgColor = "lightgray";
       },
-      onleavepaused: function() {
-        let game = <Game>(<unknown>this);
+      onleavepaused: function(game: Game) {
         let entities = game.ecs.queryEntities({
           has: ["menu", "gameplay", "paused"],
         });
@@ -199,8 +172,7 @@ class PubSub {
           entity.Interactable.enabled = false;
         }
       },
-      onresume: function() {
-        let game = <Game>(<unknown>this);
+      onresume: function(game: Game) {
         let { Renderable } = game.ecs.getEntity("map");
 
         let entities = game.ecs.queryEntities({
@@ -212,16 +184,14 @@ class PubSub {
         Renderable.bgColor = "#81c76d";
         game.mapView = false;
       },
-      onrestart: function() {
-        let game = <Game>(<unknown>this);
+      onrestart: function(game: Game) {
         let entities = game.ecs.queryEntities({ has: ["menu", "gameplay"] });
         for (let entity of entities) {
           entity.Interactable.enabled = false;
         }
         game.publish("chooseDifficulty");
       },
-      ondesign: function() {
-        let game = <Game>(<unknown>this);
+      ondesign: function(game: Game) {
         let UICanvas = <HTMLCanvasElement>document.getElementById("ui");
 
         //create design entities
@@ -273,19 +243,17 @@ class PubSub {
 
         //(eventually) if first time, play walk-through
       },
-      ondesigning: function() {
-        let game = <Game>(<unknown>this);
+      ondesigning: function(game: Game) {
         game.playMode = "";
       },
-      onbeforeleaveDesign: function() {
+      onbeforeleaveDesign: function(game: Game) {
         //if design state is unsaved, prompt to save
-        let game = <Game>(<unknown>this);
+
         if (!game.designModule.saved) {
           game.designModule.confirmUnsaved();
         }
       },
-      onleavedesigning: function() {
-        let game = <Game>(<unknown>this);
+      onleavedesigning: function(game: Game) {
         let mapEntity = game.ecs.getEntity("map");
         if (!game.designModule.saved) {
           game.designModule.clearMap();
@@ -300,22 +268,21 @@ class PubSub {
         if (mapEntity.has("Interactable"))
           mapEntity.removeComponentByType("Interactable");
       },
-      onbeforetest: function() {
+      onbeforetest: function(game: Game) {
         //check for map issues - i.e. no valid path for boss or player
         //if map issue present, prompt user to confirm
       },
-      ontest: function() {
+      ontest: function(game: Game) {
         //load current state of map into game as ArcadeMap
         //do not save automatically
-        let game = <Game>(<unknown>this);
+
         game.testCurrentSandboxMap();
       },
-      onbeforequit: function() {
+      onbeforequit: function(game: Game) {
         //if state is currently playing/paused, prompt "Are you sure you want to quit?"
       },
-      onquit: function() {
+      onquit: function(game: Game) {
         //hide game canvas
-        let game = <Game>(<unknown>this);
 
         game.playMode = "";
 
@@ -332,8 +299,7 @@ class PubSub {
         MapData.map = null;
         Renderable.visible = false;
       },
-      onendOfGame: function() {
-        let game = <Game>(<unknown>this);
+      onendOfGame: function(game: Game) {
         let { Renderable } = game.ecs.getEntity("map");
         console.log("YOU WON THE WHOLE GAME!");
 
@@ -341,9 +307,7 @@ class PubSub {
       },
     };
     this.nonBaseEventHandlers = {
-      onRaceFinished: function(outcome: "won" | "lost" | "crash") {
-        let game = <Game>(<unknown>this);
-
+      onRaceFinished: function(game: Game, outcome: "won" | "lost" | "crash") {
         //decaffeinate everybody
         let caffeinated = game.ecs.queryEntities({
           has: ["Car", "CaffeineBoost"],
@@ -375,8 +339,7 @@ class PubSub {
         if (outcome === "lost") game.publish("lose");
         if (outcome === "crash") game.publish("crash");
       },
-      onNextLevel: function() {
-        let game = <Game>(<unknown>this);
+      onNextLevel: function(game: Game) {
         let next = game.currentLevel.number ? game.currentLevel.number + 1 : 1;
 
         let entities = game.ecs.queryEntities({ has: ["menu", "gameplay"] });
@@ -387,42 +350,33 @@ class PubSub {
         if (next > game.arcadeLevels) game.publish("endOfGame");
         else game.publish("start", next);
       },
-      onSaveProgress: function() {
-        let game = <Game>(<unknown>this);
+      onSaveProgress: function(game: Game) {
         updateLastCompletedLevel(game.lastCompletedLevel).catch((err) =>
           console.error(err)
         );
       },
-      onSetDesignTool: function(tool: Tool) {
-        let game = <Game>(<unknown>this);
+      onSetDesignTool: function(game: Game, tool: Tool) {
         game.designModule.setDesignTool(tool);
       },
-      onSave: function() {
-        let game = <Game>(<unknown>this);
+      onSave: function(game: Game) {
         game.designModule.save();
       },
-      onSaveAs: function() {
-        let game = <Game>(<unknown>this);
+      onSaveAs: function(game: Game) {
         game.designModule.openSaveAsModal();
       },
-      onLoadSaved: function() {
-        let game = <Game>(<unknown>this);
+      onLoadSaved: function(game: Game) {
         game.designModule.openLoadSavedModal();
       },
-      onUndo: function() {
-        let game = <Game>(<unknown>this);
+      onUndo: function(game: Game) {
         game.designModule.undo();
       },
-      onRedo: function() {
-        let game = <Game>(<unknown>this);
+      onRedo: function(game: Game) {
         game.designModule.redo();
       },
-      onResetMap: function() {
-        let game = <Game>(<unknown>this);
+      onResetMap: function(game: Game) {
         game.designModule.openResetModal();
       },
-      onCaffeinate: function(driver: Entity, coffee: Entity) {
-        let game = <Game>(<unknown>this);
+      onCaffeinate: function(game: Game, driver: Entity, coffee: Entity) {
         coffee.removeComponentByType("Renderable");
         coffee.removeComponentByType("Collision");
         driver.addComponent("CaffeineBoost", coffee.Caffeine);
@@ -433,17 +387,19 @@ class PubSub {
             game.currentRace?.logCoffee(Number(coffeeId[0]));
         }
       },
-      onRedLight: function(driver: Entity, light: Entity) {
-        let game = <Game>(<unknown>this);
+      onRedLight: function(game: Game, driver: Entity, light: Entity) {
         if (driver.id === "player") {
           game.currentRace?.logRedLight(light);
         }
       },
-      onFocusSelector: function(selectorName: string, focusEntity: Entity) {
-        let game = <Game>(<unknown>this);
+      onFocusSelector: function(
+        game: Game,
+        selectorName: string,
+        focusEntity: Entity
+      ) {
         let selector = game.ecs.getEntity(`${selectorName}Selector`);
         selector.Selector.focusEntity = focusEntity;
-      }
+      },
     };
     this.baseEvents = [
       { name: "ready", from: "init", to: "menu" },
@@ -578,9 +534,12 @@ class PubSub {
         name: "focusSelector",
         action: function(selectorName: string, focusEntity: Entity) {
           let pubsub = <PubSub>(<unknown>this);
-          pubsub.nonBaseEventHandlers.onFocusSelector(selectorName, focusEntity);
-        }
-      }
+          pubsub.nonBaseEventHandlers.onFocusSelector(
+            selectorName,
+            focusEntity
+          );
+        },
+      },
     ];
     for (let event of this.nonBaseEvents) {
       event.action = event.action.bind(this);
