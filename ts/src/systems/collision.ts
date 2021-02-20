@@ -36,9 +36,6 @@ export class CollisionSystem extends ECS.System {
       this.game.ecs.getEntity("boss"),
     ];
     for (let driverEntity of driverEntities) {
-      if (driverEntity.id === "player" && driverEntity.Velocity.vector.X > 0) {
-        console.log("hi");
-      }
       let mapCollision = this.handleMapCollisions(driverEntity);
       // if (mapCollision === "office") return;
       let entityCollision = this.handleEntityCollisions(driverEntity);
@@ -54,35 +51,36 @@ export class CollisionSystem extends ECS.System {
 
   handleMapCollisions(entity: Entity) {
     let mapCollision = this.detectMapCollision(entity);
-    switch (mapCollision) {
-      case "boundary":
-        if (isDiagonal(entity.Velocity.prevVector)) {
-          entity.Velocity.altVectors.push(entity.Velocity.prevVector);
-        }
-        do {
-          this.revert(entity);
-          if (!entity.Velocity.altVectors.length) break;
 
-          entity.Velocity.vector = entity.Velocity.altVectors.shift();
-          this.move(entity);
-          mapCollision = this.detectMapCollision(entity);
-        } while (mapCollision === "boundary");
-        break;
-      case "office":
-        if (entity.id === "player") this.game.publish("raceFinished", "won");
-        else if (entity.id === "boss")
-          this.game.publish("raceFinished", "lost");
-        break;
-      case "schoolZone":
-        if (!entity.SchoolZone) {
-          entity.addComponent("SchoolZone", { multiplier: 0.34 });
-        }
-        break;
-      default:
-        if (entity.SchoolZone) {
-          entity.removeComponentByType("SchoolZone");
-        }
+    if (mapCollision === "boundary") {
+      if (isDiagonal(entity.Velocity.prevVector)) {
+        entity.Velocity.altVectors.push(entity.Velocity.prevVector);
+      }
+      do {
+        this.revert(entity);
+        if (!entity.Velocity.altVectors.length) break;
+
+        entity.Velocity.vector = entity.Velocity.altVectors.shift();
+        this.move(entity);
+        mapCollision = this.detectMapCollision(entity);
+      } while (mapCollision === "boundary");
     }
+
+    if (mapCollision === "schoolZone") {
+      if (!entity.SchoolZone) {
+        entity.addComponent("SchoolZone", { multiplier: 0.34 });
+      }
+    } else {
+      if (entity.SchoolZone) {
+        entity.removeComponentByType("SchoolZone");
+      }
+    }
+
+    if (mapCollision === "office") {
+      if (entity.id === "player") this.game.publish("raceFinished", "won");
+      else if (entity.id === "boss") this.game.publish("raceFinished", "lost");
+    }
+
     return mapCollision;
   }
 
