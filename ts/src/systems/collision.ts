@@ -36,15 +36,19 @@ export class CollisionSystem extends ECS.System {
       this.game.ecs.getEntity("boss"),
     ];
     for (let driverEntity of driverEntities) {
+      if (driverEntity.id === "player" && driverEntity.Velocity.vector.X > 0) {
+        console.log("hi");
+      }
       let mapCollision = this.handleMapCollisions(driverEntity);
-      if (mapCollision === "office") return;
+      // if (mapCollision === "office") return;
       let entityCollision = this.handleEntityCollisions(driverEntity);
-      if (entityCollision === "car") return;
+      // if (entityCollision === "car") return;
       if (mapCollision !== "boundary" && entityCollision !== "redLight") {
         let deg = findDegFromVector(driverEntity.Velocity.vector);
         if (deg >= 0) driverEntity.Renderable.degrees = deg;
       }
       driverEntity.Collision.prevHb = driverEntity.Collision.currentHb();
+      // if (mapCollision === "office" || entityCollision === "car") return;
     }
   }
 
@@ -189,10 +193,11 @@ export class CollisionSystem extends ECS.System {
   }
 
   detectEntityCollisions(entity: Entity) {
+    let v = entity.Velocity.vector;
+    let deg = findDegFromVector(v);
+    let hb = entity.Collision.currentHb(deg);
     return this.collidables.filter(
-      (c: Entity) =>
-        entity !== c &&
-        checkCollision(entity.Collision.currentHb(), c.Collision.currentHb())
+      (c: Entity) => entity !== c && checkCollision(hb, c.Collision.currentHb())
     );
   }
 

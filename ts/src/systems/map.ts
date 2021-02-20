@@ -114,14 +114,6 @@ export class MapSystem extends EntityComponentSystem.System {
           hb: getTileHitbox(X, Y, rw, rh),
           cp: getCenterPoint(X, Y, rw, rh),
         },
-        // Breakpoint: [
-        //   { name: "small", width: small.tileSize, height: small.tileSize },
-        //   {
-        //     name: "regular",
-        //     width: regular.tileSize,
-        //     height: regular.tileSize,
-        //   },
-        // ],
       });
       ent.Collision.currentHb = function() {
         //@ts-ignore

@@ -148,6 +148,11 @@ class RenderViewBox extends EntityComponentSystem.System {
       ViewBox.x = mapOffscreen.width - ViewBox.w;
     if (ViewBox.y + ViewBox.h > mapOffscreen.height)
       ViewBox.y = mapOffscreen.height - ViewBox.h;
+
+    // ViewBox.x = Math.floor(ViewBox.x);
+    // ViewBox.y = Math.floor(ViewBox.y);
+    // ViewBox.w = Math.floor(ViewBox.w);
+    // ViewBox.h = Math.floor(ViewBox.h);
   }
 
   getCarRotationRadians(entity: Entity) {
@@ -210,7 +215,7 @@ class RenderViewBox extends EntityComponentSystem.System {
       dh
     );
     this.ctx.restore();
-    // this.renderHitbox(entity, zoomFactor, breakpointScale, mapCoords, ViewBox, true);
+    this.renderHitbox(entity, zoomFactor, breakpointScale, mapCoords, ViewBox, true);
   }
 
   renderHitbox(
