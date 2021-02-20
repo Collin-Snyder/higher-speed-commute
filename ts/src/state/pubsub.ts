@@ -21,7 +21,7 @@ class PubSub {
 
   constructor(initial: TMode) {
     this.current = initial;
-    //all actions are this-bound to the game instance in main.ts
+    //all event handlers are this-bound to the game instance in main.ts
     this.baseEventHandlers = {
       validate: function(game: Game, eventName: string, from: TMode) {
         return PubSub.validateTransition(from, game.mode, eventName);
@@ -48,6 +48,8 @@ class PubSub {
       },
       onchooseDifficulty: function(game: Game) {
         console.log("running onchooseDifficulty");
+        let { Renderable } = game.ecs.getEntity("map");
+        Renderable.visible = false;
         window.toggleModal(true, "levelStart");
       },
       onstartingAnimation: function(game: Game) {

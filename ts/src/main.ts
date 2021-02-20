@@ -216,7 +216,7 @@ export class Game {
     this.spriteSheetIsLoaded = false;
     this.backgroundIsLoaded = false;
     this.carColor = "blue";
-    this.terrainStyle = "default";
+    this.terrainStyle = "snow";
     this.spriteMap = new SpriteMap(this);
     this.autopilot = false;
     this.windowWidth = window.innerWidth;

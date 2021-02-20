@@ -15,8 +15,6 @@ class RenderBorders extends EntityComponentSystem.System {
   }
 
   update(tick: number, entities: Set<Entity>) {
-    const global = this.ecs.getEntity("global").Global;
-
     this.ctx.save();
     for (let entity of entities) {
       if (!entity.Renderable.visible) continue;

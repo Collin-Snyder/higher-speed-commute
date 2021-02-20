@@ -210,7 +210,7 @@ class RenderViewBox extends EntityComponentSystem.System {
       dh
     );
     this.ctx.restore();
-    this.renderHitbox(entity, zoomFactor, breakpointScale, mapCoords, ViewBox, true);
+    // this.renderHitbox(entity, zoomFactor, breakpointScale, mapCoords, ViewBox, true);
   }
 
   renderHitbox(
