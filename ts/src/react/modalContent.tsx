@@ -6,6 +6,7 @@ import LevelStartContent from "./modalContents/levelStartContent";
 import ArcadeStartContent from "./modalContents/arcadeStartContent";
 import QuitGameConfirmationContent from "./modalContents/quitGameConfirmationContent";
 import QuitDesignConfirmationContent from "./modalContents/quitDesignConfirmationContent";
+import MissingKeySquaresContent from "./modalContents/missingKeySquaresContent";
 
 interface ModalContentProps {
   modalName: string;
@@ -32,6 +33,10 @@ const ModalContent = ({ modalName }: ModalContentProps) => {
       Content = LevelStartContent;
       cssClass = "";
       break;
+    case "missingKeySquares":
+      Content = MissingKeySquaresContent;
+      cssClass = "";
+      break;
     case "loadMap":
       Content = LoadMapContent;
       break;
@@ -47,6 +52,7 @@ const ModalContent = ({ modalName }: ModalContentProps) => {
     case "quitDesignConfirmation":
       Content = QuitDesignConfirmationContent;
       break;
+    
     default:
       Content = () => <></>;
   }

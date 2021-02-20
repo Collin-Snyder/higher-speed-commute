@@ -9,6 +9,7 @@ const buttonImageMap: {[key: string]: any} = {
   go: { x: 460, y: 0, w: 150, h: 60 },
   ok: { x: 612, y: 0, w: 150, h: 60 },
   delete: { x: 612, y: 62, w: 150, h: 60 },
+  spacer: {x: 850, y: 940, w: 150, h: 60}
 };
 
 export default buttonImageMap;

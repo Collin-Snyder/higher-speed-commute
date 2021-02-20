@@ -41,6 +41,10 @@ const modalButtons: { [key: string]: ModalButton[] } = {
   arcadeStart: [{ type: "cancel", name: "cancel" }],
   quitGameConfirmation: [{ type: "cancel", name: "cancel" }],
   quitDesignConfirmation: [{ type: "cancel", name: "cancel" }],
+  missingKeySquares: [
+    { type: "spacer", name: "spacer" },
+    { type: "cancel", name: "ok" },
+  ],
 };
 
 const ModalButtonContainer = ({
@@ -57,7 +61,8 @@ const ModalButtonContainer = ({
   return (
     <div id="modal-button-container">
       {buttons.map(({ type, name }: ModalButton) => {
-        let action = () => {
+        let action = noOp;
+        if (type === "cancel") action = () => {
           window.toggleModal(false);
         };
         if (type === "submit")

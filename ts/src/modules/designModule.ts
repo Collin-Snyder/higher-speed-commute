@@ -129,23 +129,9 @@ class DesignModule {
     let {
       MapData: { map },
     } = this._game.ecs.getEntity("map");
-    // let saved = map.map.exportForSave();
-    // let userMap = map.map.exportForLocalSave();
 
-    if (map?.id) {
-      // axios
-      //   .put(`/maps/${map.mapId}`, saved)
-      //   .then((data: any) => {
-      //     console.log(data.data);
-      //     this.saved = true;
-      //     let saveBtn = global.game.ecs.getEntity("saveButton");
-      //     if (!saveBtn.has("Disabled"))
-      //       saveBtn.addComponent("Disabled", DisabledButtons.save);
-      //   })
-      //   .catch((err: any) => {
-      //     console.error(err);
-      //   });
-      // userMap.id = map.mapId;
+    if (!this.verifyValidMap()) this.openInvalidMapModal();
+    else if (map?.id) {
       map
         .saveMapAsync()
         .then((result: any) => {
@@ -158,8 +144,21 @@ class DesignModule {
     }
   }
 
+  verifyValidMap() {
+    let {
+      MapData: { map },
+    } = this._game.ecs.getEntity("map");
+
+    return map.hasAllKeySquares();
+  }
+
   openSaveAsModal() {
-    window.toggleModal(true, "save");
+    if (!this.verifyValidMap()) this.openInvalidMapModal();
+    else window.toggleModal(true, "save");
+  }
+
+  openInvalidMapModal() {
+    window.toggleModal(true, "missingKeySquares");
   }
 
   async saveAsAsync(name: string) {

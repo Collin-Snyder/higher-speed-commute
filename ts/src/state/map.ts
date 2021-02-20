@@ -387,6 +387,10 @@ export class ArcadeMap implements IArcadeMap {
     return this.getSquare(this[k]);
   }
 
+  hasAllKeySquares() {
+    return this.playerHome && this.bossHome && this.office;
+  }
+
   findPath(
     startX: number,
     startY: number,

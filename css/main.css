@@ -200,6 +200,11 @@ h1.modal-title {
   cursor: pointer;
 }
 
+.action-button.spacer {
+  cursor: default;
+  background-color: white;
+}
+
 .action-button:active::after {
   opacity: 0.65;
 }
