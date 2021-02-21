@@ -75,8 +75,8 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
       Renderable.renderW = sprite.w;
       Renderable.renderH = sprite.h;
 
-      Coordinates.X += (buttonX - gap - Coordinates.X) * (1 / 4);
-      Coordinates.Y += (buttonY - gap - Coordinates.Y) * (1 / 4);
+      Coordinates.X += (buttonX - gap - Coordinates.X) * (1 / 3);
+      Coordinates.Y += (buttonY - gap - Coordinates.Y) * (1 / 3);
 
       let UL = {
         x: Coordinates.X,

@@ -338,3 +338,15 @@ h1.modal-title {
   font-family: "8-bit-pusab-regular";
   color: lightgray;
 }
+
+.red {
+  color: #eb3626;
+}
+
+.yellow {
+  color: #f0d31a;
+}
+
+.blue {
+  color: #0058cf;
+}

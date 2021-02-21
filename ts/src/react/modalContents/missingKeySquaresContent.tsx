@@ -1,28 +1,10 @@
-import React, { useContext, useEffect } from "react";
-import { ModalInputContext } from "../modalInputContext";
+import React from "react";
 
 const MissingKeySquaresContent = () => {
-//   let [, dispatch] = useContext(ModalInputContext);
-  //   useEffect(() => {
-  //     dispatch({
-  //       type: "SET_SUBMIT_ACTIONS",
-  //       payload: {
-  //         save: () => {
-  //           window.game.designModule.quitting = true;
-  //           window.toggleModal(false);
-  //           window.game.publish("save");
-  //         },
-  //         dontSave: () => {
-  //           window.game.publish("quit");
-  //           window.toggleModal(false);
-  //         },
-  //       },
-  //     });
-  //   }, []);
   return (
     <>
       <h2>Invalid Map</h2>
-      <p>A valid map must contain a Player Home square, a Boss Home square, and an Office square.</p>
+      <p>A valid map must contain a <span className="blue">Player Home square</span>, a <span className="red">Boss Home</span> square, and an <span className="yellow">Office</span> square.</p>
       <p>Please add these three elements to continue.</p>
     </>
   );
