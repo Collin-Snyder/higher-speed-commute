@@ -27,7 +27,9 @@ declare global {
     | "home"
     | "loadSaved"
     | "save"
-    | "saveAs";
+    | "saveAs"
+    | "settings"
+    | "help";
   type TButtonColors = "green" | "red" | "yellow" | "purple" | "orange";
   type TMenuName =
     | "main"
@@ -63,19 +65,19 @@ declare global {
   type TBreakpoint = "small" | "regular";
   type TLightColor = "green" | "yellow" | "red";
   type TMode =
-  | "init"
-  | "menu"
-  | "starting"
-  | "loadLevel"
-  | "chooseDifficulty"
-  | "levelStartAnimation"
-  | "playing"
-  | "paused"
-  | "won"
-  | "lost"
-  | "crash"
-  | "designing"
-  | "end";
+    | "init"
+    | "menu"
+    | "starting"
+    | "loadLevel"
+    | "chooseDifficulty"
+    | "levelStartAnimation"
+    | "playing"
+    | "paused"
+    | "won"
+    | "lost"
+    | "crash"
+    | "designing"
+    | "end";
 
   // game math //
   type TEntityArrayItem = Entity | Array<Entity>;
@@ -83,6 +85,7 @@ declare global {
   type TVerticalAlignment = "top" | "bottom" | "spaceEvenly" | "spaceBetween";
   type THorizontalJustify = "left" | "right" | "spaceEvenly" | "spaceBetween";
   type TVerticalJustify = "top" | "bottom" | "center";
+  type TCarColor = "blue" | "green" | "yellow" | "orange" | "pink" | "white" | "purple" | "aqua" | "tan";
 
   ///// INTERFACES /////
   interface Window {
@@ -102,7 +105,9 @@ declare global {
   }
 
   interface Array<T> {
-    deepMap: (cb: (currentElement: any, i: number, currentArray: Array<any>) => any) => Array<any>
+    deepMap: (
+      cb: (currentElement: any, i: number, currentArray: Array<any>) => any
+    ) => Array<any>;
   }
 
   interface IVector {
@@ -129,7 +134,7 @@ declare global {
     setSquare: Function;
     findPath: Function;
   }
-  
+
   interface IMapObject {
     squares: ISquare[];
     boardWidth: number;
@@ -142,7 +147,7 @@ declare global {
     id: number;
     name: string;
   }
-  
+
   interface IMiniMapObject {
     i: number;
     n: string;
@@ -155,7 +160,7 @@ declare global {
     c: number[];
     s: any[];
   }
-  
+
   interface ISquare {
     id: number;
     row: number;
@@ -165,7 +170,7 @@ declare global {
     schoolZone: boolean;
     [key: string]: any;
   }
-  
+
   interface ITile {
     type: Tile | Tile[];
     a: number;
@@ -175,17 +180,16 @@ declare global {
     display: boolean;
     [key: string]: any;
   }
-  
+
   interface ISprite {
-    x: number,
-    y: number,
-    w: number,
-    h: number
+    x: number;
+    y: number;
+    w: number;
+    h: number;
   }
 
   interface ILightStateInterface {
     on: { [action: string]: string };
     [prop: string]: any;
   }
-  
 }

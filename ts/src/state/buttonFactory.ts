@@ -269,10 +269,29 @@ const buttons: { [key: string]: ButtonInterface } = {
     },
     tags: ["menu", "design", "config", "square"],
   },
+  settings: {
+    name: "settings",
+    color: "orange",
+    hasText: true,
+    selectable: false,
+    onClick: function(game: Game) {
+      window.toggleModal(true, "settings");
+    },
+    tags: ["menu", "main"]
+  },
+  help: {
+    name: "help",
+    color: "orange",
+    hasText: true,
+    selectable: false,
+    onClick: function(game: Game) {},
+    tags: ["menu", "main"]
+  }
 };
 
-export const menuButtons: { [key in TMenuName]: TButtonName[] } = {
-  main: ["playArcade", "playCustom", "design"],
+// export const menuButtons: { [key in TMenuName]: TButtonName[] } = {
+export const menuButtons = {
+  main: [["playArcade", "playCustom", "design"], ["settings", "help"]],
   won_arcade: ["nextLevel", "restart", "quit"],
   won_custom: ["chooseMap", "restart", "quit"],
   lost_arcade: ["restart", "quit"],

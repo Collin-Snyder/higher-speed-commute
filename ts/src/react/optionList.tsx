@@ -1,6 +1,8 @@
+import { isSet } from "lodash";
 import React, { useState, ChangeEvent, useContext } from "react";
 import { ModalInputContext } from "./modalInputContext";
 import SelectionButton from "./selectionButton";
+import SettingsOption from "./settingsOption";
 
 export interface ModalOption {
   value: string | number;
@@ -14,23 +16,65 @@ interface OptionListProps {
   optionsWillSubmit: boolean;
 }
 
-const OptionList = ({ listName, options, optionsWillSubmit }: OptionListProps) => {
+const OptionList = ({
+  listName,
+  options,
+  optionsWillSubmit,
+}: OptionListProps) => {
   let [inputState, dispatch] = useContext(ModalInputContext);
-  let {toggleModal} = window;
+  let { toggleModal } = window;
 
-  let cssClass = listName === "loadMap" ? "columns" : "";
+  let isSettingsMenu = /Settings/.test(listName);
+  //@ts-ignore;
+  let settingsMenu = listName.match(/(\w+)(?=Settings)/) ? listName.match(/(\w+)(?=Settings)/)[0] : "";
+
+  let cssClass =
+    listName === "loadMap" ? "columns" : isSettingsMenu ? "horizontal" : "";
+
   let handleChange = (e: ChangeEvent<HTMLInputElement>) => {};
-  
+
   if (optionsWillSubmit) {
     handleChange = (e: ChangeEvent<HTMLInputElement>) => {
       inputState.submitActions[e.target.value]();
-    }
-  } else  {
+    };
+  } else if (isSettingsMenu) {
+    handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+      
+      dispatch({
+        type: "SET_INPUT_VALUE",
+        payload: { ...inputState.inputValue, [settingsMenu]: e.target.value },
+      });
+    };
+  } else {
     handleChange = (e: ChangeEvent<HTMLInputElement>) => {
       dispatch({ type: "SET_INPUT_VALUE", payload: e.target.value });
     };
   }
 
+  let optionButtons = isSettingsMenu
+    ? options.map(({ value, label, sprite }) => (
+        <SettingsOption
+          name={listName}
+          //@ts-ignore
+          value={value}
+          label={label}
+          sprite={sprite}
+          selected={inputState.inputValue[settingsMenu] == value}
+          handleChange={handleChange}
+          key={value}
+        />
+      ))
+    : options.map(({ value, label }) => (
+        <SelectionButton
+          name={listName}
+          value={value}
+          label={label}
+          selected={inputState.inputValue == value}
+          willSubmit={optionsWillSubmit}
+          handleChange={handleChange}
+          key={value}
+        />
+      ));
 
   return (
     <div
@@ -45,17 +89,7 @@ const OptionList = ({ listName, options, optionsWillSubmit }: OptionListProps) =
         }
       }}
     >
-      {options.map(({ value, label }) => (
-        <SelectionButton
-          name={listName}
-          value={value}
-          label={label}
-          selected={inputState.inputValue == value}
-          willSubmit={optionsWillSubmit}
-          handleChange={handleChange}
-          key={value}
-        />
-      ))}
+      {...optionButtons}
     </div>
   );
 };

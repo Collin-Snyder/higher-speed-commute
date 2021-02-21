@@ -10,6 +10,7 @@ interface ModalProps {
 const Modal = ({ children, name, levelNum }: ModalProps) => {
   let { title, subtitle } = generateModalTitles(name, levelNum);
   let warning = name === "reset";
+
   return (
     <div id="modal" className={name} onClick={(e) => e.stopPropagation()}>
       {title ? <h1 className="modal-title">{title}</h1> : <></>}

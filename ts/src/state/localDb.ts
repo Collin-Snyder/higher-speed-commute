@@ -78,7 +78,7 @@ export default db;
 ///////////////////////////
 
 export async function loadArcadeLevel(levelNum: number) {
-  levelNum = Number(levelNum)
+  levelNum = Number(levelNum);
   let lastLevel = await db.arcadeMaps
     .orderBy("levelNumber")
     .last(({ levelNumber }) => levelNumber);
@@ -86,9 +86,9 @@ export async function loadArcadeLevel(levelNum: number) {
   if (levelNum > lastLevel) return "end of game";
 
   let map = await db.arcadeMaps
-  .where("levelNumber")
-  .equals(levelNum)
-  .first();
+    .where("levelNumber")
+    .equals(levelNum)
+    .first();
 
   let {
     id,
@@ -193,7 +193,12 @@ export async function saveTestData(mapTestDataObj: any) {
 export async function createUser() {
   let user = await getUserInfo();
   if (!user) {
-    await db.userInfo.add({ id: 1, color: "blue", lastCompletedLevel: 0 });
+    await db.userInfo.add({
+      id: 1,
+      color: "blue",
+      lastCompletedLevel: 0,
+      terrain: "default",
+    });
     user = await getUserInfo();
   }
   return user;
@@ -213,7 +218,14 @@ export async function loadCompletedLevels() {
 }
 
 export async function updateLastCompletedLevel(levelNum: number) {
-  return db.userInfo.update(1, {lastCompletedLevel: levelNum});
+  return db.userInfo.update(1, { lastCompletedLevel: levelNum });
+}
+
+export async function updateGraphicsSettings({
+  color,
+  terrain,
+}: { [key in "color" | "terrain"]: TCarColor | TTerrainStyle }) {
+  return db.userInfo.update(1, { color, terrain });
 }
 
 export async function getLastCompletedLevel() {

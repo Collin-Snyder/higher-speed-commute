@@ -4,82 +4,6 @@
     url("../8-bit-pusab.ttf") format("truetype");
 }
 
-@media only screen and (min-width: 1440px) {
-  #modal {
-    width: 794px; /* 603.44 */
-    height: 450px; /* 342 */
-    padding: 20px; /* 15.2 */
-  }
-
-  h1.modal-title {
-    font-size: 30px; /* 22.8 */
-  }
-
-  #modal-content {
-    padding: 17px; /* 12.92 */
-    width: 737px; /* 560.12 */
-    height: 265px; /* 194.56 */
-    margin: 20px 0; /* 15.2 */
-  }
-
-  #modal-content.border {
-    border: 3px solid black; /* 2.28 */
-  }
-
-  #modal-button-container {
-    width: 710px; /* 539.6 */
-    height: 75px; /* 57 */
-  }
-
-  #modal-options {
-    width: 737px; /* 560.12 */
-  }
-
-  #modal-options.columns {
-    grid-template-columns: 360px 360px; /* 273.6 */
-    grid-gap: 17px; /* 12.92 */
-    margin-bottom: 17px; /* 12.92 */
-    margin-top: 17px; /* 12.92 */
-  }
-
-  .option-button {
-    width: 710px; /* 539.6 */
-    height: 89px; /* 67.64 */
-  }
-
-  .option-button.small {
-    width: 355px; /* 269.8 */
-  }
-
-  .option-button-graphic {
-    box-shadow: -4px -4px rgb(194, 194, 194) inset, 0 -4px black, 4px 0 black,
-      0 4px black, -4px 0 black; /* 3 */
-  }
-
-  .option-button-graphic.selected {
-    outline: 4px solid yellow; /* 3 */
-  }
-
-  .option-button-label {
-    margin-left: 1vw; /* 0.76vw */
-  }
-
-  .map-icon {
-    height: 75px; /* 57 */
-    width: 75px; /* 57 */
-    margin: 7px; /* 5.32 */
-  }
-
-  #map-name-input {
-    min-height: 36px; /* 27.36 */
-    box-shadow: -4px -4px rgb(194, 194, 194) inset, 0 -4px black, 4px 0 black,
-      0 4px black, -4px 0 black; /* 3 */
-    font-size: 1em; /* .76em */
-    padding-left: 20px; /* 15.2 */
-    margin: 20px auto; /* 15.2 */
-  }
-}
-
 html,
 body,
 h1,
@@ -87,6 +11,10 @@ h3,
 p {
   margin: 0;
   font-family: "8-bit-pusab-regular", "Courier New", monospace;
+}
+
+input, label {
+  cursor: inherit;
 }
 
 body {
@@ -230,6 +158,15 @@ h1.modal-title {
   top: 0;
 }
 
+#modal-options.horizontal {
+  width: 100%;
+  position: relative;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
+  min-height: 0;
+}
+
 #modal-options.columns {
   display: grid;
   grid-template-columns: 273.6px 273.6px;
@@ -239,20 +176,45 @@ h1.modal-title {
   margin-top: 12.92px;
 }
 
+.option-button,
+.settings-option {
+  position: relative;
+}
+
+.settings-option label {
+  cursor: pointer;
+}
+
 .option-button {
+  display: block;
   width: 539.6px;
   height: 67.64px;
-  display: block;
-  position: relative;
-  cursor: pointer;
   background-color: white;
+}
+
+.settings-option {
+  display: flex;
+  width: 66px;
+  height: 66px;
+}
+
+.settings-header {
+  margin: 15px auto;
+}
+
+p.settings-option-label {
+  display: block;
+  font-size: 15px;
+  position: relative;
+  align-self: flex-end;
 }
 
 .option-button.small {
   width: 269.8px;
 }
 
-.option-button input {
+.option-button input,
+.settings-option input {
   position: absolute;
   opacity: 0;
   width: 0;
@@ -281,6 +243,11 @@ h1.modal-title {
   justify-content: left;
 }
 
+.option-button-graphic.neighborhood {
+  height: 57px;
+  width: 57px;
+}
+
 .option-button-graphic.selected {
   outline: 3px solid yellow;
 }
@@ -304,6 +271,15 @@ h1.modal-title {
   background-image: url("./map-icon.png");
   background-repeat: no-repeat;
   background-size: cover;
+  flex-shrink: 0;
+}
+
+.settings-icon {
+  height: 57px;
+  width: 57px;
+  background-image: url("./spritesheet.png");
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
   flex-shrink: 0;
 }
 
@@ -349,4 +325,128 @@ h1.modal-title {
 
 .blue {
   color: #0058cf;
+}
+
+@media only screen and (min-width: 1440px) {
+  #modal {
+    width: 794px; /* 603.44 */
+    height: 450px; /* 342 */
+    padding: 20px; /* 15.2 */
+  }
+
+  #modal.settings {
+    width: 1000px;
+    height: 625px;
+  }
+
+  h1.modal-title {
+    font-size: 30px; /* 22.8 */
+  }
+
+  #modal-content {
+    padding: 17px; /* 12.92 */
+    width: 737px; /* 560.12 */
+    height: 265px; /* 194.56 */
+    margin: 20px 0; /* 15.2 */
+  }
+
+  #modal.settings #modal-content {
+    width: 950px;
+    height: 575px;
+    align-items: center;
+  }
+
+  .settings-list-container {
+    width: 100%;
+    height: max-content;
+  }
+
+  #modal-content.border {
+    border: 3px solid black; /* 2.28 */
+  }
+
+  #modal-button-container {
+    width: 710px; /* 539.6 */
+    height: 75px; /* 57 */
+  }
+
+  #modal-options {
+    width: 737px; /* 560.12 */
+  }
+
+  #modal-options.columns {
+    grid-template-columns: 360px 360px; /* 273.6 */
+    grid-gap: 17px; /* 12.92 */
+    margin-bottom: 17px; /* 12.92 */
+    margin-top: 17px; /* 12.92 */
+  }
+
+  .option-button {
+    width: 710px; /* 539.6 */
+    height: 89px; /* 67.64 */
+  }
+
+  .settings-option,
+  .settings-icon {
+    width: 75px;
+    height: 75px;
+  }
+
+  .settings-icon.neighborhood {
+    height: 150px;
+    width: 150px;
+    background-size: 2000px;
+  }
+
+  .settings-option.neighborhood {
+    height: 220px;
+    width: 150px;
+  }
+
+  .settings-icon.car {
+    background-size: 3000px;
+  }
+
+  .option-button.small {
+    width: 355px; /* 269.8 */
+  }
+
+  .option-button-graphic {
+    box-shadow: -4px -4px rgb(194, 194, 194) inset, 0 -4px black, 4px 0 black,
+      0 4px black, -4px 0 black; /* 3 */
+  }
+
+  .option-button-graphic.selected {
+    outline: 4px solid yellow; /* 3 */
+  }
+
+  .option-button-graphic.neighborhood {
+    box-shadow: -8px -8px rgb(194, 194, 194) inset, 0 -8px black, 8px 0 black,
+      0 8px black, -8px 0 black;
+    height: 150px;
+    width: 150px;
+  }
+
+  .option-button-graphic.neighborhood.selected {
+    outline: 8px solid yellow;
+  }
+
+  .option-button-label {
+    margin-left: 1vw; /* 0.76vw */
+  }
+
+  .map-icon {
+    height: 75px; /* 57 */
+    width: 75px; /* 57 */
+    margin: 7px; /* 5.32 */
+  }
+
+  #map-name-input {
+    min-height: 36px; /* 27.36 */
+    box-shadow: -4px -4px rgb(194, 194, 194) inset, 0 -4px black, 4px 0 black,
+      0 4px black, -4px 0 black; /* 3 */
+    font-size: 1em; /* .76em */
+    padding-left: 20px; /* 15.2 */
+    margin: 20px auto; /* 15.2 */
+  }
 }

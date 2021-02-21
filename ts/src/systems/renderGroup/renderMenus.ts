@@ -2,6 +2,7 @@ import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { Game } from "../../main";
 import { menuButtons, designMenuButtons } from "../../state/buttonFactory";
 import { centerWithin, alignItems, justifyItems } from "gameMath";
+import * as breakpoints from "../../modules/breakpoints";
 import SpriteMap from "../../spriteMapModule";
 
 class RenderMenus extends EntityComponentSystem.System {
@@ -115,6 +116,7 @@ class RenderMenus extends EntityComponentSystem.System {
 
   getButtonEntity = (buttonName: TButtonName) => {
     let e = <Entity>this.ecs.getEntity(`${buttonName}Button`);
+    // if (e === undefined) debugger;
     e.Interactable.enabled = true;
     return e;
   };
@@ -201,7 +203,7 @@ class RenderMenus extends EntityComponentSystem.System {
 
   drawTitle() {
     let sprite = <ISprite>this._game.spriteMap.getSprite("title");
-    let renderH = window.innerHeight / 4;
+    let renderH = breakpoints[this._game.breakpoint].titleHeight;
     let renderW = renderH * (sprite.w / sprite.h);
 
     let { x } = centerWithin(

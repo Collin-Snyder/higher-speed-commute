@@ -14,6 +14,8 @@ export function generateModalTitles(modalName: string, levelNum: number): {title
   else if (modalName === "reset") {
     output.title = "Reset Map";
     output.subtitle = "This action cannot be undone";
+  } else if (modalName === "settings") {
+    output.title = "Settings"
   }
   return output;
 }

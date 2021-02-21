@@ -45,6 +45,10 @@ const modalButtons: { [key: string]: ModalButton[] } = {
     { type: "spacer", name: "spacer" },
     { type: "cancel", name: "ok" },
   ],
+  settings: [
+    { type: "cancel", name: "cancel" },
+    { type: "submit", name: "save" },
+  ],
 };
 
 const ModalButtonContainer = ({
@@ -62,9 +66,10 @@ const ModalButtonContainer = ({
     <div id="modal-button-container">
       {buttons.map(({ type, name }: ModalButton) => {
         let action = noOp;
-        if (type === "cancel") action = () => {
-          window.toggleModal(false);
-        };
+        if (type === "cancel")
+          action = () => {
+            window.toggleModal(false);
+          };
         if (type === "submit")
           action = inputState.submitActions[name] || action;
         return (

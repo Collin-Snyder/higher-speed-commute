@@ -34,9 +34,11 @@ import {
   loadCustomLevel,
   createUser,
   getLastCompletedLevel,
+  updateGraphicsSettings,
 } from "./state/localDb";
 import SpriteMap from "./spriteMapModule";
 import { forEachMapTile } from "./modules/tileDrawer";
+import { cars, neighborhoods } from "./react/modalContents/settingsContent";
 
 Number.prototype.times = function(
   cb: (currentNum: number) => any,
@@ -369,9 +371,10 @@ export class Game {
 
     createUser()
       .then((user) => {
-        let { color, lastCompletedLevel } = user;
+        let { color, terrain, lastCompletedLevel } = user;
         this.lastCompletedLevel = lastCompletedLevel;
-        this.ecs.getEntity("player").Car.color = color;
+        this.setTerrainStyle(terrain);
+        this.setCarColor(color);
       })
       .catch((err) => console.error(err));
 
@@ -397,9 +400,18 @@ export class Game {
       this.spriteSheetIsLoaded = true;
       if (this.backgroundIsLoaded) this.buildWorld();
     };
-    this.ecs.addSystem("timers", new RaceTimerSystem(this, this.ecs, this.step));
-    this.ecs.addSystem("lights", new LightTimerSystem(this, this.ecs, this.step));
-    this.ecs.addSystem("caffeine", new CaffeineSystem(this, this.ecs, this.step));
+    this.ecs.addSystem(
+      "timers",
+      new RaceTimerSystem(this, this.ecs, this.step)
+    );
+    this.ecs.addSystem(
+      "lights",
+      new LightTimerSystem(this, this.ecs, this.step)
+    );
+    this.ecs.addSystem(
+      "caffeine",
+      new CaffeineSystem(this, this.ecs, this.step)
+    );
     this.ecs.addSystem("input", new InputSystem(this, this.ecs));
     this.ecs.addSystem("move", new MovementSystem(this, this.ecs));
     this.ecs.addSystem("collision", new CollisionSystem(this, this.ecs));
@@ -439,7 +451,10 @@ export class Game {
     let validate = this.pubSub.baseEventHandlers.validate;
     for (let event of this.pubSub.baseEvents) {
       //this must be first
-      this.subscribe(event.name, validate.bind(this, this, event.name, event.from));
+      this.subscribe(
+        event.name,
+        validate.bind(this, this, event.name, event.from)
+      );
 
       let onbefore = this.pubSub.baseEventHandlers[`onbefore${event.name}`];
       let on = this.pubSub.baseEventHandlers[`on${event.name}`];
@@ -479,6 +494,7 @@ export class Game {
     this.globalEntity.Global.bgMap = bgMap;
 
     this.generateModalButtonCSSClasses();
+    this.generateSettingsMenuCSSClasses();
 
     ///// create background entity with parallax layers /////
     this.ecs.createEntity({
@@ -549,14 +565,23 @@ export class Game {
     } = RenderGroup;
 
     this.ecs.addSystem("animations", new BackgroundAnimation(this, this.ecs));
-    this.ecs.addSystem("render", new RenderBackground(this, this.ecs, this.uictx));
+    this.ecs.addSystem(
+      "render",
+      new RenderBackground(this, this.ecs, this.uictx)
+    );
     this.ecs.addSystem("render", new RenderBorders(this, this.ecs, this.uictx));
-    this.ecs.addSystem("render", new RenderOffscreenMap(this, this.ecs, this.osmctx));
+    this.ecs.addSystem(
+      "render",
+      new RenderOffscreenMap(this, this.ecs, this.osmctx)
+    );
     this.ecs.addSystem(
       "render",
       new RenderGameplayEntities(this, this.ecs, this.osectx, this.OSEntCanvas)
     );
-    this.ecs.addSystem("render", new RenderSandboxMap(this, this.ecs, this.uictx));
+    this.ecs.addSystem(
+      "render",
+      new RenderSandboxMap(this, this.ecs, this.uictx)
+    );
     this.ecs.addSystem(
       "render",
       new RenderViewBox(this, this.ecs, this.uictx, this.step)
@@ -581,15 +606,45 @@ export class Game {
     document.head.appendChild(styleEl);
   }
 
+  generateSettingsMenuCSSClasses() {
+    let styleEl = document.createElement("style");
+    let styleHTML = "";
+
+    cars.forEach((c) => {
+      let sprite = <ISprite>this.spriteMap.getSprite(c.sprite);
+      styleHTML += `#${c.sprite}-icon {background-position: -${sprite.x *
+        3}px -${sprite.y * 3}px;}\n`;
+    });
+
+    neighborhoods.forEach((n) => {
+      let sprite = <ISprite>this.spriteMap.getSprite(n.sprite);
+      styleHTML += `#${n.sprite}-icon {background-position: -${sprite.x *
+        2}px -${sprite.y * 2}px;}\n`;
+    });
+
+    styleEl.innerHTML = styleHTML;
+    document.head.appendChild(styleEl);
+  }
+
   updateMapTerrainBackground() {
     let sprite1 = <ISprite>this.spriteMap.getSprite("background1");
     let sprite2 = <ISprite>this.spriteMap.getSprite("background2");
-    let spriteSheet = this.spriteSheet
+    let spriteSheet = this.spriteSheet;
 
     forEachMapTile((i, x, y, w, h) => {
       let sprite = Math.random() < 0.5 ? sprite1 : sprite2;
-      this.osmbgctx.drawImage(spriteSheet, sprite.x, sprite.y, sprite.w, sprite.h, x, y, w, h)
-    })
+      this.osmbgctx.drawImage(
+        spriteSheet,
+        sprite.x,
+        sprite.y,
+        sprite.w,
+        sprite.h,
+        x,
+        y,
+        w,
+        h
+      );
+    });
   }
 
   async loadLevel(
@@ -732,6 +787,18 @@ export class Game {
     //   .catch((err: any) => console.error(err));
   }
 
+  async updateUserSettings({
+    color,
+    terrain,
+  }: {
+    color: TCarColor;
+    terrain: TTerrainStyle;
+  }) {
+    await updateGraphicsSettings({ color, terrain });
+    this.setCarColor(color);
+    this.setTerrainStyle(terrain);
+  }
+
   getPlayerHB() {
     let player = this.ecs.getEntity("player");
     let { hb, cp } = player.Collision;
@@ -764,6 +831,16 @@ export class Game {
   setTerrainStyle(style: TTerrainStyle) {
     this.terrainStyle = style;
     this.updateMapTerrainBackground();
+  }
+
+  setCarColor(color: TCarColor) {
+    let { Car, Renderable } = this.ecs.getEntity("player");
+    Car.color = color;
+    let sprite = <ISprite>this.spriteMap.getSprite(`${color}Car`);
+    Renderable.spriteX = sprite.x;
+    Renderable.spriteY = sprite.y;
+    Renderable.spriteW = sprite.w;
+    Renderable.spriteH = sprite.h;
   }
 
   updateCanvasSize() {

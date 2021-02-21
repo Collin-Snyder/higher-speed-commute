@@ -40,6 +40,14 @@ class SpriteMap {
       /// CARS ////
       blueCar: { x: 443, y: 124, w: 25, h: 25 },
       redCar: { x: 470, y: 124, w: 25, h: 25 },
+      greenCar: {x: 497, y: 124, w: 25, h: 25}, 
+      orangeCar: {x: 524, y: 124, w: 25, h: 25}, 
+      yellowCar: {x: 551, y: 124, w: 25, h: 25}, 
+      pinkCar: {x: 578, y: 124, w: 25, h: 25}, 
+      whiteCar: {x: 605, y: 124, w: 25, h: 25}, 
+      purpleCar: {x: 632, y: 124, w: 25, h: 25}, 
+      aquaCar: {x: 659, y: 124, w: 25, h: 25}, 
+      tanCar: {x: 686, y: 124, w: 25, h: 25}, 
       /// GAMEPLAY ENTITIES ///
       redLight: { x: 308, y: 124, w: 25, h: 25 },
       greenLight: { x: 362, y: 124, w: 25, h: 25 },
@@ -84,6 +92,8 @@ class SpriteMap {
       playArcadeButtonText: { x: 0, y: 579, w: 116, h: 42 },
       playCustomButtonText: { x: 0, y: 623, w: 116, h: 42 },
       chooseMapButtonText: { x: 0, y: 667, w: 116, h: 42 },
+      settingsButtonText: {x: 0, y: 711, w: 140, h: 19},
+      helpButtonText: {x: 0, y: 732, w: 82, h: 22},
       /// MENU GRAPHICS ///
       title: { x: 764, y: 62, w: 193, h: 53 },
       wonGraphic: { x: 308, y: 296, w: 58, h: 75 },
@@ -93,6 +103,10 @@ class SpriteMap {
       endGraphic: { x: 596, y: 296, w: 75, h: 75 },
       shine: { x: 462, y: 450, w: 75, h: 75 },
       badShine: { x: 539, y: 450, w: 75, h: 75 },
+      /// SETTINGS MENUS ///
+      defaultTerrainPreview: {x: 721, y: 290, w: 75, h: 75},
+      desertTerrainPreview: {x: 810, y: 290, w: 75, h: 75},
+      snowTerrainPreview: {x: 899, y: 290, w: 75, h: 75}
     };
   }
 
