@@ -1,6 +1,6 @@
 import { Entity } from "@fritzy/ecs";
 import axios from "axios";
-import { capitalize } from "../modules/gameHelpers";
+import { capitalize } from "gameHelpers";
 import Editor, { commands } from "./editor";
 import Game from "../main";
 import { deleteUserMap, loadUserMap } from "../state/localDb";

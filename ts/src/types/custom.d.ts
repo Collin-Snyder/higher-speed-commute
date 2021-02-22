@@ -192,4 +192,7 @@ declare global {
     on: { [action: string]: string };
     [prop: string]: any;
   }
+
+  
+  
 }

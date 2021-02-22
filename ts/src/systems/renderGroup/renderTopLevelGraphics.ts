@@ -1,7 +1,7 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { Game } from "../../main";
 import { centerWithin, degreesToRadians } from "gameMath";
-import { capitalize } from "../../modules/gameHelpers";
+import { capitalize } from "gameHelpers";
 const { abs } = Math;
 
 class RenderTopLevelGraphics extends EntityComponentSystem.System {
