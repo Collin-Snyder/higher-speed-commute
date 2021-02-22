@@ -45,12 +45,14 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
       this.ctx.restore();
     }
     if (this._game.mode === "designing") this.renderSelectors();
+    this.renderTooltips();
   }
 
   renderSelectors() {
     let selectors = this.ecs.queryEntities({
       has: ["Selector", "Renderable", "Coordinates"],
     });
+
     for (let entity of selectors) {
       if (!entity.Selector.focusEntity) continue;
       let {
@@ -59,7 +61,7 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
         Coordinates,
       } = entity;
 
-      if (this._game.breakpoint === "small") gap = 12
+      if (this._game.breakpoint === "small") gap = 12;
 
       let selectorWidth = focusEntity.Renderable.renderW + gap * 2;
       let selectorHeight = focusEntity.Renderable.renderH + gap * 2;
@@ -123,6 +125,37 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
         );
         this.ctx.restore();
       }
+    }
+  }
+
+  renderTooltips() {
+    let tooltipEntities = this.ecs.queryEntities({
+      has: ["Tooltip", "Renderable", "Coordinates"],
+    });
+
+    if (!tooltipEntities.size) return;
+
+    for (let entity of tooltipEntities) {
+      let {
+        Tooltip: { coordinates, text, textSize, opacity },
+        Coordinates: {X, Y}
+      } = entity;
+      this.ctx.save();
+      this.ctx.font = `${textSize}px '${this._game.gameFont.family}'`;
+      this.ctx.textBaseline = "bottom";
+      this.ctx.fillStyle = "#000";
+      this.ctx.globalAlpha = opacity;
+      let {
+        width,
+        actualBoundingBoxDescent,
+        actualBoundingBoxLeft,
+        actualBoundingBoxRight,
+        actualBoundingBoxAscent
+      } = this.ctx.measureText(text);
+
+      console.log("Rendering text for button with opacity: ", this.ctx.globalAlpha);
+      this.ctx.fillText(text, X, Y);
+      this.ctx.restore();
     }
   }
 }

@@ -2,7 +2,7 @@ import { Entity } from "@fritzy/ecs";
 import { Game } from "../main";
 import { getLastCompletedLevel } from "./localDb";
 import { small, regular } from "../modules/breakpoints";
-import {noOp} from "gameHelpers";
+import { noOp } from "gameHelpers";
 
 export interface ButtonInterface {
   name: TButtonName;
@@ -15,8 +15,6 @@ export interface ButtonInterface {
 }
 
 export type TDesignMenuName = "toolbar" | "admin" | "config";
-
-
 
 const buttons: { [key: string]: ButtonInterface } = {
   playArcade: {
@@ -135,6 +133,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: false,
     selectable: true,
     onMouseEnter: function(game: Game) {
+      console.log("Running mouseEnter for player home");
       this.addComponent("Tooltip", { text: "Player Home" });
     },
     onClick: function(game: Game) {
@@ -408,11 +407,13 @@ function makeButtonEntities(game: Game) {
     entity.Interactable.onHover = function(game: Game) {
       game.UICanvas.style.cursor = "pointer";
     }.bind(entity, game);
-    entity.Interactable.onMouseEnter = entity.Interactable.onMouseEnter?.bind(entity, game) ?? noOp;
-    entity.Interactable.onMouseLeave = function () {
-      //@ts-ignore
-      if (this.has("Tooltip")) this.Tooltip.fadeOut = true;
-    }.bind(entity)
+    entity.Interactable.onMouseEnter =
+      button.onMouseEnter?.bind(entity, game) ?? noOp;
+    entity.Interactable.onMouseLeave = function(btnEntity: Entity) {
+      if (btnEntity.has("Tooltip")) {
+        btnEntity.Tooltip.fadeOut = true;
+      }
+    }.bind(entity, entity);
     entity.Interactable.onMouseDown = function(btnEntity: Entity) {
       btnEntity.Button.depressed = true;
     }.bind(entity, entity);

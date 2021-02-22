@@ -15,6 +15,7 @@ export class InputSystem extends ECS.System {
   public mouseDown: boolean;
   public dragging: boolean;
   public focusedEntity: Entity | null;
+  public collisions: Map<string, boolean>
   static query: { has?: string[]; hasnt?: string[] } = {
     has: ["Car", "Velocity"],
   };
@@ -32,6 +33,7 @@ export class InputSystem extends ECS.System {
     this.mouseDown = false;
     this.dragging = false;
     this.focusedEntity = null;
+    this.collisions = new Map();
   }
 
   update(tick: number, entities: Set<Entity>) {
@@ -62,6 +64,20 @@ export class InputSystem extends ECS.System {
     for (let e of interactable) {
       if (!e.Interactable.enabled) continue;
 
+      let {
+        Interactable: {
+          onHover,
+          onMouseEnter,
+          onMouseLeave,
+          onMouseDown,
+          onDragStart,
+          onDrag,
+          onClick,
+          onMouseUp,
+          onDragEnd,
+        },
+      } = e;
+
       let mouseCollision = checkForMouseCollision(
         this.mx,
         this.my,
@@ -71,19 +87,18 @@ export class InputSystem extends ECS.System {
         e.Renderable.renderH
       );
 
-      if (!mouseCollision) continue;
+      if (!mouseCollision) {
+        if (this.collisions.has(e.id)) {
+          this.collisions.delete(e.id);
+          onMouseLeave();
+        }
+        continue;
+      }
 
-      let {
-        Interactable: {
-          onHover,
-          onMouseDown,
-          onDragStart,
-          onDrag,
-          onClick,
-          onMouseUp,
-          onDragEnd,
-        },
-      } = e;
+      if (!this.collisions.has(e.id)) {
+        this.collisions.set(e.id, true);
+        onMouseEnter();
+      }
 
       onHover();
 

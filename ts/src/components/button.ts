@@ -46,7 +46,8 @@ export const Selector = {
 export const Tooltip = {
   properties: {
     text: "",
-    waitTime: 2000,
+    textSize: 10,
+    waitTime: 1000,
     fadeStep: 0.1,
     fadeOut: false,
     opacity: 0,
