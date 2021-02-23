@@ -9,10 +9,30 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
     has: ["Coordinates", "Renderable", "anim"],
   };
   private ctx: CanvasRenderingContext2D;
+  private toolTipCanvases: { [key: string]: HTMLCanvasElement };
+  private toolTipSprites: { [key: string]: ISprite };
+  private toolTipEdges: { [key: string]: number };
+  private toolTipCaratCoordinates: { X: number; Y: number };
+  private toolTipPadding: number;
 
   constructor(private _game: Game, ecs: ECS, ctx: CanvasRenderingContext2D) {
     super(ecs);
     this.ctx = ctx;
+    this.toolTipCanvases = {};
+    this.toolTipSprites = {
+      corner: <ISprite>this._game.spriteMap.getSprite("tooltipCorner"),
+      edge: <ISprite>this._game.spriteMap.getSprite("tooltipEdge"),
+      middle: <ISprite>this._game.spriteMap.getSprite("tooltipMiddle"),
+      carat: <ISprite>this._game.spriteMap.getSprite("tooltipCarat"),
+    };
+    this.toolTipEdges = {
+      leftEdgeX: 0,
+      rightEdgeX: 0,
+      topEdgeY: 0,
+      bottomEdgeY: 0,
+    };
+    this.toolTipCaratCoordinates = { X: 0, Y: 0 };
+    this.toolTipPadding = 6;
   }
 
   update(tick: number, entities: Set<Entity>) {
@@ -137,12 +157,13 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
 
     for (let entity of tooltipEntities) {
       let {
-        Tooltip: { coordinates, text, textSize, opacity },
-        Coordinates: {X, Y}
+        Tooltip: { text, textSize, opacity },
+        Coordinates: { X, Y },
+        Renderable: {renderW, renderH}
       } = entity;
       this.ctx.save();
       this.ctx.font = `${textSize}px '${this._game.gameFont.family}'`;
-      this.ctx.textBaseline = "bottom";
+      // this.ctx.textBaseline = "bottom";
       this.ctx.fillStyle = "#000";
       this.ctx.globalAlpha = opacity;
       let {
@@ -150,13 +171,132 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
         actualBoundingBoxDescent,
         actualBoundingBoxLeft,
         actualBoundingBoxRight,
-        actualBoundingBoxAscent
+        actualBoundingBoxAscent,
       } = this.ctx.measureText(text);
 
-      console.log("Rendering text for button with opacity: ", this.ctx.globalAlpha);
-      this.ctx.fillText(text, X, Y);
+      if (!this.toolTipCanvases[entity.id])
+        this.toolTipCanvases[entity.id] = this.constructTooltipBubble(
+          width,
+          actualBoundingBoxAscent
+        );
+      let tooltip = this.toolTipCanvases[entity.id];
+      let tooltipX = Math.floor(X + (renderW / 2) - (tooltip.width / 2));
+      let tooltipY = Math.floor(Y + renderH);
+
+      this.ctx.drawImage(
+        tooltip,
+        tooltipX,
+        tooltipY,
+        tooltip.width,
+        tooltip.height
+      );
+      // this.ctx.drawImage(tooltipBubble, 0, 0, tooltipBubble.width, tooltipBubble.height, 0, 0, tooltipBubble.width * 10, tooltipBubble.height * 10)
+      let textCoords = centerWithin(
+        tooltipX,
+        tooltipY + 8,
+        tooltip.width,
+        tooltip.height - 8,
+        width,
+        actualBoundingBoxAscent
+      );
+      this.ctx.fillText(
+        text,
+        textCoords.x,
+        textCoords.y + actualBoundingBoxAscent
+      );
       this.ctx.restore();
     }
+  }
+
+  constructTooltipBubble(textW: number, textH: number) {
+    let canvas = document.createElement("canvas");
+
+    let paddingH = textH + this.toolTipPadding;
+    let paddingW = textW + this.toolTipPadding;
+
+    let height = Math.max(16,paddingH + (8 - (paddingH % 8)));
+    height += 8; //for the carat
+
+    let width = Math.max(24, paddingW + (8 - paddingW % 8));
+    if ((width / 8) % 2 === 0) width += 8; //so the carat is centered
+
+    canvas.width = width;
+    canvas.height = height;
+
+    let ctx = <CanvasRenderingContext2D>canvas.getContext("2d");
+    ctx.imageSmoothingEnabled = false;
+
+    this.toolTipCaratCoordinates = { X: width / 2 - 4, Y: 0 };
+    this.toolTipEdges.topEdgeY = 8;
+    this.toolTipEdges.bottomEdgeY = height - 8;
+    this.toolTipEdges.leftEdgeX = 0;
+    this.toolTipEdges.rightEdgeX = width - 8;
+
+    let tileCount = (width / 8) * (height / 8);
+    let x = 0,
+      y = 0;
+    let currTile = 0;
+
+    while (currTile < tileCount) {
+      let { type, deg } = this.generateTooltipTile(x, y);
+      if (type) {
+        let sprite = this.toolTipSprites[type];
+
+        if (deg) {
+          ctx.save();
+          let transX = x + 4;
+          let transY = y + 4;
+          ctx.translate(transX, transY);
+          ctx.rotate(degreesToRadians(deg));
+          ctx.translate(-transX, -transY);
+        }
+
+        ctx.drawImage(
+          this._game.spriteSheet,
+          sprite.x,
+          sprite.y,
+          sprite.w,
+          sprite.h,
+          x,
+          y,
+          sprite.w,
+          sprite.h
+        );
+
+        if (deg) ctx.restore();
+      }
+      x += 8;
+      if (x >= width) {
+        x = 0;
+        y += 8;
+      }
+      currTile++;
+    }
+
+    return canvas;
+  }
+
+  generateTooltipTile(x: number, y: number): { type: string; deg: number } {
+    let { leftEdgeX, rightEdgeX, topEdgeY, bottomEdgeY } = this.toolTipEdges;
+    if (
+      x === this.toolTipCaratCoordinates.X &&
+      y === this.toolTipCaratCoordinates.Y
+    )
+      return { type: "carat", deg: 0 };
+    if (y === this.toolTipCaratCoordinates.Y) return { type: "", deg: 0 };
+    if (y === topEdgeY && x === this.toolTipCaratCoordinates.X)
+      return { type: "", deg: 0 };
+    if (x === leftEdgeX && y === topEdgeY) return { type: "corner", deg: 0 };
+    if (x === rightEdgeX && y === topEdgeY) return { type: "corner", deg: 90 };
+    if (x === rightEdgeX && y === bottomEdgeY)
+      return { type: "corner", deg: 180 };
+    if (x === leftEdgeX && y === bottomEdgeY)
+      return { type: "corner", deg: 270 };
+    if (x === leftEdgeX) return { type: "edge", deg: 270 };
+    if (x === rightEdgeX) return { type: "edge", deg: 90 };
+    if (y === topEdgeY) return { type: "edge", deg: 0 };
+    if (y === bottomEdgeY) return { type: "edge", deg: 180 };
+    return { type: "middle", deg: 0 };
   }
 }
 

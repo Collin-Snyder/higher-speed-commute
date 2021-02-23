@@ -53,13 +53,9 @@ class SpriteMap {
       greenLight: { x: 362, y: 124, w: 25, h: 25 },
       yellowLight: { x: 335, y: 124, w: 25, h: 25 },
       coffee: { x: 389, y: 124, w: 25, h: 25 },
-      countdown3: { x: 308, y: 527, w: 70, h: 71 },
-      countdown2: { x: 380, y: 527, w: 70, h: 71 },
-      countdown1: { x: 452, y: 527, w: 22, h: 71 },
       /// DESIGN ENTITIES ///
       designLight: { x: 416, y: 124, w: 25, h: 25 },
-      defaultSelectorSmall: {x: 673, y: 338, w: 28, h: 28},
-      defaultSelectorRegular: {x: 673, y: 296, w: 40, h: 40},
+
       /// DESIGN BUTTONS ///
       playerHomeButton: { x: 308, y: 373, w: 75, h: 75 },
       bossHomeButton: { x: 385, y: 373, w: 75, h: 75 },
@@ -106,7 +102,17 @@ class SpriteMap {
       /// SETTINGS MENUS ///
       defaultTerrainPreview: {x: 721, y: 290, w: 75, h: 75},
       desertTerrainPreview: {x: 810, y: 290, w: 75, h: 75},
-      snowTerrainPreview: {x: 899, y: 290, w: 75, h: 75}
+      snowTerrainPreview: {x: 899, y: 290, w: 75, h: 75},
+      /// TOP LEVEL GRAPHICS ///
+      countdown3: { x: 308, y: 527, w: 70, h: 71 },
+      countdown2: { x: 380, y: 527, w: 70, h: 71 },
+      countdown1: { x: 452, y: 527, w: 22, h: 71 },
+      defaultSelectorSmall: {x: 673, y: 338, w: 28, h: 28},
+      defaultSelectorRegular: {x: 673, y: 296, w: 40, h: 40},
+      tooltipCorner: {x: 916, y: 0, w: 8, h: 8},
+      tooltipEdge: {x: 926, y: 0, w: 8, h: 8},
+      tooltipMiddle: {x: 936, y: 0, w: 8, h: 8},
+      tooltipCarat: {x: 946, y: 0, w: 8, h: 16}
     };
   }
 

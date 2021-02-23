@@ -133,8 +133,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: false,
     selectable: true,
     onMouseEnter: function(game: Game) {
-      console.log("Running mouseEnter for player home");
-      this.addComponent("Tooltip", { text: "Player Home" });
+      if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Player Home" });
     },
     onClick: function(game: Game) {
       game.publish("setDesignTool", "playerHome");
@@ -146,7 +145,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: false,
     selectable: true,
     onMouseEnter: function(game: Game) {
-      this.addComponent("Tooltip", { text: "Boss Home" });
+      if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Boss Home" });
     },
     onClick: function(game: Game) {
       game.publish("setDesignTool", "bossHome");
@@ -158,7 +157,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: false,
     selectable: true,
     onMouseEnter: function(game: Game) {
-      this.addComponent("Tooltip", { text: "Office" });
+      if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Office" });
     },
     onClick: function(game: Game) {
       game.publish("setDesignTool", "office");
@@ -170,7 +169,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: false,
     selectable: true,
     onMouseEnter: function(game: Game) {
-      this.addComponent("Tooltip", { text: "Street" });
+      if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Street" });
     },
     onClick: function(game: Game) {
       game.publish("setDesignTool", "street");
@@ -182,7 +181,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: false,
     selectable: true,
     onMouseEnter: function(game: Game) {
-      this.addComponent("Tooltip", { text: "Stoplight" });
+      if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Stoplight" });
     },
     onClick: function(game: Game) {
       game.publish("setDesignTool", "light");
@@ -194,7 +193,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: false,
     selectable: true,
     onMouseEnter: function(game: Game) {
-      this.addComponent("Tooltip", { text: "School Zone" });
+      if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "School Zone" });
     },
     onClick: function(game: Game) {
       game.publish("setDesignTool", "schoolZone");
@@ -206,7 +205,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: false,
     selectable: true,
     onMouseEnter: function(game: Game) {
-      this.addComponent("Tooltip", { text: "Coffee" });
+      if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Coffee" });
     },
     onClick: function(game: Game) {
       game.publish("setDesignTool", "coffee");
@@ -261,7 +260,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: false,
     selectable: false,
     onMouseEnter: function(game: Game) {
-      this.addComponent("Tooltip", { text: "Undo" });
+      if (!this.has("Tooltip"))  this.addComponent("Tooltip", { text: "Undo" });
     },
     onClick: function(game: Game) {
       game.publish("undo");
@@ -273,7 +272,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: false,
     selectable: false,
     onMouseEnter: function(game: Game) {
-      this.addComponent("Tooltip", { text: "Redo" });
+      if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Redo" });
     },
     onClick: function(game: Game) {
       game.publish("redo");
@@ -285,7 +284,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: false,
     selectable: true,
     onMouseEnter: function(game: Game) {
-      this.addComponent("Tooltip", { text: "Eraser" });
+      if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Eraser" });
     },
     onClick: function(game: Game) {
       game.publish("setDesignTool", "eraser");
@@ -297,7 +296,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: false,
     selectable: false,
     onMouseEnter: function(game: Game) {
-      this.addComponent("Tooltip", { text: "Reset Map" });
+      if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Reset Map" });
     },
     onClick: function(game: Game) {
       game.publish("resetMap");
@@ -310,7 +309,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: true,
     selectable: false,
     onMouseEnter: function(game: Game) {
-      this.addComponent("Tooltip", { text: "Settings" });
+      if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Settings" });
     },
     onClick: function(game: Game) {
       window.toggleModal(true, "settings");
@@ -323,7 +322,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     hasText: true,
     selectable: false,
     onMouseEnter: function(game: Game) {
-      this.addComponent("Tooltip", { text: "Help" });
+      if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Help" });
     },
     onClick: function(game: Game) {},
     tags: ["menu", "main"],
