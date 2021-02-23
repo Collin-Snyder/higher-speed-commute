@@ -18,8 +18,8 @@ class RenderMenus extends EntityComponentSystem.System {
   private modeNames: string[];
   private global: Entity;
   private menuText: { [key: string]: string };
-  private menuFont: FontFace;
-  private fontReady: boolean;
+  // private menuFont: FontFace;
+  // private fontReady: boolean;
 
   constructor(private _game: Game, ecs: ECS, ctx: CanvasRenderingContext2D) {
     super(ecs);
@@ -45,25 +45,10 @@ class RenderMenus extends EntityComponentSystem.System {
       end:
         "Congratulations!\nYou formed a habit AND made employee of the quarter.\nNow - time for some PTO.",
     };
-    // this.menuFont = new FontFace("8-bit-pusab-regular", "url('../../8-bit-pusab.ttf')");
-    this.fontReady = false;
-    this.menuFont = new FontFace(
-      "8-bit-pusab-regular",
-      "url('../../8-bit-pusab.ttf')"
-    );
-    document.fonts.add(this.menuFont);
-    this.menuFont.loaded.then(this.logFontLoaded);
-
-    this.menuFont
-      .load()
-      .then((f) => document.fonts.add(f))
-      .then((f) => document.fonts.ready)
-      .then((r) => (this.fontReady = true))
-      .catch((err) => console.error(err));
   }
 
   update(tick: number, entities: Set<Entity>) {
-    let { mode, playMode} = this._game;
+    let { mode, playMode } = this._game;
 
     //calculate coordinates for buttons using button spacing logic and current state/size of game
     if (!this.modeNames.includes(mode)) return;
@@ -109,14 +94,8 @@ class RenderMenus extends EntityComponentSystem.System {
     }
   }
 
-  logFontLoaded = () => {
-    console.log(this.menuFont.family, "loaded successfully.");
-    this.fontReady = true;
-  };
-
   getButtonEntity = (buttonName: TButtonName) => {
     let e = <Entity>this.ecs.getEntity(`${buttonName}Button`);
-    // if (e === undefined) debugger;
     e.Interactable.enabled = true;
     return e;
   };
@@ -163,7 +142,7 @@ class RenderMenus extends EntityComponentSystem.System {
   showPressedButtons(buttonEntities: Entity[]) {
     for (let be of buttonEntities) {
       if (!be.Button.depressed) continue;
-      
+
       let imageData = this.ctx.getImageData(
         be.Coordinates.X,
         be.Coordinates.Y,
@@ -336,14 +315,12 @@ class RenderMenus extends EntityComponentSystem.System {
     let l2Y = l1Y + bigTextH + lineGap;
     let l3Y = l2Y + textH + lineGap;
 
-    let fontStr = `${Math.floor(bigTextH)}px ${
-      this.fontReady ? `'8-bit-pusab-regular'` : `sans-serif`
-    }`;
+    let fontStr = `${Math.floor(bigTextH)}px '${this._game.gameFont.family}'`;
 
     this.ctx.save();
     this.ctx.font = fontStr;
     this.ctx.textAlign = "center";
-    this.ctx.textBaseline = "top";
+    
     this.ctx.fillStyle = menu === "end" ? "black" : "white";
 
     this.ctx.fillText(textSegments[0], textX, l1Y, maxW);

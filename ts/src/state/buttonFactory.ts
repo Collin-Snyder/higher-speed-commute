@@ -2,6 +2,7 @@ import { Entity } from "@fritzy/ecs";
 import { Game } from "../main";
 import { getLastCompletedLevel } from "./localDb";
 import { small, regular } from "../modules/breakpoints";
+import { noOp } from "gameHelpers";
 
 export interface ButtonInterface {
   name: TButtonName;
@@ -131,6 +132,9 @@ const buttons: { [key: string]: ButtonInterface } = {
     name: "playerHome",
     hasText: false,
     selectable: true,
+    onMouseEnter: function(game: Game) {
+      if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Player Home" });
+    },
     onClick: function(game: Game) {
       game.publish("setDesignTool", "playerHome");
     },
@@ -140,6 +144,9 @@ const buttons: { [key: string]: ButtonInterface } = {
     name: "bossHome",
     hasText: false,
     selectable: true,
+    onMouseEnter: function(game: Game) {
+      if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Boss Home" });
+    },
     onClick: function(game: Game) {
       game.publish("setDesignTool", "bossHome");
     },
@@ -149,6 +156,9 @@ const buttons: { [key: string]: ButtonInterface } = {
     name: "office",
     hasText: false,
     selectable: true,
+    onMouseEnter: function(game: Game) {
+      if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Office" });
+    },
     onClick: function(game: Game) {
       game.publish("setDesignTool", "office");
     },
@@ -158,6 +168,9 @@ const buttons: { [key: string]: ButtonInterface } = {
     name: "street",
     hasText: false,
     selectable: true,
+    onMouseEnter: function(game: Game) {
+      if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Street" });
+    },
     onClick: function(game: Game) {
       game.publish("setDesignTool", "street");
     },
@@ -167,6 +180,9 @@ const buttons: { [key: string]: ButtonInterface } = {
     name: "light",
     hasText: false,
     selectable: true,
+    onMouseEnter: function(game: Game) {
+      if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Stoplight" });
+    },
     onClick: function(game: Game) {
       game.publish("setDesignTool", "light");
     },
@@ -176,6 +192,9 @@ const buttons: { [key: string]: ButtonInterface } = {
     name: "schoolZone",
     hasText: false,
     selectable: true,
+    onMouseEnter: function(game: Game) {
+      if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "School Zone" });
+    },
     onClick: function(game: Game) {
       game.publish("setDesignTool", "schoolZone");
     },
@@ -185,6 +204,9 @@ const buttons: { [key: string]: ButtonInterface } = {
     name: "coffee",
     hasText: false,
     selectable: true,
+    onMouseEnter: function(game: Game) {
+      if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Coffee" });
+    },
     onClick: function(game: Game) {
       game.publish("setDesignTool", "coffee");
     },
@@ -237,6 +259,9 @@ const buttons: { [key: string]: ButtonInterface } = {
     name: "undo",
     hasText: false,
     selectable: false,
+    onMouseEnter: function(game: Game) {
+      if (!this.has("Tooltip"))  this.addComponent("Tooltip", { text: "Undo" });
+    },
     onClick: function(game: Game) {
       game.publish("undo");
     },
@@ -246,6 +271,9 @@ const buttons: { [key: string]: ButtonInterface } = {
     name: "redo",
     hasText: false,
     selectable: false,
+    onMouseEnter: function(game: Game) {
+      if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Redo" });
+    },
     onClick: function(game: Game) {
       game.publish("redo");
     },
@@ -255,6 +283,9 @@ const buttons: { [key: string]: ButtonInterface } = {
     name: "eraser",
     hasText: false,
     selectable: true,
+    onMouseEnter: function(game: Game) {
+      if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Eraser" });
+    },
     onClick: function(game: Game) {
       game.publish("setDesignTool", "eraser");
     },
@@ -264,6 +295,9 @@ const buttons: { [key: string]: ButtonInterface } = {
     name: "reset",
     hasText: false,
     selectable: false,
+    onMouseEnter: function(game: Game) {
+      if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Reset Map" });
+    },
     onClick: function(game: Game) {
       game.publish("resetMap");
     },
@@ -274,24 +308,33 @@ const buttons: { [key: string]: ButtonInterface } = {
     color: "orange",
     hasText: true,
     selectable: false,
+    onMouseEnter: function(game: Game) {
+      if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Settings" });
+    },
     onClick: function(game: Game) {
       window.toggleModal(true, "settings");
     },
-    tags: ["menu", "main"]
+    tags: ["menu", "main"],
   },
   help: {
     name: "help",
     color: "orange",
     hasText: true,
     selectable: false,
+    onMouseEnter: function(game: Game) {
+      if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Help" });
+    },
     onClick: function(game: Game) {},
-    tags: ["menu", "main"]
-  }
+    tags: ["menu", "main"],
+  },
 };
 
 // export const menuButtons: { [key in TMenuName]: TButtonName[] } = {
 export const menuButtons = {
-  main: [["playArcade", "playCustom", "design"], ["settings", "help"]],
+  main: [
+    ["playArcade", "playCustom", "design"],
+    ["settings", "help"],
+  ],
   won_arcade: ["nextLevel", "restart", "quit"],
   won_custom: ["chooseMap", "restart", "quit"],
   lost_arcade: ["restart", "quit"],
@@ -363,6 +406,13 @@ function makeButtonEntities(game: Game) {
     entity.Interactable.onHover = function(game: Game) {
       game.UICanvas.style.cursor = "pointer";
     }.bind(entity, game);
+    entity.Interactable.onMouseEnter =
+      button.onMouseEnter?.bind(entity, game) ?? noOp;
+    entity.Interactable.onMouseLeave = function(btnEntity: Entity) {
+      if (btnEntity.has("Tooltip")) {
+        btnEntity.Tooltip.fadeOut = true;
+      }
+    }.bind(entity, entity);
     entity.Interactable.onMouseDown = function(btnEntity: Entity) {
       btnEntity.Button.depressed = true;
     }.bind(entity, entity);
@@ -387,7 +437,7 @@ function makeButtonEntities(game: Game) {
     id: "buttonSelector",
     Renderable: {},
     Coordinates: {},
-    Selector: {gap: 15},
+    Selector: { gap: 15 },
   });
 }
 

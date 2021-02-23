@@ -39,6 +39,7 @@ import {
 import SpriteMap from "./spriteMapModule";
 import { forEachMapTile } from "./modules/tileDrawer";
 import { cars, neighborhoods } from "./react/modalContents/settingsContent";
+import { TooltipSystem } from "./systems/tooltips";
 
 Number.prototype.times = function(
   cb: (currentNum: number) => any,
@@ -114,9 +115,11 @@ export class Game {
   private osectx: CanvasRenderingContext2D;
   public spriteSheet: HTMLImageElement;
   public background: HTMLImageElement;
+  public gameFont: FontFace;
   public spriteMap: SpriteMap;
   public spriteSheetIsLoaded: boolean;
   public backgroundIsLoaded: boolean;
+  public fontIsLoaded: boolean;
   public breakpoint: TBreakpoint;
 
   // ECS //
@@ -215,8 +218,15 @@ export class Game {
     this.designModule = new DesignModule(this);
     this.spriteSheet = new Image();
     this.background = new Image();
+    this.gameFont = new FontFace(
+      "8-bit-pusab-regular",
+      "url('../8-bit-pusab.ttf')"
+    );
+    document.fonts.add(this.gameFont);
+    this.uictx.textBaseline = "top";
     this.spriteSheetIsLoaded = false;
     this.backgroundIsLoaded = false;
+    this.fontIsLoaded = false;
     this.carColor = "blue";
     this.terrainStyle = "snow";
     this.spriteMap = new SpriteMap(this);
@@ -391,15 +401,23 @@ export class Game {
 
     this.ecs.addSystem("render", new BreakpointSystem(this, this.ecs));
 
+    this.logFontLoaded = this.logFontLoaded.bind(this);
+
+    this.gameFont
+      .load()
+      .then(this.logFontLoaded)
+      .catch((err) => console.error(err));
+
     this.background.onload = () => {
       this.backgroundIsLoaded = true;
-      if (this.spriteSheetIsLoaded) this.buildWorld();
+      if (this.spriteSheetIsLoaded && this.fontIsLoaded) this.buildWorld();
     };
 
     this.spriteSheet.onload = () => {
       this.spriteSheetIsLoaded = true;
-      if (this.backgroundIsLoaded) this.buildWorld();
+      if (this.backgroundIsLoaded && this.fontIsLoaded) this.buildWorld();
     };
+
     this.ecs.addSystem(
       "timers",
       new RaceTimerSystem(this, this.ecs, this.step)
@@ -412,6 +430,7 @@ export class Game {
       "caffeine",
       new CaffeineSystem(this, this.ecs, this.step)
     );
+    this.ecs.addSystem("tooltips", new TooltipSystem(this, this.ecs, this.step))
     this.ecs.addSystem("input", new InputSystem(this, this.ecs));
     this.ecs.addSystem("move", new MovementSystem(this, this.ecs));
     this.ecs.addSystem("collision", new CollisionSystem(this, this.ecs));
@@ -709,6 +728,7 @@ export class Game {
   update(step: number) {
     this.logTimers.update();
     this.ecs.runSystemGroup("input");
+    this.ecs.runSystemGroup("tooltips");
     if (this.mode === "playing") {
       this.ecs.runSystemGroup("lights");
       this.ecs.runSystemGroup("caffeine");
@@ -885,6 +905,12 @@ export class Game {
     if (p.has("Path")) p.removeComponentByType("Path");
     this.autopilot = false;
     return this.autopilot;
+  }
+
+  logFontLoaded() {
+    console.log(this.gameFont.family, " loaded successfully.");
+    this.fontIsLoaded = true;
+    if (this.backgroundIsLoaded && this.spriteSheetIsLoaded) this.buildWorld();
   }
 }
 

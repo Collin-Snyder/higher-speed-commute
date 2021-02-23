@@ -1,5 +1,5 @@
 import React from "react";
-import { generateModalTitles } from "../modules/gameHelpers";
+import { generateModalTitles } from "gameHelpers";
 
 interface ModalProps {
   children: any;
