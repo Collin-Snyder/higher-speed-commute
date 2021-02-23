@@ -32,9 +32,17 @@ class SpriteMap {
       house: { x: 659, y: 151, w: 25, h: 25 },
       street: { x: 686, y: 151, w: 25, h: 25 },
       schoolZone: { x: 713, y: 151, w: 25, h: 25 },
-      playerHome: { x: 605, y: 151, w: 25, h: 25 },
       bossHome: { x: 632, y: 151, w: 25, h: 25 },
       office: { x: 740, y: 151, w: 25, h: 25 },
+      bluePlayerHome: { x: 605, y: 151, w: 25, h: 25 },
+      greenPlayerHome: { x: 767, y: 151, w: 25, h: 25 },
+      orangePlayerHome: { x: 794, y: 151, w: 25, h: 25 },
+      yellowPlayerHome: { x: 821, y: 151, w: 25, h: 25 },
+      pinkPlayerHome: { x: 849, y: 151, w: 25, h: 25 },
+      whitePlayerHome: { x: 875, y: 151, w: 25, h: 25 },
+      purplePlayerHome: { x: 902, y: 151, w: 25, h: 25 },
+      aquaPlayerHome: { x: 929, y: 151, w: 25, h: 25 },
+      tanPlayerHome: { x: 956, y: 151, w: 25, h: 25 },
     };
     this.spriteData = {
       /// CARS ////
@@ -130,8 +138,12 @@ class SpriteMap {
     return s;
   }
 
+  getPlayerHomeSprite() {
+    return this.getCurrentTerrainSprite(`${this._game.ecs.getEntity("player").Car.color}PlayerHome`);
+  }
+
   getPlayerCarSprite() {
-      return this.spriteData[`${this._game.carColor}Car`];
+      return this.spriteData[`${this._game.ecs.getEntity("player").Car.color}Car`];
   }
 
   getBossCarSprite() {

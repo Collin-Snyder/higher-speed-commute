@@ -65,8 +65,11 @@ class RenderOffscreenMap extends EntityComponentSystem.System {
           deg: number
         ) => {
           // if (type === "schoolZone") type = "street";
-          let sprite = <ISprite>this._game.spriteMap.getSprite(type);
-          if (sprite === null) debugger;
+          let sprite;
+
+          if (type === "playerHome") sprite = <ISprite>this._game.spriteMap.getPlayerHomeSprite();
+          else sprite = <ISprite>this._game.spriteMap.getSprite(type);
+
           let hasAlpha = a < 1;
           let hasRotation = deg !== 0;
           if (hasAlpha || hasRotation) this.ctx.save();
