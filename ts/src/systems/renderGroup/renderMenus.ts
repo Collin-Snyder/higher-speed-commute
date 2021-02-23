@@ -170,10 +170,10 @@ class RenderMenus extends EntityComponentSystem.System {
         entity.Renderable.spriteY,
         entity.Renderable.spriteW,
         entity.Renderable.spriteH,
-        entity.Coordinates.X,
-        entity.Coordinates.Y,
-        entity.Renderable.renderW,
-        entity.Renderable.renderH
+        Math.floor(entity.Coordinates.X),
+        Math.floor(entity.Coordinates.Y),
+        Math.floor(entity.Renderable.renderW),
+        Math.floor(entity.Renderable.renderH)
       );
     }
     this.drawButtonText(buttonEntities);
