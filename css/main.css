@@ -79,6 +79,9 @@ body {
   padding: 15.2px;
   text-align: center;
   text-overflow: wrap;
+  border: 15px solid;
+  border-image: linear-gradient(30deg, #808080, #202020 38%, #242424 40%, #fff 66%, #808080) 30;
+  /* try checkered flag pattern */
 }
 
 h1.modal-title {
