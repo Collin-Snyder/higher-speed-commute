@@ -9,6 +9,7 @@ import {
   isDiagonal,
   checkPointCollision,
 } from "gameMath";
+const { max, min } = Math;
 
 export class CollisionSystem extends ECS.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -17,6 +18,7 @@ export class CollisionSystem extends ECS.System {
   public collidables: Entity[];
   public map: any;
   public globalEntity: Entity;
+  private playerCollisionVertices: IVector[];
 
   static subscriptions: string[] = ["Coordinates"];
 
@@ -24,6 +26,7 @@ export class CollisionSystem extends ECS.System {
     super(ecs);
     this.collidables = [];
     this.globalEntity = this.ecs.getEntity("global");
+    this.playerCollisionVertices = [];
   }
 
   update(tick: number, entities: Set<Entity>) {
@@ -41,15 +44,18 @@ export class CollisionSystem extends ECS.System {
       //   mapCollision !== "offroad" &&
       //   entityCollision !== "redLight"
       // ) {
-        let deg = findDegFromVector(driverEntity.Velocity.vector);
-        if (deg >= 0) driverEntity.Renderable.degrees = deg;
+      let deg = findDegFromVector(driverEntity.Velocity.vector);
+      if (deg >= 0) driverEntity.Renderable.degrees = deg;
       // }
       driverEntity.Collision.prevHb = driverEntity.Collision.currentHb();
     }
   }
 
   handleMapCollisions(entity: Entity) {
-    let collisionType = this.detectMapCollision(entity);
+    let entityHb = entity.Collision.currentHb(
+      findDegFromVector(entity.Velocity.vector)
+    );
+    let collisionType = this.detectMapCollision(entity, entityHb);
 
     if (collisionType === "edge" || collisionType === "offroad") {
       if (isDiagonal(entity.Velocity.prevVector)) {
@@ -60,10 +66,20 @@ export class CollisionSystem extends ECS.System {
         let moved = this.revertToValidPosition(entity, "map");
         if (moved) break;
         if (!entity.Velocity.altVectors.length) break;
-
+        if (
+          entity.Velocity.altVectors.length > 1 &&
+          this.playerCollisionVertices.length === 1 &&
+          isDiagonal(entity.Velocity.vector)
+        ) {
+          this.prioritizeAltVectors(entity, entityHb);
+        }
+        this.playerCollisionVertices = [];
         entity.Velocity.vector = entity.Velocity.altVectors.shift();
         this.move(entity);
-        collisionType = this.detectMapCollision(entity);
+        entityHb = entity.Collision.currentHb(
+          findDegFromVector(entity.Velocity.vector)
+        );
+        collisionType = this.detectMapCollision(entity, entityHb);
       } while (collisionType === "edge" || collisionType === "offroad");
     }
 
@@ -86,16 +102,14 @@ export class CollisionSystem extends ECS.System {
   }
 
   detectMapCollision(
-    entity: Entity
-  ): 
-     "edge" | "offroad" | "office" | "schoolZone" | ""
-    
-   {
+    entity: Entity,
+    hb: IVector[]
+  ): "edge" | "offroad" | "office" | "schoolZone" | "" {
     let x = entity.Coordinates.X;
     let y = entity.Coordinates.Y;
     let v = entity.Velocity.vector;
-    let deg = findDegFromVector(v);
-    let hb = entity.Collision.currentHb(deg);
+    // let deg = findDegFromVector(v);
+    // let hb = entity.Collision.currentHb(deg);
     let thb = <Array<IVector>>[];
 
     if (this.checkEdgeCollision(hb)) {
@@ -109,15 +123,13 @@ export class CollisionSystem extends ECS.System {
         thb = getTileHitbox(sqCoords.X, sqCoords.Y, 25, 25);
         if (!square.drivable) {
           //check only front vertices for collision
-          if (this.checkFrontOnlyCollision(hb, thb))
-            return "offroad"
+          if (this.checkFrontOnlyCollision(hb, thb)) return "offroad";
         } else if (checkCollision(hb, thb)) {
-          if (square.id == this.map.office)
-            return "office";
+          if (square.id == this.map.office) return "office";
           if (square.schoolZone) schoolZone = true;
         }
       }
-      if (schoolZone) return "schoolZone"
+      if (schoolZone) return "schoolZone";
     }
     return "";
   }
@@ -146,12 +158,20 @@ export class CollisionSystem extends ECS.System {
     let frontL = hb[0];
     let frontR = hb[1];
 
-    let flhit = checkPointCollision(thb, frontL.X, frontL.Y);
-    if (flhit) return true;
-    let frhit = checkPointCollision(thb, frontR.X, frontR.Y);
-    if (frhit) return true;
+    let collision = false;
 
-    return false;
+    let flhit = checkPointCollision(thb, frontL.X, frontL.Y);
+    if (flhit) {
+      this.playerCollisionVertices.push({ X: frontL.X, Y: frontL.Y });
+      collision = true;
+    }
+    let frhit = checkPointCollision(thb, frontR.X, frontR.Y);
+    if (frhit) {
+      this.playerCollisionVertices.push({ X: frontR.X, Y: frontR.Y });
+      collision = true;
+    }
+
+    return collision;
   }
 
   checkTileCollision(
@@ -230,6 +250,39 @@ export class CollisionSystem extends ECS.System {
     };
   }
 
+  prioritizeAltVectors(entity: Entity, hb: IVector[]) {
+    console.log("Running prioritzeAltVectors")
+    let { Velocity } = entity;
+
+    // let hb = entity.Collision.currentHb(findDegFromVector(Velocity.vector));
+
+    //if X is positive, then the hb's front vertex with the higher X value is the furthest horizontal coordinate in the direction of travel
+    //else, the vertex with the lower X value is
+    let determiner =
+      Velocity.vector.X > 0
+        ? (a: any, b: any) => {
+            return b.X - a.X;
+          }
+        : (a: any, b: any) => {
+            return a.X - b.X;
+          };
+
+    let vertex = [hb[0], hb[1]].sort(determiner)[0];
+
+    //if the "most horizontal" vertex is the one causing the collision, swap the next two alt vectors in the queue
+    //this will prioritize the vertical alt vector over the horizontal one
+    let collisionVertex = JSON.stringify(this.playerCollisionVertices[0]);
+    let horizontalestVertext = JSON.stringify(vertex);
+    if (collisionVertex === horizontalestVertext) {
+      console.log("REPRIORITIZING VERTICES!!")
+      let leftOrRight = Velocity.altVectors[0];
+      let upOrDown = Velocity.altVectors[1];
+
+      Velocity.altVectors[0] = upOrDown;
+      Velocity.altVectors[1] = leftOrRight;
+    }
+  }
+
   updateHitbox(entity: Entity) {
     // let { degrees } = entity.Renderable;
     // let degrees = findDegFromVector(entity.Velocity.vector);
@@ -278,6 +331,7 @@ export class CollisionSystem extends ECS.System {
 
   revertToValidPosition(entity: Entity, collisionType: "map" | "entity") {
     let { Coordinates, Velocity } = entity;
+    // if (entity.has("SchoolZone")) debugger;
     const speedConstant = calculateSpeedConstant(entity);
     let prevCoord = this.getPreviousCoordinate(
       Coordinates.X,
@@ -289,7 +343,8 @@ export class CollisionSystem extends ECS.System {
 
     let revertDistance = 0;
     let moved = false;
-      // if (speedConstant >= 25) debugger;
+    // if (speedConstant >= 25) debugger;
+
     do {
       revertDistance++;
       let backOne = this.getPreviousCoordinate(
@@ -304,7 +359,12 @@ export class CollisionSystem extends ECS.System {
       Coordinates.Y = backOne.Y;
 
       if (collisionType === "map") {
-        if (!this.detectMapCollision(entity)) {
+        if (
+          !this.detectMapCollision(
+            entity,
+            entity.Collision.currentHb(findDegFromVector(Velocity.vector))
+          )
+        ) {
           if (revertDistance < speedConstant) moved = true;
           break;
         }
@@ -313,11 +373,11 @@ export class CollisionSystem extends ECS.System {
           if (revertDistance < speedConstant) moved = true;
           break;
         }
-
     } while (
       (Coordinates.X !== prevCoord.X || Coordinates.Y !== prevCoord.Y) &&
       revertDistance < speedConstant
     );
+    // if (revertDistance > 1 && revertDistance < speedConstant) moved = true;
     if (!moved && entity.Velocity.prevVector)
       entity.Velocity.vector = entity.Velocity.prevVector;
     return moved;
