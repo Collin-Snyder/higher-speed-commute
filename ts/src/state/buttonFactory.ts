@@ -305,8 +305,7 @@ const buttons: { [key: string]: ButtonInterface } = {
   },
   settings: {
     name: "settings",
-    color: "orange",
-    hasText: true,
+    hasText: false,
     selectable: false,
     onMouseEnter: function(game: Game) {
       if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Settings" });
@@ -314,18 +313,17 @@ const buttons: { [key: string]: ButtonInterface } = {
     onClick: function(game: Game) {
       window.toggleModal(true, "settings");
     },
-    tags: ["menu", "main"],
+    tags: ["menu", "main", "square"],
   },
   help: {
     name: "help",
-    color: "orange",
-    hasText: true,
+    hasText: false,
     selectable: false,
     onMouseEnter: function(game: Game) {
       if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Help" });
     },
     onClick: function(game: Game) {},
-    tags: ["menu", "main"],
+    tags: ["menu", "main", "square"],
   },
 };
 

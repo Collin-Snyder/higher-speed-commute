@@ -97,6 +97,7 @@ declare global {
     recreateLocalDb: Function;
     updateLevelName: Function;
     updateLevelDescription: Function;
+    getPlayerSpeedConstant: Function;
   }
 
   interface Number {
