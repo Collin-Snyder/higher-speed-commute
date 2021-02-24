@@ -1,5 +1,5 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
-import { getCenterPoint, scaleVector, findRotatedVertex } from "gameMath";
+import { getCenterPoint, scaleVector, findRotatedVertex, calculateSpeedConstant } from "gameMath";
 import * as breakpoints from "./modules/breakpoints";
 //@ts-ignore
 import axios from "axios";
@@ -394,6 +394,7 @@ export class Game {
     this.playerEntity.Collision.currentCp = getCurrentCp.bind(
       this.playerEntity
     );
+    window.getPlayerSpeedConstant = () => calculateSpeedConstant(this.playerEntity)
     this.bossEntity.Collision.currentHb = getCurrentHb.bind(this.bossEntity);
     this.bossEntity.Collision.currentCp = getCurrentCp.bind(this.bossEntity);
 
