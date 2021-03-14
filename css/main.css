@@ -89,6 +89,10 @@ body {
   height: 475px;
 }
 
+#modal.save {
+  height: 171px;
+}
+
 h1.modal-title {
   font-size: 22.8px;
   margin: 0px;
@@ -193,6 +197,17 @@ h1.modal-title {
   justify-items: center;
   margin-bottom: 12.92px;
   margin-top: 12.92px;
+}
+
+#level-start-graphic {
+  display: block;
+  width: 287.5px;
+  height: 115px;
+  background-image: url("./level_start_graphic.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  margin-bottom: 15px;
 }
 
 .option-button,
@@ -339,6 +354,7 @@ p.settings-option-label {
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
+  align-items: center;
 }
 
 #map-name-input {
@@ -393,6 +409,10 @@ p.settings-option-label {
     height: 625px;
   }
 
+  #modal.save {
+    height: 225px;
+  }
+
   h1.modal-title {
     font-size: 30px; /* 22.8 */
   }
@@ -428,6 +448,12 @@ p.settings-option-label {
     grid-gap: 17px; /* 12.92 */
     margin-bottom: 17px; /* 12.92 */
     margin-top: 17px; /* 12.92 */
+  }
+
+  #level-start-graphic {
+    width: 378px;
+    height: 151px;
+   margin-bottom: 20px;
   }
 
   .option-button {

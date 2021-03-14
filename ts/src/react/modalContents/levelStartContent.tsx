@@ -35,6 +35,7 @@ const LevelStartContent = () => {
 
   return (
     <div id="level-start-content">
+      <i id="level-start-graphic"></i>
       <h3>Select playing difficulty to start</h3>
     </div>
   );
