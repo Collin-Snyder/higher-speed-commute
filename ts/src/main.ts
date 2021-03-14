@@ -1020,8 +1020,6 @@ export class InputEvents {
 }
 
 export const game = new Game();
-//@ts-ignore
-window.game = game;
 
 requestAnimationFrame(game.tick.bind(game));
 
