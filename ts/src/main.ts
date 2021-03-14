@@ -146,7 +146,7 @@ export class Game {
     nextLevelId?: number | null;
   };
   private map: IArcadeMap;
-  public difficulty: "easy" | "medium" | "hard" | null;
+  public difficulty: "easy" | "medium" | "hard" | "";
   public focusView: "player" | "boss";
   public mapView: boolean;
   public defaultGameZoom: number;
@@ -185,7 +185,7 @@ export class Game {
     };
     this.currentRace = null;
     this.recordRaceData = false;
-    this.difficulty = null;
+    this.difficulty = "";
     this.focusView = "player";
     this.mapView = false;
     this.zoomFactor = 4;
@@ -692,7 +692,9 @@ export class Game {
       mapInfo.id = id;
       mapInfo.name = name;
       MapData.map = ArcadeMap.fromMapObject(mapInfo);
-      this.publish("chooseDifficulty");
+
+      if (!this.difficulty || this.playMode === "custom") this.publish("chooseDifficulty");
+      else this.publish("startingAnimation");
     } catch (err) {
       console.error(err);
     }

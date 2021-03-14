@@ -4,7 +4,7 @@ import axios from "axios";
 
 interface RaceDataExportInterface {
   levelId: number;
-  difficulty: "easy" | "medium" | "hard" | null;
+  difficulty: "easy" | "medium" | "hard" | "";
   raceTime: number;
   raceDate: string;
   playerColor: string;
@@ -19,7 +19,7 @@ class Race {
   step: number;
   levelId: number;
   outcome: "win" | "loss" | "crash" | null;
-  difficulty: "easy" | "medium" | "hard" | null;
+  difficulty: "easy" | "medium" | "hard" | "";
   raceTime: number;
   raceDate: string;
   playerColor: string;
@@ -30,7 +30,7 @@ class Race {
 
   constructor(
     id: number,
-    difficulty: "easy" | "medium" | "hard" | null,
+    difficulty: "easy" | "medium" | "hard" | "",
     color: string,
     step: number
   ) {

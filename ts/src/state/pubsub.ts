@@ -287,6 +287,7 @@ class PubSub {
         //hide game canvas
 
         game.playMode = "";
+        game.difficulty = "";
 
         let gameplayMenuButtons = game.ecs.queryEntities({
           has: ["menu", "gameplay"],
@@ -417,7 +418,7 @@ class PubSub {
       },
       {
         name: "startingAnimation",
-        from: "chooseDifficulty",
+        from: ["chooseDifficulty", "loadLevel"],
         to: "levelStartAnimation",
       },
       {
