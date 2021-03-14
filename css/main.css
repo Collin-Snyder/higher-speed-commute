@@ -209,6 +209,7 @@ h1.modal-title {
   width: 539.6px;
   height: 67.64px;
   background-color: white;
+  cursor: pointer;
 }
 
 .settings-option,
