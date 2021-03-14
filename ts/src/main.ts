@@ -629,21 +629,28 @@ export class Game {
 
   generateSettingsMenuCSSClasses() {
     let styleEl = document.createElement("style");
-    let styleHTML = "";
+    let styleHTMLSmall = "";
+    let styleHTMLBig = "@media only screen and (min-width: 1440px) {";
 
     cars.forEach((c) => {
       let sprite = <ISprite>this.spriteMap.getSprite(c.sprite);
-      styleHTML += `#${c.sprite}-icon {background-position: -${sprite.x *
+      styleHTMLSmall += `#${c.sprite}-icon {background-position: -${sprite.x *
+        2.28}px -${sprite.y * 2.28}px;}\n`;
+      styleHTMLBig += `#${c.sprite}-icon {background-position: -${sprite.x *
         3}px -${sprite.y * 3}px;}\n`;
     });
 
     neighborhoods.forEach((n) => {
       let sprite = <ISprite>this.spriteMap.getSprite(n.sprite);
-      styleHTML += `#${n.sprite}-icon {background-position: -${sprite.x *
+      styleHTMLSmall += `#${n.sprite}-icon {background-position: -${sprite.x *
+        1.52}px -${sprite.y * 1.52}px;}\n`;
+      styleHTMLBig += `#${n.sprite}-icon {background-position: -${sprite.x *
         2}px -${sprite.y * 2}px;}\n`;
     });
 
-    styleEl.innerHTML = styleHTML;
+    styleHTMLBig += "}";
+
+    styleEl.innerHTML = styleHTMLSmall + styleHTMLBig;
     document.head.appendChild(styleEl);
   }
 

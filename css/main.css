@@ -84,6 +84,11 @@ body {
   /* try checkered flag pattern */
 }
 
+#modal.settings {
+  width: 760px;
+  height: 475px;
+}
+
 h1.modal-title {
   font-size: 22.8px;
   margin: 0px;
@@ -113,6 +118,17 @@ h1.modal-title {
 #modal-content.border {
   border: 2.28px solid black;
   background-color: lightgray;
+}
+
+#modal.settings #modal-content {
+  width: 722px;
+  height: 437px;
+  align-items: center;
+}
+
+.settings-list-container {
+  width: 100%;
+  height: max-content;
 }
 
 #modal-button-container {
@@ -195,19 +211,38 @@ h1.modal-title {
   background-color: white;
 }
 
+.settings-option,
+.settings-icon {
+  width: 57px;
+  height: 57px;
+}
+
 .settings-option {
   display: flex;
-  width: 66px;
-  height: 66px;
+}
+
+.settings-icon.neighborhood {
+  height: 114px;
+  width: 114px;
+  background-size: 1520px;
+}
+
+.settings-option.neighborhood {
+  height: 167px;
+  width: 114px;
+}
+
+.settings-icon.car {
+  background-size: 2280px;
 }
 
 .settings-header {
-  margin: 15px auto;
+  margin: 11px auto;
 }
 
 p.settings-option-label {
   display: block;
-  font-size: 15px;
+  font-size: 11px;
   position: relative;
   align-self: flex-end;
 }
@@ -265,6 +300,17 @@ p.settings-option-label {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+}
+
+.option-button-graphic.neighborhood {
+  box-shadow: -6px -6px rgb(194, 194, 194) inset, 0 -6px black, 6px 0 black,
+    0 6px black, -6px 0 black;
+  height: 114px;
+  width: 114px;
+}
+
+.option-button-graphic.neighborhood.selected {
+  outline: 6px solid yellow;
 }
 
 .map-icon {
@@ -363,11 +409,6 @@ p.settings-option-label {
     align-items: center;
   }
 
-  .settings-list-container {
-    width: 100%;
-    height: max-content;
-  }
-
   #modal-content.border {
     border: 3px solid black; /* 2.28 */
   }
@@ -414,6 +455,9 @@ p.settings-option-label {
     background-size: 3000px;
   }
 
+  p.settings-option-label {
+    font-size: 14px;
+  }
   .option-button.small {
     width: 355px; /* 269.8 */
   }
