@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
+import useAsyncEffect from "use-async-effect";
 import { useGame } from "../contexts/gameContext";
 import { ModalInputContext } from "../contexts/modalInputContext";
 import OptionList from "../optionList";
@@ -38,7 +39,7 @@ const SettingsContent = () => {
   let [, dispatch] = useContext(ModalInputContext);
   let [saveError, setSaveError] = useState(false);
 
-  useEffect(() => {
+  useAsyncEffect(async (isMounted) => {
     dispatch({
       type: "SET_SUBMIT_ACTIONS",
       payload: {
@@ -55,9 +56,16 @@ const SettingsContent = () => {
         },
       },
     });
+
+    let user = await game.getUserSettings();
+
+    if (!isMounted()) return;
+
+    let { color, terrain } = user;
+
     dispatch({
       type: "SET_INPUT_VALUE",
-      payload: {color: "blue", terrain: "default"},
+      payload: { color, terrain },
     });
   }, []);
 

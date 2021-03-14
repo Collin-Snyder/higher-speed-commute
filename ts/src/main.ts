@@ -35,6 +35,7 @@ import {
   createUser,
   getLastCompletedLevel,
   updateGraphicsSettings,
+  getUserInfo,
 } from "./state/localDb";
 import SpriteMap from "./spriteMapModule";
 import { forEachMapTile } from "./modules/tileDrawer";
@@ -820,6 +821,11 @@ export class Game {
     await updateGraphicsSettings({ color, terrain });
     this.setCarColor(color);
     this.setTerrainStyle(terrain);
+  }
+
+  async getUserSettings() {
+    let userSettings = await getUserInfo();
+    return userSettings;
   }
 
   getPlayerHB() {
