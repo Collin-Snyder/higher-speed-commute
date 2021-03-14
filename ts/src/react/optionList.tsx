@@ -1,6 +1,6 @@
 import { isSet } from "lodash";
 import React, { useState, ChangeEvent, useContext } from "react";
-import { ModalInputContext } from "./modalInputContext";
+import { ModalInputContext } from "./contexts/modalInputContext";
 import SelectionButton from "./selectionButton";
 import SettingsOption from "./settingsOption";
 

@@ -1,5 +1,6 @@
 import React, { useContext, useEffect } from "react";
-import { ModalInputContext } from "../modalInputContext";
+import { useGame } from "../contexts/gameContext";
+import { ModalInputContext } from "../contexts/modalInputContext";
 import OptionList from "../optionList";
 
 const options = [
@@ -12,17 +13,19 @@ const options = [
 
 const QuitDesignConfirmationContent = () => {
   let [, dispatch] = useContext(ModalInputContext);
+  const game = useGame();
+
   useEffect(() => {
     dispatch({
       type: "SET_SUBMIT_ACTIONS",
       payload: {
         save: () => {
-          window.game.designModule.quitting = true;
+          game.designModule.quitting = true;
           window.toggleModal(false);
-          window.game.publish("save");
+          game.publish("save");
         },
         dontSave: () => {
-          window.game.publish("quit");
+          game.publish("quit");
           window.toggleModal(false);
         },
       },

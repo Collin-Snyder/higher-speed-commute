@@ -1,6 +1,7 @@
 import React, { useContext, useEffect } from "react";
-import { ModalInputContext } from "../modalInputContext";
+import { ModalInputContext } from "../contexts/modalInputContext";
 import OptionList from "../optionList";
+import { useGame } from "../contexts/gameContext";
 
 const options = [
   { value: "continue", label: "Continue where you left off" },
@@ -11,14 +12,16 @@ const options = [
 ];
 
 const ArcadeStartContent = () => {
-  let [inputState, dispatch] = useContext(ModalInputContext);
+  let [, dispatch] = useContext(ModalInputContext);
+  const game = useGame();
+
   useEffect(() => {
     dispatch({
       type: "SET_SUBMIT_ACTIONS",
       payload: {
         continue: () => {
           window.toggleModal(false);
-          window.game.publish("start", window.game.lastCompletedLevel + 1);
+          game.publish("start", game.lastCompletedLevel + 1);
         },
         playCompleted: () => {
           window.toggleModal(true, "loadMap");

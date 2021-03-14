@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, PointerEvent, MouseEvent } from "react";
-import { ModalInputContext } from "./modalInputContext";
+import { ModalInputContext } from "./contexts/modalInputContext";
 import { checkForMouseCollision } from "gameMath";
 
 interface ActionButtonProps {

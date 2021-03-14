@@ -1,8 +1,10 @@
 import React, { useContext, useEffect, useState } from "react";
-import { ModalInputContext } from "../modalInputContext";
+import { useGame } from "../contexts/gameContext";
+import { ModalInputContext } from "../contexts/modalInputContext";
 import TextInput from "../textInput";
 
 const SaveMapContent = () => {
+  const game = useGame();
   let [inputState, dispatch] = useContext(ModalInputContext);
   let [duplicateName, setDuplicateName] = useState(false);
   let [otherError, setOtherError] = useState(false);
@@ -13,7 +15,7 @@ const SaveMapContent = () => {
       payload: {
         save: (name: string) => {
           console.log("Saving map with name: ", name);
-          window.game.designModule
+          game.designModule
             .saveAsAsync(name)
             .then((r) => {
               setDuplicateName(false);

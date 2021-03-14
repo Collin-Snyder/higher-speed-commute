@@ -5,7 +5,8 @@ import Modal from "./modal";
 import ModalButtons from "./modalButtons";
 import ModalContent from "./modalContent";
 import LoadMapContent from "./modalContents/loadMapContent";
-import { ModalInputContextProvider } from "./modalInputContext";
+import { ModalInputContextProvider } from "./contexts/modalInputContext";
+import { GameContextProvider } from "./contexts/gameContext";
 
 let toggleModal = (isOpen: boolean, modalName: string) => {
   console.log("! Original toggleModal is running !");
@@ -37,12 +38,17 @@ const ModalContainer = () => {
     <>
       {modalOpen ? (
         <div id="modal-container" onClick={closeModalOnClickOutside}>
-          <Modal name={modalName} levelNum={levelNum}>
-            <ModalInputContextProvider>
-              <ModalContent modalName={modalName} />
-              <ModalButtons modalName={modalName} toggleModal={setModalOpen} />
-            </ModalInputContextProvider>
-          </Modal>
+          <GameContextProvider>
+            <Modal name={modalName} levelNum={levelNum}>
+              <ModalInputContextProvider>
+                <ModalContent modalName={modalName} />
+                <ModalButtons
+                  modalName={modalName}
+                  toggleModal={setModalOpen}
+                />
+              </ModalInputContextProvider>
+            </Modal>
+          </GameContextProvider>
         </div>
       ) : (
         <></>

@@ -1,5 +1,6 @@
 import React, { useContext, useEffect } from "react";
-import { ModalInputContext } from "../modalInputContext";
+import { useGame } from "../contexts/gameContext";
+import { ModalInputContext } from "../contexts/modalInputContext";
 import OptionList from "../optionList";
 
 const options = [
@@ -11,17 +12,19 @@ const options = [
 ];
 
 const ResetMapContent = () => {
+  const game = useGame();
   let [, dispatch] = useContext(ModalInputContext);
+
   useEffect(() => {
     dispatch({
       type: "SET_SUBMIT_ACTIONS",
       payload: {
         save: () => {
-          window.game.designModule.resetMap("save");
+          game.designModule.resetMap("save");
           window.toggleModal(false);
         },
         overwrite: () => {
-          window.game.designModule.resetMap("overwrite");
+          game.designModule.resetMap("overwrite");
           window.toggleModal(false);
         },
       },

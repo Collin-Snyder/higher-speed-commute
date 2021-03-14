@@ -1,7 +1,8 @@
 import React, { useContext, useEffect } from "react";
 import Game from "../main";
 import ActionButton from "./actionButton";
-import { ModalInputContext } from "./modalInputContext";
+import { useGame } from "./contexts/gameContext";
+import { ModalInputContext } from "./contexts/modalInputContext";
 
 interface ModalButtonContainerProps {
   modalName: string;
@@ -55,11 +56,12 @@ const ModalButtonContainer = ({
   modalName,
   toggleModal,
 }: ModalButtonContainerProps) => {
+  const game = useGame();
   let [inputState] = useContext(ModalInputContext);
 
   let buttons = modalButtons[modalName] || [];
 
-  if (modalName === "loadMap" && window.game.playMode)
+  if (modalName === "loadMap" && game.playMode)
     buttons = buttons.filter((b) => b.name !== "delete");
 
   return (

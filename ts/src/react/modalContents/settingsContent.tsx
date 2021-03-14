@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
-import { ModalInputContext } from "../modalInputContext";
+import { useGame } from "../contexts/gameContext";
+import { ModalInputContext } from "../contexts/modalInputContext";
 import OptionList from "../optionList";
 
 export const cars = [
@@ -33,6 +34,7 @@ export const neighborhoods = [
 ];
 
 const SettingsContent = () => {
+  const game = useGame();
   let [, dispatch] = useContext(ModalInputContext);
   let [saveError, setSaveError] = useState(false);
 
@@ -41,7 +43,7 @@ const SettingsContent = () => {
       type: "SET_SUBMIT_ACTIONS",
       payload: {
         save: (settingsObj: { color: TCarColor; terrain: TTerrainStyle }) => {
-          window.game
+          game
             .updateUserSettings(settingsObj)
             .then((result) => {
               setSaveError(false);

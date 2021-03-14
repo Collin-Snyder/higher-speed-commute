@@ -1,26 +1,29 @@
 import React, { useContext, useEffect } from "react";
-import { ModalInputContext } from "../modalInputContext";
+import { useGame } from "../contexts/gameContext";
+import { ModalInputContext } from "../contexts/modalInputContext";
 
 const LevelStartContent = () => {
+  const game = useGame();
   let [, dispatch] = useContext(ModalInputContext);
+
   useEffect(() => {
     dispatch({
       type: "SET_SUBMIT_ACTIONS",
       payload: {
         playEasy: (e: PointerEvent) => {
-          window.game.setDifficulty("easy");
+          game.setDifficulty("easy");
           window.toggleModal(false);
-          window.game.publish("startingAnimation");
+          game.publish("startingAnimation");
         },
         playMedium: (e: PointerEvent) => {
-          window.game.setDifficulty("medium");
+          game.setDifficulty("medium");
           window.toggleModal(false);
-          window.game.publish("startingAnimation");
+          game.publish("startingAnimation");
         },
         playHard: (e: PointerEvent) => {
-          window.game.setDifficulty("hard");
+          game.setDifficulty("hard");
           window.toggleModal(false);
-          window.game.publish("startingAnimation");
+          game.publish("startingAnimation");
         },
       },
     });

@@ -1019,7 +1019,7 @@ export class InputEvents {
   }
 }
 
-const game = new Game();
+export const game = new Game();
 //@ts-ignore
 window.game = game;
 

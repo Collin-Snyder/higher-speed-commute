@@ -1,5 +1,5 @@
 import React, { useContext, KeyboardEvent } from "react";
-import { ModalInputContext } from "./modalInputContext";
+import { ModalInputContext } from "./contexts/modalInputContext";
 
 interface ITextInputProps {
   submitAction: string;

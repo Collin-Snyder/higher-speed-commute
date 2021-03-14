@@ -284,8 +284,7 @@ export class CollisionSystem extends ECS.System {
   }
 
   updateHitbox(entity: Entity) {
-    // let { degrees } = entity.Renderable;
-    // let degrees = findDegFromVector(entity.Velocity.vector);
+
     let { hb, cp } = entity.Collision;
     let c = entity.Coordinates;
 
@@ -295,10 +294,8 @@ export class CollisionSystem extends ECS.System {
 
     let deg = entity.Renderable.degrees;
     if (deg === 0) return hb;
-    // entity.Renderable.degrees = degrees;
     //@ts-ignore
     return hb.map(({ X, Y }) => findRotatedVertex(X, Y, cpx, cpy, deg));
-    //figure out if cp is already at origin, thereby not needing translation
   }
 
   move(entity: Entity) {

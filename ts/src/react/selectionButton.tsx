@@ -1,5 +1,5 @@
 import React, { ChangeEvent, useContext } from "react";
-import { ModalInputContext } from "./modalInputContext";
+import { ModalInputContext } from "./contexts/modalInputContext";
 
 interface SelectionButtonProps {
   value: number | string;
