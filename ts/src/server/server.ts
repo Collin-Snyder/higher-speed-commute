@@ -13,6 +13,7 @@ const levelDescriptors = require("./levelDescriptors");
 
 const app = express();
 app.use(express.json({ limit: "50mb" }));
+app.use(express.static("build"));
 
 //@ts-ignore
 app.set("port", process.env.PORT || 3000);
@@ -254,9 +255,7 @@ app.post("/generate_seed_data", async (req, res) => {
 
 //@ts-ignore
 app.get("/", (req, res) => {
-  res.send(
-    "<h2>Hello World!</h2><p>If you're looking for High Speed Commute, click <a href='http://localhost:8080'>here</a></p>"
-  );
+  res.send();
 });
 
 app.listen(app.get("port"), () => {

@@ -8,7 +8,8 @@
     "serve": "http-server build --proxy http://localhost:3000",
     "backend": "node build/src/server/server",
     "predeploy": "npm run tsc; npm run wp",
-    "deploy": "node deploy.js"
+    "deploy": "node deploy.js",
+    "start": "node build/src/server/server.js"
   },
   "dependencies": {
     "@fritzy/ecs": "^0.5.2",
