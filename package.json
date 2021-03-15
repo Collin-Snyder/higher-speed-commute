@@ -9,6 +9,7 @@
     "backend": "node build/src/server/server",
     "predeploy": "npm run tsc; npm run wp",
     "deploy": "node deploy.js",
+    "build": "npm run tsc; npm run wp",
     "start": "node build/src/server/server.js"
   },
   "dependencies": {

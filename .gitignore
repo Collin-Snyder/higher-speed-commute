@@ -3,7 +3,7 @@
 .idea
 
 /node_modules
-# build/
+build/
 dist/
 
 package-lock.json
