@@ -1,8 +1,5 @@
-import { Entity } from "@fritzy/ecs";
-import axios from "axios";
 import { capitalize } from "gameHelpers";
 import Editor, { commands } from "./editor";
-import Game from "../main";
 import { deleteUserMap, loadUserMap } from "../state/localDb";
 
 export type Tool =
@@ -37,7 +34,7 @@ class DesignModule {
     this.mapCursor = "default";
     this.gridLoaded = false;
     this.gridOverlay = new Image();
-    this.gridOverlay.src = "../design-grid.png";
+    this.gridOverlay.src = "./design-grid.png";
     this.quitting = false;
     this.dragging = false;
 
