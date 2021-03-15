@@ -53,6 +53,7 @@ const ActionButton = ({
           if (inputState.inputValue === "" && buttonType === "submit") return;
           let input =
             inputState.inputValue === "useEvent" ? e : inputState.inputValue;
+            console.log("about to run button action")
           buttonAction(input);
         }
       }}

@@ -50,6 +50,20 @@ const modalButtons: { [key: string]: ModalButton[] } = {
     { type: "cancel", name: "cancel" },
     { type: "submit", name: "save" },
   ],
+  rulesHelp: [
+    { type: "cancel", name: "done" },
+    { type: "submit", name: "next" },
+  ],
+  controlsHelp: [
+    { type: "cancel", name: "done" },
+    { type: "submit", name: "back" },
+    { type: "submit", name: "next" },
+  ],
+  saveHelp: [
+    { type: "cancel", name: "done" },
+    { type: "submit", name: "back" },
+    { type: "spacer", name: "spacer"}
+  ],
 };
 
 const ModalButtonContainer = ({

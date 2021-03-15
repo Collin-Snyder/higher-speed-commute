@@ -8,6 +8,9 @@ import QuitGameConfirmationContent from "./modalContents/quitGameConfirmationCon
 import QuitDesignConfirmationContent from "./modalContents/quitDesignConfirmationContent";
 import MissingKeySquaresContent from "./modalContents/missingKeySquaresContent";
 import SettingsContent from "./modalContents/settingsContent";
+import RulesHelpContent from "./modalContents/rulesHelpContent";
+import ControlsHelpContent from "./modalContents/controlsHelpContent";
+import SaveHelpContent from "./modalContents/saveHelpContent";
 
 interface ModalContentProps {
   modalName: string;
@@ -57,7 +60,18 @@ const ModalContent = ({ modalName }: ModalContentProps) => {
     case "quitDesignConfirmation":
       Content = QuitDesignConfirmationContent;
       break;
-    
+    case "rulesHelp":
+      Content = RulesHelpContent;
+      cssClass = "";
+      break;
+    case "controlsHelp":
+      Content = ControlsHelpContent;
+      cssClass = "";
+      break;
+    case "saveHelp":
+      Content = SaveHelpContent;
+      cssClass = "";
+      break;
     default:
       Content = () => <></>;
   }

@@ -13,7 +13,8 @@ p {
   font-family: "8-bit-pusab-regular", "Courier New", monospace;
 }
 
-input, label {
+input,
+label {
   cursor: inherit;
 }
 
@@ -80,13 +81,28 @@ body {
   text-align: center;
   text-overflow: wrap;
   border: 15px solid;
-  border-image: linear-gradient(30deg, #808080, #202020 38%, #242424 40%, #fff 66%, #808080) 30;
+  border-image: linear-gradient(
+      30deg,
+      #808080,
+      #202020 38%,
+      #242424 40%,
+      #fff 66%,
+      #808080
+    )
+    30;
   /* try checkered flag pattern */
 }
 
 #modal.settings {
   width: 760px;
   height: 475px;
+}
+
+#modal.rulesHelp,
+#modal.saveHelp,
+#modal.controlsHelp {
+  width: 760px;
+  height: 584px;
 }
 
 #modal.save {
@@ -128,6 +144,31 @@ h1.modal-title {
   width: 722px;
   height: 437px;
   align-items: center;
+}
+
+#modal.rulesHelp #modal-content,
+#modal.saveHelp #modal-content,
+#modal.controlsHelp #modal-content {
+  width: 722px;
+  height: 541px;
+}
+
+.help-graphic {
+  width: 720px;
+  height: 432px;
+  background-size: cover;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+#rules-help-graphic {
+  background-image: url("./rules-graphic.png");
+}
+#controls-help-graphic {
+  background-image: url("./controls-graphic.png");
+}
+#save-help-graphic {
+  background-image: url("./saving-info-graphic.png");
 }
 
 .settings-list-container {
@@ -409,6 +450,13 @@ p.settings-option-label {
     height: 625px;
   }
 
+  #modal.rulesHelp,
+  #modal.saveHelp,
+  #modal.controlsHelp {
+    width: 1000px;
+    height: 680px;
+  }
+
   #modal.save {
     height: 225px;
   }
@@ -428,6 +476,20 @@ p.settings-option-label {
     width: 950px;
     height: 575px;
     align-items: center;
+  }
+
+  #modal.rulesHelp #modal-content,
+  #modal.saveHelp #modal-content,
+  #modal.controlsHelp #modal-content {
+    width: 950px;
+    height: 570px;
+    margin: 0;
+    padding: 0;
+  }
+
+  .help-graphic {
+    width: 950px;
+    height: 570px;
   }
 
   #modal-content.border {
@@ -453,7 +515,7 @@ p.settings-option-label {
   #level-start-graphic {
     width: 378px;
     height: 151px;
-   margin-bottom: 20px;
+    margin-bottom: 20px;
   }
 
   .option-button {
@@ -527,4 +589,8 @@ p.settings-option-label {
     padding-left: 20px; /* 15.2 */
     margin: 20px auto; /* 15.2 */
   }
+  /* .help-graphic {
+    width: 735px;
+    height: 441px;
+  } */
 }

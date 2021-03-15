@@ -322,7 +322,9 @@ const buttons: { [key: string]: ButtonInterface } = {
     onMouseEnter: function(game: Game) {
       if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Help" });
     },
-    onClick: function(game: Game) {},
+    onClick: function(game: Game) {
+      window.toggleModal(true, "rulesHelp");
+    },
     tags: ["menu", "main", "square"],
   },
 };
