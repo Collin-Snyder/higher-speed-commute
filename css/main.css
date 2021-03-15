@@ -1,0 +1,596 @@
+@font-face {
+  font-family: "8-bit-pusab-regular";
+  src: url("../8-bit-pusab.ttf") format("woff"),
+    url("../8-bit-pusab.ttf") format("truetype");
+}
+
+html,
+body,
+h1,
+h3,
+p {
+  margin: 0;
+  font-family: "8-bit-pusab-regular", "Courier New", monospace;
+}
+
+input,
+label {
+  cursor: inherit;
+}
+
+body {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  background-color: #fff;
+  /* background-color: #50cdff; */
+}
+
+#game {
+  /* width: 1000px;
+  height: 625px; */
+  margin: auto;
+  /* background-color: #81c76d; */
+  position: absolute;
+  top: 50%;
+  margin-top: -312px;
+  left: 50%;
+  margin-left: -500px;
+}
+
+#ui {
+  /* width: 1146px; */
+  /* height: 819px; */
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  image-rendering: pixelated;
+}
+
+#modals {
+  position: absolute;
+  z-index: 99;
+  top: 0;
+  left: 0;
+}
+
+#modal-container {
+  padding: 0;
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 100;
+}
+
+#modal {
+  width: 603.44px;
+  height: 342px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: white;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 101;
+  padding: 15.2px;
+  text-align: center;
+  text-overflow: wrap;
+  border: 15px solid;
+  border-image: linear-gradient(
+      30deg,
+      #808080,
+      #202020 38%,
+      #242424 40%,
+      #fff 66%,
+      #808080
+    )
+    30;
+  /* try checkered flag pattern */
+}
+
+#modal.settings {
+  width: 760px;
+  height: 475px;
+}
+
+#modal.rulesHelp,
+#modal.saveHelp,
+#modal.controlsHelp {
+  width: 760px;
+  height: 584px;
+}
+
+#modal.save {
+  height: 171px;
+}
+
+h1.modal-title {
+  font-size: 22.8px;
+  margin: 0px;
+}
+
+.modal-subtitle {
+  color: gray;
+}
+
+.warning {
+  color: #eb3626;
+}
+
+#modal-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  padding: 12.92px;
+  width: 560.12px;
+  height: 194.56px;
+  overflow-y: scroll;
+  margin: 15.2px 0;
+  margin-right: 0px;
+  position: relative;
+}
+
+#modal-content.border {
+  border: 2.28px solid black;
+  background-color: lightgray;
+}
+
+#modal.settings #modal-content {
+  width: 722px;
+  height: 437px;
+  align-items: center;
+}
+
+#modal.rulesHelp #modal-content,
+#modal.saveHelp #modal-content,
+#modal.controlsHelp #modal-content {
+  width: 722px;
+  height: 541px;
+}
+
+.help-graphic {
+  width: 720px;
+  height: 432px;
+  background-size: cover;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+#rules-help-graphic {
+  background-image: url("./rules-graphic.png");
+}
+#controls-help-graphic {
+  background-image: url("./controls-graphic.png");
+}
+#save-help-graphic {
+  background-image: url("./saving-info-graphic.png");
+}
+
+.settings-list-container {
+  width: 100%;
+  height: max-content;
+}
+
+#modal-button-container {
+  width: 539.6px;
+  height: 57px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.action-button {
+  display: inline-block;
+  width: 150px;
+  height: 60px;
+  background-color: black;
+  cursor: pointer;
+}
+
+.action-button.spacer {
+  cursor: default;
+  background-color: white;
+}
+
+.action-button:active::after {
+  opacity: 0.65;
+}
+
+.action-button::after {
+  display: block;
+  content: " ";
+  width: 100%;
+  height: 100%;
+  background-image: url("./spriteSheet.png");
+  background-repeat: no-repeat;
+}
+
+#modal-options {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  width: 560.12px;
+  height: fit-content(100vw);
+  min-height: 100%;
+  position: absolute;
+  top: 0;
+}
+
+#modal-options.horizontal {
+  width: 100%;
+  position: relative;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
+  min-height: 0;
+}
+
+#modal-options.columns {
+  display: grid;
+  grid-template-columns: 273.6px 273.6px;
+  grid-gap: 12.92px;
+  justify-items: center;
+  margin-bottom: 12.92px;
+  margin-top: 12.92px;
+}
+
+#level-start-graphic {
+  display: block;
+  width: 287.5px;
+  height: 115px;
+  background-image: url("./level_start_graphic.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  margin-bottom: 15px;
+}
+
+.option-button,
+.settings-option {
+  position: relative;
+}
+
+.settings-option label {
+  cursor: pointer;
+}
+
+.option-button {
+  display: block;
+  width: 539.6px;
+  height: 67.64px;
+  background-color: white;
+  cursor: pointer;
+}
+
+.settings-option,
+.settings-icon {
+  width: 57px;
+  height: 57px;
+}
+
+.settings-option {
+  display: flex;
+}
+
+.settings-icon.neighborhood {
+  height: 114px;
+  width: 114px;
+  background-size: 1520px;
+}
+
+.settings-option.neighborhood {
+  height: 167px;
+  width: 114px;
+}
+
+.settings-icon.car {
+  background-size: 2280px;
+}
+
+.settings-header {
+  margin: 11px auto;
+}
+
+p.settings-option-label {
+  display: block;
+  font-size: 11px;
+  position: relative;
+  align-self: flex-end;
+}
+
+.option-button.small {
+  width: 269.8px;
+}
+
+.option-button input,
+.settings-option input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  cursor: pointer;
+}
+
+.option-button-graphic {
+  position: absolute;
+  display: flex;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background-color: #fff;
+  box-shadow: -3px -3px rgb(194, 194, 194) inset, 0 -3px black, 3px 0 black,
+    0 3px black, -3px 0 black;
+  justify-content: center;
+  align-items: center;
+}
+
+.option-button.small .option-button-graphic {
+  width: 100%;
+  height: 100%;
+  justify-content: left;
+}
+
+.option-button-graphic.neighborhood {
+  height: 57px;
+  width: 57px;
+}
+
+.option-button-graphic.selected {
+  outline: 3px solid yellow;
+}
+
+.option-button-graphic:hover {
+  background-color: yellow;
+}
+
+.option-button-label {
+  margin-left: 0.76vw;
+  flex-grow: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.option-button-graphic.neighborhood {
+  box-shadow: -6px -6px rgb(194, 194, 194) inset, 0 -6px black, 6px 0 black,
+    0 6px black, -6px 0 black;
+  height: 114px;
+  width: 114px;
+}
+
+.option-button-graphic.neighborhood.selected {
+  outline: 6px solid yellow;
+}
+
+.map-icon {
+  height: 57px;
+  width: 57px;
+  margin: 5.32px;
+  background-image: url("./map-icon.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  flex-shrink: 0;
+}
+
+.settings-icon {
+  height: 57px;
+  width: 57px;
+  background-image: url("./spritesheet.png");
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+}
+
+#level-start-content {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+#map-name-input {
+  width: 90%;
+  height: 9%;
+  min-height: 27.36px;
+  border: none;
+  background-color: #fff;
+  box-shadow: -3px -3px rgb(194, 194, 194) inset, 0 -3px black, 3px 0 black,
+    0 3px black, -3px 0 black;
+  font-size: 0.76em;
+  font-family: "8-bit-pusab-regular";
+  padding-left: 15.2px;
+  cursor: text;
+  margin: 15.2px auto;
+}
+
+#map-name-input:focus {
+  outline: none;
+}
+
+#map-name-input::placeholder {
+  font-family: "8-bit-pusab-regular";
+  color: lightgray;
+}
+
+.red {
+  color: #eb3626;
+}
+
+.yellow {
+  color: #f0d31a;
+}
+
+.blue {
+  color: #0058cf;
+}
+
+/*************************************************************************************************/
+/*****************************       MEDIA QUERY       *******************************************/
+/*************************************************************************************************/
+
+@media only screen and (min-width: 1440px) {
+  #modal {
+    width: 794px; /* 603.44 */
+    height: 450px; /* 342 */
+    padding: 20px; /* 15.2 */
+  }
+
+  #modal.settings {
+    width: 1000px;
+    height: 625px;
+  }
+
+  #modal.rulesHelp,
+  #modal.saveHelp,
+  #modal.controlsHelp {
+    width: 1000px;
+    height: 680px;
+  }
+
+  #modal.save {
+    height: 225px;
+  }
+
+  h1.modal-title {
+    font-size: 30px; /* 22.8 */
+  }
+
+  #modal-content {
+    padding: 17px; /* 12.92 */
+    width: 737px; /* 560.12 */
+    height: 265px; /* 194.56 */
+    margin: 20px 0; /* 15.2 */
+  }
+
+  #modal.settings #modal-content {
+    width: 950px;
+    height: 575px;
+    align-items: center;
+  }
+
+  #modal.rulesHelp #modal-content,
+  #modal.saveHelp #modal-content,
+  #modal.controlsHelp #modal-content {
+    width: 950px;
+    height: 570px;
+    margin: 0;
+    padding: 0;
+  }
+
+  .help-graphic {
+    width: 950px;
+    height: 570px;
+  }
+
+  #modal-content.border {
+    border: 3px solid black; /* 2.28 */
+  }
+
+  #modal-button-container {
+    width: 710px; /* 539.6 */
+    height: 75px; /* 57 */
+  }
+
+  #modal-options {
+    width: 737px; /* 560.12 */
+  }
+
+  #modal-options.columns {
+    grid-template-columns: 360px 360px; /* 273.6 */
+    grid-gap: 17px; /* 12.92 */
+    margin-bottom: 17px; /* 12.92 */
+    margin-top: 17px; /* 12.92 */
+  }
+
+  #level-start-graphic {
+    width: 378px;
+    height: 151px;
+    margin-bottom: 20px;
+  }
+
+  .option-button {
+    width: 710px; /* 539.6 */
+    height: 89px; /* 67.64 */
+  }
+
+  .settings-option,
+  .settings-icon {
+    width: 75px;
+    height: 75px;
+  }
+
+  .settings-icon.neighborhood {
+    height: 150px;
+    width: 150px;
+    background-size: 2000px;
+  }
+
+  .settings-option.neighborhood {
+    height: 220px;
+    width: 150px;
+  }
+
+  .settings-icon.car {
+    background-size: 3000px;
+  }
+
+  p.settings-option-label {
+    font-size: 14px;
+  }
+  .option-button.small {
+    width: 355px; /* 269.8 */
+  }
+
+  .option-button-graphic {
+    box-shadow: -4px -4px rgb(194, 194, 194) inset, 0 -4px black, 4px 0 black,
+      0 4px black, -4px 0 black; /* 3 */
+  }
+
+  .option-button-graphic.selected {
+    outline: 4px solid yellow; /* 3 */
+  }
+
+  .option-button-graphic.neighborhood {
+    box-shadow: -8px -8px rgb(194, 194, 194) inset, 0 -8px black, 8px 0 black,
+      0 8px black, -8px 0 black;
+    height: 150px;
+    width: 150px;
+  }
+
+  .option-button-graphic.neighborhood.selected {
+    outline: 8px solid yellow;
+  }
+
+  .option-button-label {
+    margin-left: 1vw; /* 0.76vw */
+  }
+
+  .map-icon {
+    height: 75px; /* 57 */
+    width: 75px; /* 57 */
+    margin: 7px; /* 5.32 */
+  }
+
+  #map-name-input {
+    min-height: 36px; /* 27.36 */
+    box-shadow: -4px -4px rgb(194, 194, 194) inset, 0 -4px black, 4px 0 black,
+      0 4px black, -4px 0 black; /* 3 */
+    font-size: 1em; /* .76em */
+    padding-left: 20px; /* 15.2 */
+    margin: 20px auto; /* 15.2 */
+  }
+  /* .help-graphic {
+    width: 735px;
+    height: 441px;
+  } */
+}
