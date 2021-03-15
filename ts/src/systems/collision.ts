@@ -154,7 +154,7 @@ export class CollisionSystem extends ECS.System {
     return false;
   }
 
-  checkFrontOnlyCollision(hb: IVector[], thb: IVector[]) {
+  checkFrontOnlyCollision(hb: IVector[], thb: IVector[]): boolean {
     let frontL = hb[0];
     let frontR = hb[1];
 
@@ -222,15 +222,19 @@ export class CollisionSystem extends ECS.System {
     let v = entity.Velocity.vector;
     let deg = findDegFromVector(v);
     let hb = entity.Collision.currentHb(deg);
-    return this.collidables.filter(
-      (c: Entity) => entity !== c && checkCollision(hb, c.Collision.currentHb())
-    );
+    return this.collidables.filter((c: Entity) => {
+      if (entity === c) return false;
+      let chb = c.Collision.currentHb();
+      if (c.has("Timer") && c.has("Color"))
+        return this.checkFrontOnlyCollision(hb, chb);
+      else return checkCollision(hb, chb);
+    });
   }
 
   checkForValidLightCollision(entity: Entity, lightEntity: Entity) {
     let { X, Y } = entity.Velocity.vector;
     if (X === 0 && Y === 0) return false;
-    let prevCollision = checkCollision(
+    let prevCollision = this.checkFrontOnlyCollision(
       entity.Collision.prevHb,
       lightEntity.Collision.currentHb()
     );
@@ -251,7 +255,7 @@ export class CollisionSystem extends ECS.System {
   }
 
   prioritizeAltVectors(entity: Entity, hb: IVector[]) {
-    console.log("Running prioritzeAltVectors")
+    console.log("Running prioritzeAltVectors");
     let { Velocity } = entity;
 
     // let hb = entity.Collision.currentHb(findDegFromVector(Velocity.vector));
@@ -274,7 +278,7 @@ export class CollisionSystem extends ECS.System {
     let collisionVertex = JSON.stringify(this.playerCollisionVertices[0]);
     let horizontalestVertext = JSON.stringify(vertex);
     if (collisionVertex === horizontalestVertext) {
-      console.log("REPRIORITIZING VERTICES!!")
+      console.log("REPRIORITIZING VERTICES!!");
       let leftOrRight = Velocity.altVectors[0];
       let upOrDown = Velocity.altVectors[1];
 
@@ -284,7 +288,6 @@ export class CollisionSystem extends ECS.System {
   }
 
   updateHitbox(entity: Entity) {
-
     let { hb, cp } = entity.Collision;
     let c = entity.Coordinates;
 
