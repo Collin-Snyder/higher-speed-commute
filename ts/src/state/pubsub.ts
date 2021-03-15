@@ -21,6 +21,146 @@ class PubSub {
 
   constructor(initial: TMode) {
     this.current = initial;
+    this.baseEvents = [
+      { name: "ready", from: "init", to: "menu" },
+      {
+        name: "start",
+        from: ["menu", "won", "lost", "crash"],
+        to: "loadLevel",
+      },
+      {
+        name: "chooseDifficulty",
+        from: ["loadLevel", "paused", "won", "lost", "crash", "designing"],
+        to: "chooseDifficulty",
+      },
+      {
+        name: "startingAnimation",
+        from: ["chooseDifficulty", "loadLevel"],
+        to: "levelStartAnimation",
+      },
+      {
+        name: "play",
+        from: "levelStartAnimation",
+        to: "playing",
+      },
+      { name: "pause", from: "playing", to: "paused" },
+      { name: "resume", from: "paused", to: "playing" },
+      {
+        name: "restart",
+        from: ["paused", "won", "lost", "crash"],
+        to: "chooseDifficulty",
+      },
+      { name: "win", from: "playing", to: "won" },
+      { name: "lose", from: "playing", to: "lost" },
+      { name: "crash", from: "playing", to: "crash" },
+      {
+        name: "quit",
+        from: ["paused", "won", "lost", "crash", "designing", "end"],
+        to: "menu",
+      },
+      // { name: "nextLevel", from: "won", to: "playing" },
+      { name: "design", from: "menu", to: "designing" },
+      { name: "test", from: "designing", to: "starting" },
+      // { name: "leaveDesign", from: "designing", to: "menu" },
+      // { name: "leaveMenu", from: "menu", to: ["starting", "designing"] },
+      { name: "endOfGame", from: "won", to: "end" },
+    ];
+    this.nonBaseEvents = [
+      {
+        name: "raceFinished",
+        action: function(outcome: "won" | "lost" | "crash") {
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onRaceFinished(outcome);
+        },
+      },
+      {
+        name: "nextLevel",
+        action: function() {
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onNextLevel();
+        },
+      },
+      {
+        name: "saveProgress",
+        action: function() {
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onSaveProgress();
+        },
+      },
+      {
+        name: "redLight",
+        action: function(driver: Entity, light: Entity) {
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onRedLight(driver, light);
+        },
+      },
+      {
+        name: "caffeinate",
+        action: function(driver: Entity, coffee: Entity) {
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onCaffeinate(driver, coffee);
+        },
+      },
+      {
+        name: "setDesignTool",
+        action: function(tool: Tool) {
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onSetDesignTool(tool);
+        },
+      },
+      {
+        name: "save",
+        action: function() {
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onSave();
+        },
+      },
+      {
+        name: "saveAs",
+        action: function() {
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onSaveAs();
+        },
+      },
+      {
+        name: "loadSaved",
+        action: function() {
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onLoadSaved();
+        },
+      },
+      {
+        name: "undo",
+        action: function() {
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onUndo();
+        },
+      },
+      {
+        name: "redo",
+        action: function() {
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onRedo();
+        },
+      },
+      {
+        name: "resetMap",
+        action: function() {
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onResetMap();
+        },
+      },
+      {
+        name: "focusSelector",
+        action: function(selectorName: string, focusEntity: Entity) {
+          let pubsub = <PubSub>(<unknown>this);
+          pubsub.nonBaseEventHandlers.onFocusSelector(
+            selectorName,
+            focusEntity
+          );
+        },
+      },
+    ];
     //all event handlers are this-bound to the game instance in main.ts
     this.baseEventHandlers = {
       validate: function(game: Game, eventName: string, from: TMode) {
@@ -407,146 +547,6 @@ class PubSub {
         selector.Selector.focusEntity = focusEntity;
       },
     };
-    this.baseEvents = [
-      { name: "ready", from: "init", to: "menu" },
-      {
-        name: "start",
-        from: ["menu", "won", "lost", "crash"],
-        to: "loadLevel",
-      },
-      {
-        name: "chooseDifficulty",
-        from: ["loadLevel", "paused", "won", "lost", "crash", "designing"],
-        to: "chooseDifficulty",
-      },
-      {
-        name: "startingAnimation",
-        from: ["chooseDifficulty", "loadLevel"],
-        to: "levelStartAnimation",
-      },
-      {
-        name: "play",
-        from: "levelStartAnimation",
-        to: "playing",
-      },
-      { name: "pause", from: "playing", to: "paused" },
-      { name: "resume", from: "paused", to: "playing" },
-      {
-        name: "restart",
-        from: ["paused", "won", "lost", "crash"],
-        to: "chooseDifficulty",
-      },
-      { name: "win", from: "playing", to: "won" },
-      { name: "lose", from: "playing", to: "lost" },
-      { name: "crash", from: "playing", to: "crash" },
-      {
-        name: "quit",
-        from: ["paused", "won", "lost", "crash", "designing"],
-        to: "menu",
-      },
-      // { name: "nextLevel", from: "won", to: "playing" },
-      { name: "design", from: "menu", to: "designing" },
-      { name: "test", from: "designing", to: "starting" },
-      // { name: "leaveDesign", from: "designing", to: "menu" },
-      // { name: "leaveMenu", from: "menu", to: ["starting", "designing"] },
-      { name: "endOfGame", from: "won", to: "end" },
-    ];
-    this.nonBaseEvents = [
-      {
-        name: "raceFinished",
-        action: function(outcome: "won" | "lost" | "crash") {
-          let pubsub = <PubSub>(<unknown>this);
-          pubsub.nonBaseEventHandlers.onRaceFinished(outcome);
-        },
-      },
-      {
-        name: "nextLevel",
-        action: function() {
-          let pubsub = <PubSub>(<unknown>this);
-          pubsub.nonBaseEventHandlers.onNextLevel();
-        },
-      },
-      {
-        name: "saveProgress",
-        action: function() {
-          let pubsub = <PubSub>(<unknown>this);
-          pubsub.nonBaseEventHandlers.onSaveProgress();
-        },
-      },
-      {
-        name: "redLight",
-        action: function(driver: Entity, light: Entity) {
-          let pubsub = <PubSub>(<unknown>this);
-          pubsub.nonBaseEventHandlers.onRedLight(driver, light);
-        },
-      },
-      {
-        name: "caffeinate",
-        action: function(driver: Entity, coffee: Entity) {
-          let pubsub = <PubSub>(<unknown>this);
-          pubsub.nonBaseEventHandlers.onCaffeinate(driver, coffee);
-        },
-      },
-      {
-        name: "setDesignTool",
-        action: function(tool: Tool) {
-          let pubsub = <PubSub>(<unknown>this);
-          pubsub.nonBaseEventHandlers.onSetDesignTool(tool);
-        },
-      },
-      {
-        name: "save",
-        action: function() {
-          let pubsub = <PubSub>(<unknown>this);
-          pubsub.nonBaseEventHandlers.onSave();
-        },
-      },
-      {
-        name: "saveAs",
-        action: function() {
-          let pubsub = <PubSub>(<unknown>this);
-          pubsub.nonBaseEventHandlers.onSaveAs();
-        },
-      },
-      {
-        name: "loadSaved",
-        action: function() {
-          let pubsub = <PubSub>(<unknown>this);
-          pubsub.nonBaseEventHandlers.onLoadSaved();
-        },
-      },
-      {
-        name: "undo",
-        action: function() {
-          let pubsub = <PubSub>(<unknown>this);
-          pubsub.nonBaseEventHandlers.onUndo();
-        },
-      },
-      {
-        name: "redo",
-        action: function() {
-          let pubsub = <PubSub>(<unknown>this);
-          pubsub.nonBaseEventHandlers.onRedo();
-        },
-      },
-      {
-        name: "resetMap",
-        action: function() {
-          let pubsub = <PubSub>(<unknown>this);
-          pubsub.nonBaseEventHandlers.onResetMap();
-        },
-      },
-      {
-        name: "focusSelector",
-        action: function(selectorName: string, focusEntity: Entity) {
-          let pubsub = <PubSub>(<unknown>this);
-          pubsub.nonBaseEventHandlers.onFocusSelector(
-            selectorName,
-            focusEntity
-          );
-        },
-      },
-    ];
     for (let event of this.nonBaseEvents) {
       event.action = event.action.bind(this);
     }
