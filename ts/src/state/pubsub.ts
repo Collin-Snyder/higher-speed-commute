@@ -191,7 +191,9 @@ class PubSub {
         for (let entity of entities) {
           entity.Interactable.enabled = false;
         }
-        game.publish("chooseDifficulty");
+        if (!game.difficulty || game.playMode === "custom")
+          game.publish("chooseDifficulty");
+        else game.publish("startingAnimation");
       },
       ondesign: function(game: Game) {
         let UICanvas = <HTMLCanvasElement>document.getElementById("ui");
@@ -383,7 +385,7 @@ class PubSub {
       onCaffeinate: function(game: Game, driver: Entity, coffee: Entity) {
         coffee.removeComponentByType("Renderable");
         coffee.removeComponentByType("Collision");
-        driver.addComponent("CaffeineBoost", coffee.Caffeine);
+        driver.addComponent("CaffeineBoost", { ...coffee.Caffeine });
 
         if (driver.id === "player") {
           let coffeeId = coffee.id.match(/\d+/g);
