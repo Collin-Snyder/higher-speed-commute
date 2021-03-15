@@ -395,7 +395,8 @@ export class Game {
     this.playerEntity.Collision.currentCp = getCurrentCp.bind(
       this.playerEntity
     );
-    window.getPlayerSpeedConstant = () => calculateSpeedConstant(this.playerEntity)
+    window.getPlayerSpeedConstant = () => calculateSpeedConstant(this.playerEntity);
+    window.setStartingLevel = (num: number) => this.firstLevel = num;
     this.bossEntity.Collision.currentHb = getCurrentHb.bind(this.bossEntity);
     this.bossEntity.Collision.currentCp = getCurrentCp.bind(this.bossEntity);
 

@@ -98,6 +98,7 @@ declare global {
     updateLevelName: Function;
     updateLevelDescription: Function;
     getPlayerSpeedConstant: Function;
+    setStartingLevel: Function;
   }
 
   interface Number {
