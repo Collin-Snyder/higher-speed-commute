@@ -24,7 +24,7 @@ class DesignModule {
   public gridOverlay: HTMLImageElement;
   public selectedTool: Tool;
   public lastEditedSquare: number;
-  public mapCursor: "default" | "pointer" | "cell";
+  public mapCursor: "default" | "pointer" | "cell" | "no-drop" | "not-allowed";
   public quitting: boolean;
   public dragging: boolean;
 
@@ -53,7 +53,30 @@ class DesignModule {
   setDesignTool(tool: Tool) {
     this.selectedTool = tool;
     this.mapCursor = tool ? "cell" : "default";
-    this._game.publish("focusSelector", "button", this._game.ecs.getEntity(`${tool}Button`))
+    this._game.publish(
+      "focusSelector",
+      "button",
+      this._game.ecs.getEntity(`${tool}Button`)
+    );
+  }
+
+  setMapCursor() {
+    if (this.selectedTool !== "coffee" && this.selectedTool !== "light") {
+      this.mapCursor = "cell";
+      return;
+    }
+    let {
+      inputs: { mouseX, mouseY },
+    } = this._game.ecs.getEntity("global").Global;
+    let {
+      MapData: { map },
+      Coordinates: {X, Y}
+    } = this._game.ecs.getEntity("map");
+
+    let square = map.getSquareByCoords(mouseX - X, mouseY - Y);
+
+    if (square.drivable && !map.isKeySquare(square.id)) this.mapCursor = "cell";
+    else this.mapCursor = "no-drop";
   }
 
   editDesign() {

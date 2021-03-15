@@ -208,6 +208,7 @@ class PubSub {
           mapEntity.addComponent("Interactable", {
             enabled: true,
             onHover: function() {
+              game.designModule.setMapCursor();
               game.UICanvas.style.cursor = game.designModule.mapCursor;
             },
             onMouseDown: function() {
