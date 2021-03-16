@@ -3,7 +3,7 @@ import { Game } from "../main";
 import { centerWithin } from "gameMath";
 import { SandboxMap } from "./map";
 import { Tool } from "../modules/designModule";
-import { updateLastCompletedLevel } from "./localDb";
+import { updateLastCompletedLevel, userHasCompletedGame } from "./localDb";
 
 interface EventInterface {
   name: string;
@@ -63,7 +63,7 @@ class PubSub {
       { name: "test", from: "designing", to: "starting" },
       // { name: "leaveDesign", from: "designing", to: "menu" },
       // { name: "leaveMenu", from: "menu", to: ["starting", "designing"] },
-      { name: "endOfGame", from: "won", to: "end" },
+      { name: "endOfGame", from: ["playing", "won"], to: "end" },
     ];
     this.nonBaseEvents = [
       {
@@ -423,9 +423,6 @@ class PubSub {
 
         game.testCurrentSandboxMap();
       },
-      onbeforequit: function(game: Game) {
-        //if state is currently playing/paused, prompt "Are you sure you want to quit?"
-      },
       onquit: function(game: Game) {
         //hide game canvas
 
@@ -448,8 +445,16 @@ class PubSub {
       onendOfGame: function(game: Game) {
         let { Renderable } = game.ecs.getEntity("map");
         console.log("YOU WON THE WHOLE GAME!");
-
+        
         Renderable.visible = false;
+
+        let currentLevel = game.currentLevel.number || 0;
+        if (
+          game.playMode === "arcade" &&
+          game.lastCompletedLevel < currentLevel
+        )
+          game.lastCompletedLevel = currentLevel;
+
       },
     };
     this.nonBaseEventHandlers = {
@@ -481,7 +486,11 @@ class PubSub {
         if (game.recordRaceData) game.saveRaceData(outcome);
 
         //fire outcome-specific event
-        if (outcome === "won") game.publish("win");
+        if (outcome === "won") {
+          if (game.currentLevel.number === game.arcadeLevels)
+            game.publish("endOfGame");
+          else game.publish("win");
+        }
         if (outcome === "lost") game.publish("lose");
         if (outcome === "crash") game.publish("crash");
       },
@@ -497,9 +506,19 @@ class PubSub {
         else game.publish("start", next);
       },
       onSaveProgress: function(game: Game) {
-        updateLastCompletedLevel(game.lastCompletedLevel).catch((err) =>
-          console.error(err)
-        );
+        if (game.lastCompletedLevel === game.arcadeLevels) {
+          userHasCompletedGame()
+            .then((result) => {
+              game.hasCompletedGame = true;
+              return updateLastCompletedLevel(0);
+            })
+            .then((result) => (game.lastCompletedLevel = 0))
+            .catch((err) => console.error(err));
+        } else {
+          updateLastCompletedLevel(game.lastCompletedLevel).catch((err) =>
+            console.error(err)
+          );
+        }
       },
       onSetDesignTool: function(game: Game, tool: Tool) {
         game.designModule.setDesignTool(tool);
@@ -562,7 +581,6 @@ class PubSub {
       console.log(
         `Attempted invalid state transition - ${event} event must transition from mode "${from}", but mode is currently "${current}"`
       );
-      debugger;
     }
 
     return valid;

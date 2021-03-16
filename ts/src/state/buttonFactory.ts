@@ -24,7 +24,7 @@ const buttons: { [key: string]: ButtonInterface } = {
     selectable: false,
     onClick: function(game: Game) {
       game.playMode = "arcade";
-      if (game.lastCompletedLevel) window.toggleModal(true, "arcadeStart");
+      if (game.lastCompletedLevel || game.hasCompletedGame) window.toggleModal(true, "arcadeStart");
       else game.publish("start", game.firstLevel);
     },
     tags: ["menu", "main"],

@@ -3,17 +3,22 @@ import { ModalInputContext } from "../contexts/modalInputContext";
 import OptionList from "../optionList";
 import { useGame } from "../contexts/gameContext";
 
-const options = [
-  { value: "continue", label: "Continue where you left off" },
-  {
-    value: "playCompleted",
-    label: "Play a completed level",
-  },
-];
-
 const ArcadeStartContent = () => {
   let [, dispatch] = useContext(ModalInputContext);
   const game = useGame();
+
+  let options = [];
+
+  if (game.hasCompletedGame && !game.lastCompletedLevel) {
+    options.push({ value: "continue", label: "Play again from beginning" });
+  } else {
+    options.push({ value: "continue", label: "Continue where you left off" });
+  }
+
+  options.push({
+    value: "playCompleted",
+    label: "Play a completed level",
+  });
 
   useEffect(() => {
     dispatch({

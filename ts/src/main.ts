@@ -32,7 +32,7 @@ import RenderGroup from "./systems/render";
 import {
   loadArcadeLevel,
   loadCustomLevel,
-  createUser,
+  getOrCreateUser,
   getLastCompletedLevel,
   updateGraphicsSettings,
   getUserInfo,
@@ -135,6 +135,7 @@ export class Game {
 
   // USER //
   public lastCompletedLevel: number;
+  public hasCompletedGame: boolean;
   public carColor: string;
   public terrainStyle: TTerrainStyle;
 
@@ -193,6 +194,7 @@ export class Game {
     this.currentZoom = 1;
     this.defaultGameZoom = 4;
     this.lastCompletedLevel = 0;
+    this.hasCompletedGame = false;
     this.inputs = new InputEvents();
     // this.sounds = new Sounds(this);
     this.UICanvas = <HTMLCanvasElement>document.getElementById("ui");
@@ -380,10 +382,11 @@ export class Game {
       ],
     });
 
-    createUser()
+    getOrCreateUser()
       .then((user) => {
-        let { color, terrain, lastCompletedLevel } = user;
+        let { color, terrain, lastCompletedLevel, hasCompletedGame } = user;
         this.lastCompletedLevel = lastCompletedLevel;
+        this.hasCompletedGame = hasCompletedGame;
         this.setTerrainStyle(terrain);
         this.setCarColor(color);
       })

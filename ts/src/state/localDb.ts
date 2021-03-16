@@ -190,7 +190,7 @@ export async function saveTestData(mapTestDataObj: any) {
   return db.mapTestData.add(mapTestDataObj);
 }
 
-export async function createUser() {
+export async function getOrCreateUser() {
   let user = await getUserInfo();
   if (!user) {
     await db.userInfo.add({
@@ -198,6 +198,7 @@ export async function createUser() {
       color: "blue",
       lastCompletedLevel: 0,
       terrain: "default",
+      hasCompletedGame: false,
     });
     user = await getUserInfo();
   }
@@ -210,7 +211,12 @@ export async function getUserInfo() {
 
 export async function loadCompletedLevels() {
   let user = await db.userInfo.get(1);
-  let { lastCompletedLevel } = user;
+  let { lastCompletedLevel, hasCompletedGame } = user;
+
+  if (hasCompletedGame) {
+    return db.arcadeMaps.toArray();
+  }
+
   return db.arcadeMaps
     .where("levelNumber")
     .belowOrEqual(lastCompletedLevel)
@@ -219,6 +225,10 @@ export async function loadCompletedLevels() {
 
 export async function updateLastCompletedLevel(levelNum: number) {
   return db.userInfo.update(1, { lastCompletedLevel: levelNum });
+}
+
+export async function userHasCompletedGame() {
+  return db.userInfo.update(1, { hasCompletedGame: true });
 }
 
 export async function updateGraphicsSettings({
