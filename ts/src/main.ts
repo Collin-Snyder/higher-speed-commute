@@ -340,9 +340,9 @@ export class Game {
     this.playerEntity = this.ecs.createEntity({
       id: "player",
       Coordinates: {
-        // ...(this.map.getSquare(this.map.playerHome)
-        //   ? this.map.getSquare(this.map.playerHome).coordinates
-        //   : { X: 0, Y: 0 }),
+          // ...(this.map.getSquare(this.map.playerHome)
+          //   ? this.map.getSquare(this.map.playerHome).coordinates
+          //   : { X: 0, Y: 0 }),
       },
       Car: {
         color: "blue",
@@ -398,8 +398,8 @@ export class Game {
     this.playerEntity.Collision.currentCp = getCurrentCp.bind(
       this.playerEntity
     );
-    window.getPlayerSpeedConstant = () => calculateSpeedConstant(this.playerEntity);
-    window.setStartingLevel = (num: number) => this.firstLevel = num;
+    // window.getPlayerSpeedConstant = () => calculateSpeedConstant(this.playerEntity);
+    // window.setStartingLevel = (num: number) => this.firstLevel = num;
     this.bossEntity.Collision.currentHb = getCurrentHb.bind(this.bossEntity);
     this.bossEntity.Collision.currentCp = getCurrentCp.bind(this.bossEntity);
 

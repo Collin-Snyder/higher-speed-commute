@@ -110,15 +110,13 @@ declare global {
   ///// INTERFACES /////
   interface Window {
     toggleModal: Function;
-    game: Game;
-    showAll: Function;
-    deleteUserMap: Function;
-    makeSeedData: Function;
-    recreateLocalDb: Function;
-    updateLevelName: Function;
-    updateLevelDescription: Function;
-    getPlayerSpeedConstant: Function;
-    setStartingLevel: Function;
+    // recreateLocalDb: Function;
+    // deleteUserMap: Function;
+    // makeSeedData: Function;
+    // updateLevelName: Function;
+    // updateLevelDescription: Function;
+    // getPlayerSpeedConstant: Function;
+    // setStartingLevel: Function;
   }
 
   interface Number {
