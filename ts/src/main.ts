@@ -8,7 +8,7 @@ import modalButtonMap from "./modalButtonMap";
 import keyCodes from "./keyCodes";
 import DesignModule from "./modules/designModule";
 import LogTimers from "./modules/logger";
-import { ArcadeMap, IArcadeMap } from "./state/map";
+import { ArcadeMap } from "./state/map";
 import PubSub from "./state/pubsub";
 import Race from "./modules/raceData";
 // import { MenuButtons } from "./state/menuButtons";
@@ -167,8 +167,6 @@ export class Game {
   public windowHeight: number;
 
   constructor() {
-    //@ts-ignore
-    console.log(process.env);
     this.start = this.timestamp();
     this.lastTick = this.start;
     this.totalElapsedTime = 0;
@@ -342,9 +340,9 @@ export class Game {
     this.playerEntity = this.ecs.createEntity({
       id: "player",
       Coordinates: {
-        ...(this.map.getSquare(this.map.playerHome)
-          ? this.map.getSquare(this.map.playerHome).coordinates
-          : { X: 0, Y: 0 }),
+        // ...(this.map.getSquare(this.map.playerHome)
+        //   ? this.map.getSquare(this.map.playerHome).coordinates
+        //   : { X: 0, Y: 0 }),
       },
       Car: {
         color: "blue",
@@ -459,22 +457,22 @@ export class Game {
   }
 
   registerComponents(): void {
-    console.log("Loading components...");
+    console.info("Loading components...");
 
     for (let name of Object.keys(Components)) {
-      console.log(`Registering ${name}`);
+      console.info(`Registering ${name}`);
       this.ecs.registerComponent(name, Components[name]);
     }
   }
 
   registerTags(): void {
-    console.log("Loading tags...");
+    console.info("Loading tags...");
 
     this.ecs.registerTags(Tags);
   }
 
   registerSubscribers(): void {
-    console.log("Subscribing events...");
+    console.info("Subscribing events...");
     let validate = this.pubSub.baseEventHandlers.validate;
     for (let event of this.pubSub.baseEvents) {
       //this must be first
@@ -772,7 +770,7 @@ export class Game {
   }
 
   publish(event: any, ...args: any[]) {
-    console.log(`Publishing ${event}`);
+    // console.log(`Publishing ${event}`);
     if (this.subscribers && this.subscribers[event]) {
       const subs = this.subscribers[event];
       let start = 0;
@@ -852,9 +850,6 @@ export class Game {
 
     let deg = player.Renderable.degrees;
     if (deg === 0) return hb;
-    // entity.Renderable.degrees = degrees;
-    console.log("Degrees: ", deg);
-    console.log("HB before rotation: ", hb);
     //@ts-ignore
     return hb.map(({ X, Y }) => findRotatedVertex(X, Y, cpx, cpy, deg));
   }
@@ -930,7 +925,7 @@ export class Game {
   }
 
   logFontLoaded() {
-    console.log(this.gameFont.family, " loaded successfully.");
+    console.info(this.gameFont.family, " loaded successfully.");
     this.fontIsLoaded = true;
     if (this.backgroundIsLoaded && this.spriteSheetIsLoaded) this.buildWorld();
   }
@@ -1013,11 +1008,11 @@ export class InputEvents {
 
     switch (e.type) {
       case "mousedown":
-        console.log(`MOUSE DOWN AT ${this.mouseX}x${this.mouseY} on ${id}`);
+        // console.log(`MOUSE DOWN AT ${this.mouseX}x${this.mouseY} on ${id}`);
         this.mouseDown = true;
         break;
       case "mouseup":
-        console.log(`MOUSE UP AT ${this.mouseX}x${this.mouseY} on ${id}`);
+        // console.log(`MOUSE UP AT ${this.mouseX}x${this.mouseY} on ${id}`);
         this.mouseDown = false;
         break;
       case "mousemove":
@@ -1028,12 +1023,12 @@ export class InputEvents {
   };
 
   startDrag() {
-    console.log("DRAG START");
+    // console.log("DRAG START");
     this.dragging = true;
   }
 
   endDrag() {
-    console.log("DRAG END");
+    // console.log("DRAG END");
     this.dragging = false;
   }
 }

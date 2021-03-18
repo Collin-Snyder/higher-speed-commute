@@ -2,7 +2,6 @@ import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { Game } from "../../main";
 import { getCenterPoint, degreesToRadians } from "gameMath";
 import { drawTileMap } from "../../modules/tileDrawer";
-import { Tile } from "../../state/map";
 
 class RenderOffscreenMap extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -56,7 +55,7 @@ class RenderOffscreenMap extends EntityComponentSystem.System {
         tiles,
         map.width,
         (
-          type: Tile,
+          type: TTile,
           x: number,
           y: number,
           w: number,
@@ -105,7 +104,7 @@ class RenderOffscreenMap extends EntityComponentSystem.System {
       tileArray,
       mapWidth,
       (
-        type: Tile,
+        type: TTile,
         x: number,
         y: number,
         w: number,

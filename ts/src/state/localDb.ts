@@ -68,7 +68,7 @@ db.on("populate", async function() {
 db.userMaps.mapToClass(SandboxMap);
 
 db.open().catch((err) => {
-  console.error(`Open failed: ${err.stack}`);
+  console.error(new Error(`Open failed: ${err.stack}`));
 });
 
 export default db;

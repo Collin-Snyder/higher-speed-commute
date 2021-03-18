@@ -9,7 +9,7 @@ import { ModalInputContextProvider } from "./contexts/modalInputContext";
 import { GameContextProvider } from "./contexts/gameContext";
 
 let toggleModal = (isOpen: boolean, modalName: string) => {
-  console.log("! Original toggleModal is running !");
+  console.error(new Error("! Original toggleModal is running !"));
 };
 
 const ModalContainer = () => {
@@ -22,7 +22,7 @@ const ModalContainer = () => {
     modalName: string,
     levelNumber?: number
   ) => {
-    console.log("Opening modal " + modalName)
+    // console.log("Opening modal " + modalName)
     setModalName(modalName);
     if (levelNumber) setLevelNum(levelNumber);
     setModalOpen(isOpen);

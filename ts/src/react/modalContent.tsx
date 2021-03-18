@@ -23,7 +23,7 @@ export interface MapProperties {
 }
 
 const ModalContent = ({ modalName }: ModalContentProps) => {
-  console.log("Rendering modal content for modal: ", modalName);
+  // console.log("Rendering modal content for modal: ", modalName);
 
   let Content;
   let cssClass = "border";

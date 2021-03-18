@@ -1,101 +1,10 @@
-import {
-  calculateSurroundingSquareCount,
-  randomNumBtwn,
-} from "gameMath";
+import { calculateSurroundingSquareCount, randomNumBtwn } from "gameMath";
 import Editor from "../modules/editor";
 import { updateUserMap, saveNewUserMap } from "./localDb";
 
-export interface IArcadeMap {
-  squares: ISquare[];
-  squareCount: number;
-  width: number;
-  height: number;
-  playerHome: number;
-  bossHome: number;
-  office: number;
-  lights: { [key: string]: number };
-  coffees: { [key: string]: boolean };
-  pixelWidth: number;
-  pixelHeight: number;
-  name?: string;
-  id?: number;
-  generateTileMap: Function;
-  getSquare: Function;
-  setSquare: Function;
-  findPath: Function;
-}
-
-export interface IMapObject {
-  squares: ISquare[];
-  boardWidth: number;
-  boardHeight: number;
-  playerHome: number;
-  bossHome: number;
-  office: number;
-  lights: { [key: string]: number };
-  coffees: { [key: string]: boolean };
-  id: number;
-  name: string;
-}
-
-export interface IMiniMapObject {
-  i: number;
-  n: string;
-  h: number;
-  w: number;
-  p: number;
-  b: number;
-  o: number;
-  l: { [key: string]: number };
-  c: number[];
-  s: any[];
-}
-
-export interface ISquare {
-  id: number;
-  row: number;
-  column: number;
-  borders: Borders | BordersCompressed;
-  drivable: boolean;
-  schoolZone: boolean;
-  [key: string]: any;
-}
-
-export interface ITile {
-  type: Tile | Tile[];
-  a: number;
-  w: number;
-  h: number;
-  deg: number;
-  display: boolean;
-  [key: string]: any;
-}
-
-type Borders = {
-  [key in Direction]: ISquare | null;
-};
-
-type BordersCompressed = {
-  [key in Direction]: number | null;
-};
-
-export type Direction = "up" | "down" | "left" | "right";
-
-export type Tile =
-  | "street"
-  | "tree"
-  | "house"
-  | "playerHome"
-  | "bossHome"
-  | "office"
-  | "schoolZone"
-  | "greenLight"
-  | "coffee"
-  | "";
-
 export class Square implements ISquare {
   public drivable: boolean;
-  public borders: Borders;
+  public borders: TBorders;
   public schoolZone: boolean;
   public coordinates: { X: number; Y: number };
   public tileIndex: number;
@@ -243,7 +152,7 @@ export class ArcadeMap implements IArcadeMap {
 
   getSquare(s: number): ISquare | null {
     if (!this.squares[s - 1]) {
-      console.log("Invalid square id");
+      console.error(new Error("Invalid square id"));
       return null;
     }
     //@ts-ignore
@@ -252,7 +161,7 @@ export class ArcadeMap implements IArcadeMap {
 
   setSquare(s: number, key: string, val: any) {
     if (!this.squares[s - 1]) {
-      console.log("Invalid square id");
+      console.error(new Error("Invalid square id"));
       return undefined;
     }
     this.squares[s - 1][key] = val;
@@ -261,7 +170,7 @@ export class ArcadeMap implements IArcadeMap {
 
   generateTileMap(isRefMap: boolean = false): ITile[] {
     return this.squares.map((s: ISquare) => {
-      let type = <Tile>"";
+      let type = <TTile>"";
 
       if (s.drivable) {
         if (s.schoolZone && !isRefMap) type = "schoolZone";
@@ -275,16 +184,16 @@ export class ArcadeMap implements IArcadeMap {
           if (Math.random() <= 0.07) type = "tree1";
           // @ts-ignore
           else type = "tree" + Math.round(Math.random() + 2);
-        }
-        else if (
+        } else if (
           Math.random() < 0.3 &&
           typeof s.borders.down != "number" &&
           s.borders.down?.drivable
         ) {
           type = "house";
         } else if (Math.random() < 0.7) {
+          if (Math.random() < 0.8)
           //@ts-ignore
-          if (Math.random() < 0.8) type = "smallObj" + Math.round(Math.random() * 3 + 1);
+            type = "smallObj" + Math.round(Math.random() * 3 + 1);
           //@ts-ignore
           else type = "medObj" + Math.round(Math.random() + 1);
         }
@@ -308,7 +217,7 @@ export class ArcadeMap implements IArcadeMap {
     });
   }
 
-  generateReferenceTileMap(): Tile[] {
+  generateReferenceTileMap(): TTile[] {
     return this.squares.map((s: ISquare) => {
       if (this.playerHome === s.id) return "playerHome";
       if (this.bossHome === s.id) return "bossHome";
@@ -349,7 +258,7 @@ export class ArcadeMap implements IArcadeMap {
       toInclude.push(currentSquare);
 
       for (let direction in currentSquare.borders) {
-        let next = <ISquare>currentSquare.borders[<Direction>direction];
+        let next = <ISquare>currentSquare.borders[<TDirection>direction];
         if (next && !visited.hasOwnProperty(next.id)) {
           queue.put(next);
           visited[next.id] = true;
@@ -364,14 +273,18 @@ export class ArcadeMap implements IArcadeMap {
     let square = this.getSquareByCoords(X, Y);
     let attrVals: object = {};
     if (!square) {
-      console.log("Invalid coordinates - no valid square at this location.");
+      console.error(
+        new Error("Invalid coordinates - no valid square at this location.")
+      );
       return null;
     }
     for (let attribute of attributes) {
       if (!square.hasOwnProperty(attribute)) {
-        console.log(
-          "Invalid attribute name. Accessible attributes are: ",
-          ...Object.keys(square)
+        console.error(
+          new Error(
+            "Invalid attribute name. Accessible attributes are: " +
+              [...Object.keys(square)].join(", ")
+          )
         );
         continue;
       }
@@ -422,7 +335,7 @@ export class ArcadeMap implements IArcadeMap {
       }
 
       for (let direction in currentSquare.borders) {
-        let next = <ISquare>currentSquare.borders[<Direction>direction];
+        let next = <ISquare>currentSquare.borders[<TDirection>direction];
         if (next && next.drivable && !cameFrom.hasOwnProperty(next.id)) {
           frontier.put(next);
           cameFrom[next.id] = currentId;
@@ -431,8 +344,10 @@ export class ArcadeMap implements IArcadeMap {
     }
 
     if (!foundTarget) {
-      console.log(
-        `No valid path from square ${startSquare.id} to square ${endSquare.id}`
+      console.error(
+        new Error(
+          `No valid path from square ${startSquare.id} to square ${endSquare.id}`
+        )
       );
       return [[0, 0]];
     }
@@ -488,7 +403,6 @@ class PathQueue {
 
 export class SandboxMap extends ArcadeMap {
   static fromUserMapObject(mapObj: any) {
-    console.log(mapObj);
     let { boardWidth, boardHeight, playerHome, bossHome } = mapObj;
     let converted = {
       ...mapObj,
@@ -527,14 +441,14 @@ export class SandboxMap extends ArcadeMap {
     return this.playerHome == id || this.bossHome == id || this.office == id;
   }
 
-  determineTileValue(id: number): Tile | Tile[] {
+  determineTileValue(id: number): TTile | TTile[] {
     let square = <Square>this.getSquare(id);
     if (square.drivable) {
       if (this.playerHome === square.id) return "playerHome";
       if (this.bossHome === square.id) return "bossHome";
       if (this.office === square.id) return "office";
 
-      let tiles: Tile[] = [];
+      let tiles: TTile[] = [];
 
       if (square.schoolZone) tiles.push("schoolZone");
       else tiles.push("street");
@@ -553,7 +467,7 @@ export class SandboxMap extends ArcadeMap {
     drawing: boolean,
     tool: "playerHome" | "bossHome" | "office"
   ) {
-    console.log(`Adding ${tool}!`);
+    // console.log(`Adding ${tool}!`);
     let id = square.id;
     let keySquareId = this[tool];
     let tileChanges = [];
@@ -706,7 +620,7 @@ export class SandboxMap extends ArcadeMap {
       square = { ...square };
       square.borders = { ...square.borders };
       for (let direction in square.borders) {
-        let dir = <Direction>direction;
+        let dir = <TDirection>direction;
         if (square.borders[dir] !== null) {
           //@ts-ignore
           let borderId = square.borders[dir].id;
@@ -714,12 +628,14 @@ export class SandboxMap extends ArcadeMap {
           square.borders[dir] = borderId;
         }
         if (square.borders[dir] === undefined) {
-          console.log(
-            "Found undefined border data for square ",
-            square.id,
-            " during compression"
+          console.error(
+            new Error(
+              "Found undefined border data for square " +
+                square.id +
+                " during compression"
+            )
           );
-          debugger;
+          // debugger;
         }
       }
       return square;
@@ -768,7 +684,7 @@ export class SandboxMap extends ArcadeMap {
       lights: this.lights,
       coffees: this.coffees,
       name: this.name ? this.name : "Untitled map",
-      id: this.id
+      id: this.id,
     };
     return mapObj;
   }
@@ -780,7 +696,7 @@ export class SandboxMap extends ArcadeMap {
       );
     let updatedMap = <SandboxMap>this.exportForLocalSaveAs();
     updatedMap.id = this.id;
-    console.log("Current map with id ", this.id, " is being updated")
+    // console.log("Current map with id ", this.id, " is being updated");
     return updateUserMap(updatedMap);
   }
 
@@ -789,7 +705,9 @@ export class SandboxMap extends ArcadeMap {
     let newSandboxMap = <SandboxMap>this.exportForLocalSaveAs();
     let newId = await saveNewUserMap(newSandboxMap);
     this.id = newId;
-    console.log(`This map is now called ${this.name} and was saved under id ${this.id}`)
+    // console.log(
+    //   `This map is now called ${this.name} and was saved under id ${this.id}`
+    // );
   }
 
   compress() {
@@ -797,7 +715,7 @@ export class SandboxMap extends ArcadeMap {
       square = { ...square };
       square.borders = { ...square.borders };
       for (let direction in square.borders) {
-        let dir = <Direction>direction;
+        let dir = <TDirection>direction;
         if (square.borders[dir] !== null) {
           //@ts-ignore
           let borderId = square.borders[dir].id;
@@ -816,17 +734,19 @@ export class SandboxMap extends ArcadeMap {
       square = { ...square };
       square.borders = { ...square.borders };
       for (let direction in square.borders) {
-        let dir = <Direction>direction;
+        let dir = <TDirection>direction;
         let borderId = <number>square.borders[dir];
         if (borderId !== null) {
           //@ts-ignore
           square.borders[dir] = this.squares[borderId - 1];
         }
         if (square.borders[dir] === undefined) {
-          console.log(
-            "Found undefined border data for square ",
-            square.id,
-            " during decompress"
+          console.error(
+            new Error(
+              "Found undefined border data for square " +
+                square.id +
+                " during decompress"
+            )
           );
           debugger;
         }

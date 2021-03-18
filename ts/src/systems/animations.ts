@@ -1,7 +1,6 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { getCenterPoint } from "gameMath";
 import { small, regular } from "../modules/breakpoints";
-import { ITile } from "../state/map";
 const { floor } = Math;
 import {Game} from "../main";
 
@@ -282,7 +281,7 @@ export class LevelStartAnimation extends StateAnimation {
   }
 
   onRevealDone(): string {
-    console.log("GO!");
+    // console.log("GO!");
     this.revealElapsedTime = 0;
     this.revealCol = 1;
     return "zoom";

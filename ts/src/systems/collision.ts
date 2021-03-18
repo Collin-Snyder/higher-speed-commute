@@ -255,7 +255,6 @@ export class CollisionSystem extends ECS.System {
   }
 
   prioritizeAltVectors(entity: Entity, hb: IVector[]) {
-    console.log("Running prioritzeAltVectors");
     let { Velocity } = entity;
 
     // let hb = entity.Collision.currentHb(findDegFromVector(Velocity.vector));
@@ -278,7 +277,6 @@ export class CollisionSystem extends ECS.System {
     let collisionVertex = JSON.stringify(this.playerCollisionVertices[0]);
     let horizontalestVertext = JSON.stringify(vertex);
     if (collisionVertex === horizontalestVertext) {
-      console.log("REPRIORITIZING VERTICES!!");
       let leftOrRight = Velocity.altVectors[0];
       let upOrDown = Velocity.altVectors[1];
 

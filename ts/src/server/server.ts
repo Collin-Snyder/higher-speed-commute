@@ -26,7 +26,6 @@ app.get("/levels/:levelNum", async (req, res) => {
       [req.params.levelNum]
     );
     if (next.rows[0] === undefined) {
-      console.log(next.rows[0]);
       res.send("end of game");
     } else {
       let data = await db.query(
@@ -81,7 +80,7 @@ app.get("/maps/:id", (req, res) => {
       res.send(mapInfo);
     })
     .catch((err: any) => {
-      console.log(err);
+      console.error(err);
       res.send(
         `You asked for id ${req.params.id} but there was an error: ${err}`
       );

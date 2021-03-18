@@ -1,7 +1,6 @@
 import EntityComponentSystem, { Entity, ECS, BaseComponent } from "@fritzy/ecs";
 import { Game } from "../../main";
 import { drawTileMap } from "../../modules/tileDrawer";
-import { Tile } from "../../state/map";
 
 class RenderSandboxMap extends EntityComponentSystem.System {
   private tileColors: { [type: string]: string };
@@ -18,7 +17,6 @@ class RenderSandboxMap extends EntityComponentSystem.System {
 
   update(tick: number, entities: Set<Entity>) {
     let { mode, designModule, spriteSheet, spriteMap } = this._game;
-    if (this.changes.length > 0) console.log(this.changes);
 
     if (mode !== "designing") return;
 
@@ -43,7 +41,7 @@ class RenderSandboxMap extends EntityComponentSystem.System {
       tiles,
       map.width,
       (
-        type: Tile,
+        type: TTile,
         x: number,
         y: number,
         w: number,
@@ -71,7 +69,7 @@ class RenderSandboxMap extends EntityComponentSystem.System {
       tiles,
       map.width,
       (
-        type: Tile,
+        type: TTile,
         x: number,
         y: number,
         w: number,

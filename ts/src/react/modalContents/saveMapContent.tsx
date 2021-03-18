@@ -14,7 +14,7 @@ const SaveMapContent = () => {
       type: "SET_SUBMIT_ACTIONS",
       payload: {
         save: (name: string) => {
-          console.log("Saving map with name: ", name);
+          // console.log("Saving map with name: ", name);
           game.designModule
             .saveAsAsync(name)
             .then((r) => {

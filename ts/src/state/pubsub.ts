@@ -174,7 +174,7 @@ class PubSub {
         for (let entity of entities) {
           entity.Interactable.enabled = true;
         }
-        console.log("menu loaded");
+        // console.log("menu loaded");
       },
       onleavemenu: function(game: Game) {
         let entities = game.ecs.queryEntities({ has: ["menu", "main"] });
@@ -183,11 +183,11 @@ class PubSub {
         }
       },
       onstart: function(game: Game, level: number) {
-        console.log("running onstart");
+        // console.log("running onstart");
         game.loadLevel(level);
       },
       onchooseDifficulty: function(game: Game) {
-        console.log("running onchooseDifficulty");
+        // console.log("running onchooseDifficulty");
         let { Renderable } = game.ecs.getEntity("map");
         Renderable.visible = false;
         window.toggleModal(true, "levelStart");
@@ -205,7 +205,7 @@ class PubSub {
         game.startRace();
       },
       onwin: function(game: Game) {
-        console.log("YOU WIN!");
+        // console.log("YOU WIN!");
 
         let currentLevel = game.currentLevel.number || 0;
         if (
@@ -246,9 +246,6 @@ class PubSub {
           entity.Interactable.enabled = false;
         }
       },
-      onlose: function(game: Game) {
-        console.log("YOU LOSE");
-      },
       onleavelost: function(game: Game) {
         const mapEntity = game.ecs.getEntity("map");
         mapEntity.Renderable.visible = false;
@@ -260,7 +257,7 @@ class PubSub {
         }
       },
       oncrash: function(game: Game) {
-        console.log("CRASH! YOU LOSE BIG TIME");
+        // console.log("CRASH! YOU LOSE BIG TIME");
 
         let graphic = game.ecs.getEntity("crashGraphic");
 
@@ -444,8 +441,8 @@ class PubSub {
       },
       onendOfGame: function(game: Game) {
         let { Renderable } = game.ecs.getEntity("map");
-        console.log("YOU WON THE WHOLE GAME!");
-        
+        // console.log("YOU WON THE WHOLE GAME!");
+
         Renderable.visible = false;
 
         let currentLevel = game.currentLevel.number || 0;
@@ -454,7 +451,6 @@ class PubSub {
           game.lastCompletedLevel < currentLevel
         )
           game.lastCompletedLevel = currentLevel;
-
       },
     };
     this.nonBaseEventHandlers = {
@@ -578,8 +574,10 @@ class PubSub {
     } else if (current !== from) valid = false;
 
     if (!valid) {
-      console.log(
-        `Attempted invalid state transition - ${event} event must transition from mode "${from}", but mode is currently "${current}"`
+      console.error(
+        new Error(
+          `Attempted invalid state transition - ${event} event must transition from mode "${from}", but mode is currently "${current}"`
+        )
       );
     }
 

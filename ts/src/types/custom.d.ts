@@ -43,14 +43,14 @@ declare global {
     | "end";
   type TDesignMenuName = "toolbar" | "admin" | "config";
   type TPlayMode = "arcade" | "custom" | "testing" | "";
-  type Borders = {
-    [key in Direction]: ISquare | null;
+  type TBorders = {
+    [key in TDirection]: ISquare | null;
   };
-  type BordersCompressed = {
-    [key in Direction]: number | null;
+  type TBordersCompressed = {
+    [key in TDirection]: number | null;
   };
-  type Direction = "up" | "down" | "left" | "right";
-  type Tile =
+  type TDirection = "up" | "down" | "left" | "right";
+  type TTile =
     | "street"
     | "tree"
     | "house"
@@ -60,6 +60,17 @@ declare global {
     | "schoolZone"
     | "greenLight"
     | "coffee"
+    | "background1"
+    | "background2"
+    | "smallObj1"
+    | "smallObj2"
+    | "smallObj3"
+    | "smallObj4"
+    | "medObj1"
+    | "medObj2"
+    | "tree1"
+    | "tree2"
+    | "tree3"
     | "";
   type TTerrainStyle = "default" | "desert" | "snow" | "underwater";
   type TBreakpoint = "small" | "regular";
@@ -85,7 +96,16 @@ declare global {
   type TVerticalAlignment = "top" | "bottom" | "spaceEvenly" | "spaceBetween";
   type THorizontalJustify = "left" | "right" | "spaceEvenly" | "spaceBetween";
   type TVerticalJustify = "top" | "bottom" | "center";
-  type TCarColor = "blue" | "green" | "yellow" | "orange" | "pink" | "white" | "purple" | "aqua" | "tan";
+  type TCarColor =
+    | "blue"
+    | "green"
+    | "yellow"
+    | "orange"
+    | "pink"
+    | "white"
+    | "purple"
+    | "aqua"
+    | "tan";
 
   ///// INTERFACES /////
   interface Window {
@@ -167,14 +187,14 @@ declare global {
     id: number;
     row: number;
     column: number;
-    borders: Borders | BordersCompressed;
+    borders: TBorders | TBordersCompressed;
     drivable: boolean;
     schoolZone: boolean;
     [key: string]: any;
   }
 
   interface ITile {
-    type: Tile | Tile[];
+    type: TTile | TTile[];
     a: number;
     w: number;
     h: number;
@@ -194,7 +214,4 @@ declare global {
     on: { [action: string]: string };
     [prop: string]: any;
   }
-
-  
-  
 }

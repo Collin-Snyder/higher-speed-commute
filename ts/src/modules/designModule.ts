@@ -97,8 +97,8 @@ class DesignModule {
 
     //perform design map action on that square
     if (!square) {
-      console.log(
-        `You tried to edit a square at coordinates (${mx}x${my}) but there is no valid square there.`
+      console.error(
+        new Error(`You tried to edit a square at coordinates (${mx}x${my}) but there is no valid square there.`)
       );
       return;
     }
