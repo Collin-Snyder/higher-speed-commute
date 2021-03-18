@@ -12,17 +12,7 @@ import RulesHelpContent from "./modalContents/rulesHelpContent";
 import ControlsHelpContent from "./modalContents/controlsHelpContent";
 import SaveHelpContent from "./modalContents/saveHelpContent";
 
-interface ModalContentProps {
-  modalName: string;
-}
-
-export interface MapProperties {
-  id: number;
-  name: string;
-  [key: string]: any;
-}
-
-const ModalContent = ({ modalName }: ModalContentProps) => {
+const ModalContent = ({ modalName }: IModalContentProps) => {
   // console.log("Rendering modal content for modal: ", modalName);
 
   let Content;

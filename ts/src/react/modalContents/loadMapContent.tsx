@@ -1,12 +1,12 @@
 import React, { useContext, useState, useEffect } from "react";
-import OptionList, { ModalOption } from "../optionList";
+import OptionList from "../optionList";
 import { ModalInputContext } from "../contexts/modalInputContext";
 import { loadAllUserMaps, loadCompletedLevels } from "../../state/localDb";
 import { useGame } from "../contexts/gameContext";
 
 const LoadMapContent = () => {
   let [inputState, dispatch] = useContext(ModalInputContext);
-  let [mapOptions, setMapOptions] = useState<ModalOption[]>([]);
+  let [mapOptions, setMapOptions] = useState<IModalOption[]>([]);
   const game = useGame();
 
   useEffect(() => {

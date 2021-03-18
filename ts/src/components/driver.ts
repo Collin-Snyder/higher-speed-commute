@@ -13,13 +13,6 @@ export const Car = {
   },
 };
 
-// export const Caffeination = {
-//   properties: {
-//     caffeineLevel: 0,
-//     max: 4,
-//   },
-// };
-
 export const Velocity = {
   properties: {
     speedConstant: 2,

@@ -2,19 +2,6 @@ import { Entity } from "@fritzy/ecs";
 //@ts-ignore
 import axios from "axios";
 
-interface RaceDataExportInterface {
-  levelId: number;
-  difficulty: "easy" | "medium" | "hard" | "";
-  raceTime: number;
-  raceDate: string;
-  playerColor: string;
-  coffeesConsumed: number[] | string;
-  coffeesConsumedCount: number;
-  redLightsHit: { [light: number]: number } | string;
-  redLightsHitCount: number;
-  schoolZoneTime: number;
-}
-
 class Race {
   step: number;
   levelId: number;
@@ -75,7 +62,7 @@ class Race {
     this.coffeesConsumed.push(id);
   }
 
-  exportForSave(outcome: "won" | "lost" | "crash"): RaceDataExportInterface {
+  exportForSave(outcome: "won" | "lost" | "crash"): IRaceDataExport {
     let save = {
       outcome,
       coffeesConsumed: this.coffeesConsumed,

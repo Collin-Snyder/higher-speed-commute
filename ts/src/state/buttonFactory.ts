@@ -4,19 +4,7 @@ import { getLastCompletedLevel } from "./localDb";
 import { small, regular } from "../modules/breakpoints";
 import { noOp } from "gameHelpers";
 
-export interface ButtonInterface {
-  name: TButtonName;
-  hasText: boolean;
-  color?: TButtonColors;
-  selectable: boolean;
-  onClick: Function;
-  tags: string[];
-  [key: string]: any;
-}
-
-export type TDesignMenuName = "toolbar" | "admin" | "config";
-
-const buttons: { [key: string]: ButtonInterface } = {
+const buttons: { [key: string]: IButton } = {
   playArcade: {
     name: "playArcade",
     hasText: true,

@@ -2,21 +2,6 @@ import ECS, { Entity } from "@fritzy/ecs";
 
 import {Game} from "../main";
 
-interface RaceDataObjectInterface {
-    levelId: number;
-    outcome: "win" | "lose" | "crash" | null;
-    difficulty: "easy" | "medium" | "hard" | null;
-    raceTime: number;
-    winMargin: number;
-    raceDate: string;
-    playerColor: string;
-    coffeesConsumed: number[] | string;
-    coffeesConsumedCount: number;
-    redLightsHit: { [light: number]: number } | string;
-    redLightsHitCount: number;
-    schoolZoneTime: number;
-  }
-
 export class RaceTimerSystem extends ECS.System {
     private step: number;
 

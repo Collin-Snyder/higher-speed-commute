@@ -1,5 +1,5 @@
 import Game from "../main";
-type Unit = "ms" | "ticks";
+
 class LogTimer {
   public ready: boolean;
   public running: boolean;
@@ -9,7 +9,7 @@ class LogTimer {
   constructor(
     // public game: Game,
     public unitsPerStep: number,
-    public unit: Unit
+    public unit: TLoggerUnit
   ) {
     // this.game = game;
     this.ready = false;
@@ -64,12 +64,12 @@ class LogTimers {
     this.game = game;
   }
 
-  addTimer(name: string, unit: Unit, unitsPerStep: number) {
+  addTimer(name: string, unit: TLoggerUnit, unitsPerStep: number) {
     this.timers[name] = new LogTimer(unitsPerStep, unit);
     return true;
   }
 
-  addTimerIfNotExisting(name: string, unit: Unit, unitsPerStep: number) {
+  addTimerIfNotExisting(name: string, unit: TLoggerUnit, unitsPerStep: number) {
     if (this.timers.hasOwnProperty(name)) return false;
     return this.addTimer(name, unit, unitsPerStep);
   }
@@ -132,12 +132,6 @@ class LogTimers {
     }
     return true;
   }
-}
-
-interface ILoggerOptions {
-  oneTimeLog?: boolean;
-  interval?: number;
-  intervalUnit?: "ms" | "ticks";
 }
 
 class LogTimerNew implements ILoggerOptions {

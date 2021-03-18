@@ -2,24 +2,13 @@ import { capitalize } from "gameHelpers";
 import Editor, { commands } from "./editor";
 import { deleteUserMap, loadUserMap } from "../state/localDb";
 
-export type Tool =
-  | ""
-  | "playerHome"
-  | "bossHome"
-  | "office"
-  | "street"
-  | "schoolZone"
-  | "light"
-  | "coffee"
-  | "eraser";
-
 class DesignModule {
   private _game: any;
   private _editor: Editor;
   public saved: boolean;
   public gridLoaded: boolean;
   public gridOverlay: HTMLImageElement;
-  public selectedTool: Tool;
+  public selectedTool: TDesignTool;
   public lastEditedSquare: number;
   public mapCursor: "default" | "pointer" | "cell" | "no-drop" | "not-allowed";
   public quitting: boolean;
@@ -47,7 +36,7 @@ class DesignModule {
     }
   }
 
-  setDesignTool(tool: Tool) {
+  setDesignTool(tool: TDesignTool) {
     this.selectedTool = tool;
     this.mapCursor = tool ? "cell" : "default";
     this._game.publish(

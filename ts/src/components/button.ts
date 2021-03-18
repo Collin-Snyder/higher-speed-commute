@@ -54,32 +54,3 @@ export const Tooltip = {
     coordinates: { x: -1, y: -1 },
   },
 };
-
-export const Clickable = {
-  properties: {
-    onClick: () => {},
-  },
-};
-
-export const Draggable = {
-  properties: {
-    onDragStart: () => {},
-    onDragEnd: () => {},
-  },
-};
-
-export const DragTarget = {
-  properties: {
-    onDragOver: () => {},
-    onDrop: () => {},
-  },
-};
-
-export const Disabled = {
-  properties: {
-    bgColor: { r: 0, g: 0, b: 0, a: 1 },
-    textColor: { r: 255, g: 255, b: 255, a: 1 },
-    width: 0,
-    height: 0,
-  },
-};

@@ -1,14 +1,4 @@
-import React, { ChangeEvent, useContext } from "react";
-import { ModalInputContext } from "./contexts/modalInputContext";
-
-interface SelectionButtonProps {
-  value: number | string;
-  name: string;
-  label: string;
-  selected: boolean;
-  willSubmit: boolean;
-  handleChange: (e: ChangeEvent<HTMLInputElement>) => void;
-}
+import React from "react";
 
 const SelectionButton = ({
   value,
@@ -17,7 +7,7 @@ const SelectionButton = ({
   selected,
   willSubmit,
   handleChange,
-}: SelectionButtonProps) => {
+}: ISelectionButtonProps) => {
   let isMapSelector = name === "loadMap";
   let labelFormatted = label;
   return (

@@ -8,13 +8,7 @@ const initialState = {
   submitActions: {}
 };
 
-type ModalInputReducerAction = "SET_INPUT_VALUE" | "SET_SUBMIT_FUNC" | "SET_SUBMIT_ACTIONS" | "ADD_SUBMIT_ACTIONS";
-
-interface Action {
-  type: ModalInputReducerAction;
-  payload: any;
-}
-const reducer = (state: any, action: Action) => {
+const reducer = (state: any, action: IAction) => {
   switch (action.type) {
     case "SET_INPUT_VALUE":
       return { ...state, inputValue: action.payload };
@@ -29,13 +23,9 @@ const reducer = (state: any, action: Action) => {
   }
 };
 
-interface ModalInputContextProviderProps {
-  children: any;
-}
-
 export const ModalInputContextProvider = ({
   children,
-}: ModalInputContextProviderProps) => {
+}: IProviderProps) => {
   let [inputState, dispatch] = useReducer(reducer, initialState);
 
   return (

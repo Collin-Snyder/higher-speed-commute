@@ -2,21 +2,13 @@ import { Entity } from "@fritzy/ecs";
 import { Game } from "../main";
 import { centerWithin } from "gameMath";
 import { SandboxMap } from "./map";
-import { Tool } from "../modules/designModule";
 import { updateLastCompletedLevel, userHasCompletedGame } from "./localDb";
-
-interface EventInterface {
-  name: string;
-  from: TMode | TMode[];
-  to: TMode;
-  [key: string]: any;
-}
 
 class PubSub {
   public baseEventHandlers: { [name: string]: Function };
   public nonBaseEventHandlers: { [name: string]: Function };
-  public baseEvents: EventInterface[];
-  public nonBaseEvents: { name: string; action: Function }[];
+  public baseEvents: IBaseEvent[];
+  public nonBaseEvents: INonBaseEvent[];
   public current: TMode;
 
   constructor(initial: TMode) {
@@ -103,7 +95,7 @@ class PubSub {
       },
       {
         name: "setDesignTool",
-        action: function(tool: Tool) {
+        action: function(tool: TDesignTool) {
           let pubsub = <PubSub>(<unknown>this);
           pubsub.nonBaseEventHandlers.onSetDesignTool(tool);
         },
@@ -516,7 +508,7 @@ class PubSub {
           );
         }
       },
-      onSetDesignTool: function(game: Game, tool: Tool) {
+      onSetDesignTool: function(game: Game, tool: TDesignTool) {
         game.designModule.setDesignTool(tool);
       },
       onSave: function(game: Game) {

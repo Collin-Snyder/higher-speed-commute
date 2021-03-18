@@ -1,26 +1,13 @@
-import { isSet } from "lodash";
-import React, { useState, ChangeEvent, useContext } from "react";
+import React, { ChangeEvent, useContext } from "react";
 import { ModalInputContext } from "./contexts/modalInputContext";
 import SelectionButton from "./selectionButton";
 import SettingsOption from "./settingsOption";
-
-export interface ModalOption {
-  value: string | number;
-  label: string;
-  [key: string]: any;
-}
-
-interface OptionListProps {
-  listName: string;
-  options: ModalOption[];
-  optionsWillSubmit: boolean;
-}
 
 const OptionList = ({
   listName,
   options,
   optionsWillSubmit,
-}: OptionListProps) => {
+}: IOptionListProps) => {
   let [inputState, dispatch] = useContext(ModalInputContext);
   let { toggleModal } = window;
 

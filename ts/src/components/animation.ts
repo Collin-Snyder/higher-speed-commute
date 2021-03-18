@@ -28,20 +28,3 @@ export const Animation = {
     aStep: 0,
   },
 };
-
-export const AnimationReal = {
-  multiset: true,
-  properties: {
-    duration: 0, //duration of one loop of the animation, in ms
-    startTime: 0, //game elapsed time value when Animation component is added to entity
-    keyframes: [], //a collection of keyframe objects
-    repeat: "none", //options: "loop" or a number
-    direction: "forward", //options: "reverse", "alternate", "reverseAlternate"
-    easing: "none" //options: "in", "out", "inOut"
-  }
-}
-
-export interface KeyframeInterface {
-  p: number,
-  [key: string]: any
-}

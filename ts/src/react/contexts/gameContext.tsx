@@ -3,13 +3,7 @@ import Game, { game } from "../../main";
 
 export const GameContext = createContext<Game | null>(null);
 
-// const initialState = game;
-
-interface GameContextProviderProps {
-  children: any;
-}
-
-export const GameContextProvider = ({ children }: GameContextProviderProps) => {
+export const GameContextProvider = ({ children }: IProviderProps) => {
   return <GameContext.Provider value={game}>{children}</GameContext.Provider>;
 };
 

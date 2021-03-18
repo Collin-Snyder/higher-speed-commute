@@ -4,20 +4,14 @@ import { small, regular } from "../modules/breakpoints";
 const { floor } = Math;
 import {Game} from "../main";
 
-interface AnimationStateInterface {
-  duration: number;
-  step: number;
-  onStep: Function;
-  onDone: Function;
-  [key: string]: any;
-}
+
 
 abstract class StateAnimation extends EntityComponentSystem.System {
   public gameStep: number;
   public currentState: string;
   public currentStep: number;
   public currentTimeRemaining: number;
-  public states: { [state: string]: AnimationStateInterface };
+  public states: { [state: string]: IAnimationState };
 
   constructor(ecs: ECS, step: number) {
     super(ecs);

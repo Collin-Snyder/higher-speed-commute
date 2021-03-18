@@ -1,4 +1,5 @@
 import { Entity } from "@fritzy/ecs";
+import { ChangeEvent } from "react";
 import { Game } from "../main";
 
 declare global {
@@ -89,6 +90,17 @@ declare global {
     | "crash"
     | "designing"
     | "end";
+  type TDesignTool =
+    | ""
+    | "playerHome"
+    | "bossHome"
+    | "office"
+    | "street"
+    | "schoolZone"
+    | "light"
+    | "coffee"
+    | "eraser";
+  type TLoggerUnit = "ms" | "ticks";
 
   // game math //
   type TEntityArrayItem = Entity | Array<Entity>;
@@ -130,12 +142,24 @@ declare global {
     ) => Array<any>;
   }
 
+  interface IBaseEvent {
+    name: string;
+    from: TMode | TMode[];
+    to: TMode;
+    [key: string]: any;
+  }
+
+  interface INonBaseEvent {
+    name: string;
+    action: Function;
+  }
+
   interface IVector {
     X: number;
     Y: number;
   }
 
-  export interface IArcadeMap {
+  interface IArcadeMap {
     squares: ISquare[];
     squareCount: number;
     width: number;
@@ -208,8 +232,154 @@ declare global {
     h: number;
   }
 
-  interface ILightStateInterface {
+  interface ILightState {
+    id: number;
+    interval: number;
+    color: TLightColor;
+    timeSinceLastUpdate: number;
+  }
+
+  interface IState {
     on: { [action: string]: string };
     [prop: string]: any;
   }
+
+  interface ILightTimerMachine {
+    states: { [state: string]: IState };
+    lights: { [id: string]: ILightState };
+    transition: Function;
+    refreshLights: Function;
+  }
+
+  interface ICommand {
+    execute: Function;
+    undo: Function;
+  }
+
+  interface IHistory {
+    name: string;
+    args: any[];
+  }
+
+  interface ILoggerOptions {
+    oneTimeLog?: boolean;
+    interval?: number;
+    intervalUnit?: "ms" | "ticks";
+  }
+
+  interface IRaceDataExport {
+    levelId: number;
+    difficulty: "easy" | "medium" | "hard" | "";
+    raceTime: number;
+    raceDate: string;
+    playerColor: string;
+    coffeesConsumed: number[] | string;
+    coffeesConsumedCount: number;
+    redLightsHit: { [light: number]: number } | string;
+    redLightsHitCount: number;
+    schoolZoneTime: number;
+  }
+
+  interface IButton {
+    name: TButtonName;
+    hasText: boolean;
+    color?: TButtonColors;
+    selectable: boolean;
+    onClick: Function;
+    tags: string[];
+    [key: string]: any;
+  }
+
+  interface IAnimationState {
+    duration: number;
+    step: number;
+    onStep: Function;
+    onDone: Function;
+    [key: string]: any;
+  }
+
+  ///// REACT INTERFACES /////
+  interface IActionButtonProps {
+    buttonName: string;
+    buttonType: string;
+    toggleModal: Function;
+    buttonAction: Function;
+  }
+
+  interface IModalProps {
+    children: any;
+    name: string;
+    levelNum: number;
+  }
+
+  interface IModalButtonContainerProps {
+    modalName: string;
+    toggleModal: Function;
+  }
+
+  interface IModalButton {
+    type: string;
+    name: string;
+    action?: Function;
+  }
+
+  interface IModalContentProps {
+    modalName: string;
+  }
+
+  interface IMapProperties {
+    id: number;
+    name: string;
+    [key: string]: any;
+  }
+
+  interface IModalOption {
+    value: string | number;
+    label: string;
+    [key: string]: any;
+  }
+
+  interface IOptionListProps {
+    listName: string;
+    options: IModalOption[];
+    optionsWillSubmit: boolean;
+  }
+
+  interface ISelectionButtonProps {
+    value: number | string;
+    name: string;
+    label: string;
+    selected: boolean;
+    willSubmit: boolean;
+    handleChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  }
+
+  interface ISettingsOptionProps {
+    name: string;
+    value: string;
+    label: string;
+    sprite: string;
+    selected: boolean;
+    handleChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  }
+
+  interface ITextInputProps {
+    submitAction: string;
+  }
+
+  interface IProviderProps {
+    children: any;
+  }
+
+  interface IAction {
+    type: TModalInputReducerAction;
+    payload: any;
+  }
+
+  ///// REACT TYPES /////
+  type TModalInputReducerAction =
+    | "SET_INPUT_VALUE"
+    | "SET_SUBMIT_FUNC"
+    | "SET_SUBMIT_ACTIONS"
+    | "ADD_SUBMIT_ACTIONS";
 }

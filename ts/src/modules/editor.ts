@@ -1,20 +1,10 @@
 import { Game } from "../main";
 
-interface CommandInterface {
-  execute: Function;
-  undo: Function;
-}
-
-interface HistoryInterface {
-  name: string;
-  args: any[];
-}
-
 class Editor {
   private _game: any;
   private _group: boolean;
-  private _commands: { [key: string]: CommandInterface };
-  private _history: HistoryInterface[][];
+  private _commands: { [key: string]: ICommand };
+  private _history: IHistory[][];
   private _current: number;
   private _currentActionGroup() {
     return this._history[this._current];
@@ -28,7 +18,7 @@ class Editor {
     this._group = false;
   }
 
-  addCommand(name: string, command: CommandInterface) {
+  addCommand(name: string, command: ICommand) {
     command.execute = command.execute.bind(this._game);
     command.undo = command.undo.bind(this._game);
     this._commands[name] = command;
@@ -157,7 +147,7 @@ const actions = {
   },
 };
 
-export const commands: { [name: string]: CommandInterface } = {
+export const commands: { [name: string]: ICommand } = {
   makeDrivable: {
     execute: actions.makeDrivable,
     undo: actions.makeNotDrivable,

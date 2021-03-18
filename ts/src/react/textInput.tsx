@@ -1,10 +1,6 @@
 import React, { useContext, KeyboardEvent } from "react";
 import { ModalInputContext } from "./contexts/modalInputContext";
 
-interface ITextInputProps {
-  submitAction: string;
-}
-
 const TextInput = ({ submitAction }: ITextInputProps) => {
   let [inputState, dispatch] = useContext(ModalInputContext);
   let { toggleModal } = window;

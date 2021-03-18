@@ -4,20 +4,9 @@ import ActionButton from "./actionButton";
 import { useGame } from "./contexts/gameContext";
 import { ModalInputContext } from "./contexts/modalInputContext";
 
-interface ModalButtonContainerProps {
-  modalName: string;
-  toggleModal: Function;
-}
-
-interface ModalButton {
-  type: string;
-  name: string;
-  action?: Function;
-}
-
 const noOp = function() {};
 
-const modalButtons: { [key: string]: ModalButton[] } = {
+const modalButtons: { [key: string]: IModalButton[] } = {
   save: [
     { type: "cancel", name: "cancel" },
     {
@@ -69,7 +58,7 @@ const modalButtons: { [key: string]: ModalButton[] } = {
 const ModalButtonContainer = ({
   modalName,
   toggleModal,
-}: ModalButtonContainerProps) => {
+}: IModalButtonContainerProps) => {
   const game = useGame();
   let [inputState] = useContext(ModalInputContext);
 
@@ -80,7 +69,7 @@ const ModalButtonContainer = ({
 
   return (
     <div id="modal-button-container">
-      {buttons.map(({ type, name }: ModalButton) => {
+      {buttons.map(({ type, name }: IModalButton) => {
         let action = noOp;
         if (type === "cancel")
           action = () => {

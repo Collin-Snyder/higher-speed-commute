@@ -1,27 +1,6 @@
-export interface LightStateInterface {
-  id: number;
-  interval: number;
-  color: Color;
-  timeSinceLastUpdate: number;
-}
-
-interface StateInterface {
-  on: { [action: string]: string };
-  [prop: string]: any;
-}
-
-export interface LightTimerMachineInterface {
-  states: { [state: string]: StateInterface };
-  lights: { [id: string]: LightStateInterface };
-  transition: Function;
-  refreshLights: Function;
-}
-
-type Color = "green" | "yellow" | "red";
-
 class LightTimerMachine {
-  public states: { [state: string]: StateInterface };
-  public lights: { [id: string]: LightStateInterface };
+  public states: { [state: string]: IState };
+  public lights: { [id: string]: ILightState };
 
   constructor(intervalMap: { [id: string]: number }) {
     this.states = {
@@ -51,14 +30,14 @@ class LightTimerMachine {
     }
   }
 
-  transition(id: number, action: string): LightStateInterface {
-    let nextState = <Color>this.states[this.lights[id].color].on[action];
+  transition(id: number, action: string): ILightState {
+    let nextState = <TLightColor>this.states[this.lights[id].color].on[action];
     this.lights[id].color = nextState;
     this.lights[id].timeSinceLastUpdate = 0;
     return this.lights[id];
   }
 
-  refreshLights(step: number): LightStateInterface[] {
+  refreshLights(step: number): ILightState[] {
     const updates = [];
     for (let id in this.lights) {
       let light = this.lights[id];

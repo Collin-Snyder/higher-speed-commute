@@ -2,13 +2,9 @@ import React from "react";
 import { generateModalTitles } from "gameHelpers";
 import { useGame } from "./contexts/gameContext";
 
-interface ModalProps {
-  children: any;
-  name: string;
-  levelNum: number;
-}
 
-const Modal = ({ children, name, levelNum }: ModalProps) => {
+
+const Modal = ({ children, name, levelNum }: IModalProps) => {
   const game = useGame();
   let { title, subtitle } = generateModalTitles(name, game.currentLevel, game.playMode);
   let warning = name === "reset";

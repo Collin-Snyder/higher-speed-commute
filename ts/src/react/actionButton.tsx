@@ -2,19 +2,14 @@ import React, { useState, useContext, useEffect, PointerEvent, MouseEvent } from
 import { ModalInputContext } from "./contexts/modalInputContext";
 import { checkForMouseCollision } from "gameMath";
 
-interface ActionButtonProps {
-  buttonName: string;
-  buttonType: string;
-  toggleModal: Function;
-  buttonAction: Function;
-}
+
 
 const ActionButton = ({
   buttonName,
   toggleModal,
   buttonAction,
   buttonType,
-}: ActionButtonProps) => {
+}: IActionButtonProps) => {
   const [inputState, dispatch] = useContext(ModalInputContext);
 
   useEffect(() => {

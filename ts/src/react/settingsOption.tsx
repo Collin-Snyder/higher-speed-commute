@@ -1,13 +1,6 @@
-import React, { ChangeEvent } from "react";
+import React from "react";
 
-export interface ISettingsOptionProps {
-  name: string;
-  value: string;
-  label: string;
-  sprite: string;
-  selected: boolean;
-  handleChange: (e: ChangeEvent<HTMLInputElement>) => void;
-}
+
 
 const SettingsOption = ({
   name,

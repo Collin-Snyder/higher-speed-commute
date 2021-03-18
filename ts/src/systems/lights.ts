@@ -1,13 +1,8 @@
 import ECS, { Entity, BaseComponent } from "@fritzy/ecs";
 import {Game} from "../main";
 
-interface ILightState {
-  on: { [action: string]: string };
-  [prop: string]: any;
-}
-
 export class LightTimerSystem extends ECS.System {
-  public states: { [state: string]: ILightState };
+  public states: { [state: string]: IState };
   static query: { has?: string[]; hasnt?: string[] } = {
     has: ["Color", "Timer"],
   };
