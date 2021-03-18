@@ -167,6 +167,8 @@ export class Game {
   public windowHeight: number;
 
   constructor() {
+    //@ts-ignore
+    console.log(process.env);
     this.start = this.timestamp();
     this.lastTick = this.start;
     this.totalElapsedTime = 0;

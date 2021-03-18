@@ -7,8 +7,8 @@ module.exports = {
   mode: "development",
   devtool: "inline-source-map",
   entry: {
-    main: "./ts/src/main.ts",
-    reactApp: "./ts/src/react/index.tsx"
+    // main: "./ts/src/main.ts",
+    main: "./ts/src/react/index.tsx"
   },
   output: {
     path: path.resolve(__dirname, "build"),
