@@ -13,6 +13,7 @@ const tagGroups: { [group: string]: string[] } = {
     "crash",
     "arcade",
     "custom",
+    "completed",
     "testing",
     "end",
   ],

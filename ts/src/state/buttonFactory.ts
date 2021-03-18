@@ -114,6 +114,7 @@ const buttons: { [key: string]: ButtonInterface } = {
       "crash",
       "arcade",
       "custom",
+      "completed",
       "end",
     ],
   },
@@ -337,11 +338,14 @@ export const menuButtons = {
   ],
   won_arcade: ["nextLevel", "restart", "quit"],
   won_custom: ["chooseMap", "restart", "quit"],
+  won_completed: ["chooseMap", "restart", "quit"],
   lost_arcade: ["restart", "quit"],
   lost_custom: ["chooseMap", "restart", "quit"],
+  lost_completed: ["chooseMap", "restart", "quit"],
   paused: ["resume", "restart", "quit"],
   crash_arcade: ["restart", "quit"],
   crash_custom: ["chooseMap", "restart", "quit"],
+  crash_completed: ["chooseMap", "restart", "quit"],
   end: ["quit"],
 };
 

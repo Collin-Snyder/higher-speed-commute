@@ -42,7 +42,7 @@ declare global {
     | "crash_custom"
     | "end";
   type TDesignMenuName = "toolbar" | "admin" | "config";
-  type TPlayMode = "arcade" | "custom" | "testing" | "";
+  type TPlayMode = "arcade" | "custom" | "completed" | "testing" | "";
   type TBorders = {
     [key in TDirection]: ISquare | null;
   };

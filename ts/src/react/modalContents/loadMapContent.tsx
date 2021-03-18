@@ -16,9 +16,9 @@ const LoadMapContent = () => {
         load: (id: number) => {
           let { playMode, designModule } = game;
           window.toggleModal(false);
-          if (playMode === "custom" || playMode === "arcade")
+          if (playMode === "custom" || playMode === "completed")
             game.publish("start", id);
-          else designModule.loadSaved(id);
+          else if (!playMode) designModule.loadSaved(id);
         },
         delete: (id: number) => {
           game.designModule.deleteMap(id);
@@ -30,7 +30,7 @@ const LoadMapContent = () => {
 
   useEffect(() => {
     let loadFunc =
-      game.playMode === "arcade" ? loadCompletedLevels : loadAllUserMaps;
+      game.playMode === "completed" ? loadCompletedLevels : loadAllUserMaps;
 
     loadFunc()
       .then((um) => {
@@ -46,7 +46,7 @@ const LoadMapContent = () => {
   if (!mapOptions.length)
     return (
       <p>
-        You have no {game.playMode === "arcade" ? "completed levels" : "custom maps"}
+        You have no {game.playMode === "completed" ? "completed levels" : "custom maps"}
       </p>
     );
   return <OptionList listName="loadMap" options={mapOptions} optionsWillSubmit={false} />;

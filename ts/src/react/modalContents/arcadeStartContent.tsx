@@ -29,6 +29,7 @@ const ArcadeStartContent = () => {
           game.publish("start", game.lastCompletedLevel + 1);
         },
         playCompleted: () => {
+          game.playMode = "completed";
           window.toggleModal(true, "loadMap");
         },
       },

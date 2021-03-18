@@ -705,7 +705,7 @@ export class Game {
       mapInfo.name = name;
       MapData.map = ArcadeMap.fromMapObject(mapInfo);
 
-      if (!this.difficulty || this.playMode === "custom") this.publish("chooseDifficulty");
+      if (!this.difficulty || this.playMode === "custom" || this.playMode === "completed") this.publish("chooseDifficulty");
       else this.publish("startingAnimation");
     } catch (err) {
       console.error(err);
