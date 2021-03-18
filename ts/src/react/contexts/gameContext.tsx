@@ -1,7 +1,7 @@
 import React, { createContext, useContext } from "react";
 import Game, { game } from "../../main";
 
-export const GameContext = createContext<Game>(game);
+export const GameContext = createContext<Game | null>(null);
 
 // const initialState = game;
 
