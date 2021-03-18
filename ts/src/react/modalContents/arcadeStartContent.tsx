@@ -1,4 +1,5 @@
 import React, { useContext, useEffect } from "react";
+import { openModal } from "gameHelpers";
 import { ModalInputContext } from "../contexts/modalInputContext";
 import OptionList from "../optionList";
 import { useGame } from "../contexts/gameContext";
@@ -30,7 +31,7 @@ const ArcadeStartContent = () => {
         },
         playCompleted: () => {
           game.playMode = "completed";
-          window.toggleModal(true, "loadMap");
+          openModal("loadMap");
         },
       },
     });

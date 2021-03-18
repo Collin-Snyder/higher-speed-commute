@@ -13,8 +13,6 @@ import ControlsHelpContent from "./modalContents/controlsHelpContent";
 import SaveHelpContent from "./modalContents/saveHelpContent";
 
 const ModalContent = ({ modalName }: IModalContentProps) => {
-  // console.log("Rendering modal content for modal: ", modalName);
-
   let Content;
   let cssClass = "border";
 

@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
 import OptionList from "../optionList";
 import { ModalInputContext } from "../contexts/modalInputContext";
-import { loadAllUserMaps, loadCompletedLevels } from "../../state/localDb";
+import { loadAllUserMaps, loadCompletedLevels } from "../../localDb";
 import { useGame } from "../contexts/gameContext";
 
 const LoadMapContent = () => {

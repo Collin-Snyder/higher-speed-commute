@@ -10,7 +10,7 @@
     "predeploy": "npm run tsc; npm run wp",
     "deploy": "node deploy.js",
     "build": "npm run tsc; npm run wp",
-    "start": "node build/src/server/server.js"
+    "start": "node build/src/server.js"
   },
   "dependencies": {
     "@fritzy/ecs": "^0.5.2",

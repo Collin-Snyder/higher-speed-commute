@@ -1,6 +1,6 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { getCenterPoint } from "gameMath";
-import { small, regular } from "../modules/breakpoints";
+import { small, regular } from "../staticData/breakpointData";
 const { floor } = Math;
 import {Game} from "../main";
 

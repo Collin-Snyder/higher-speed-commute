@@ -1,8 +1,8 @@
 import { Entity } from "@fritzy/ecs";
 import { Game } from "../main";
-import { getLastCompletedLevel } from "./localDb";
-import { small, regular } from "../modules/breakpoints";
-import { noOp } from "gameHelpers";
+import { getLastCompletedLevel } from "../localDb";
+import { small, regular } from "../staticData/breakpointData";
+import { noOp, openModal } from "gameHelpers";
 
 const buttons: { [key: string]: IButton } = {
   playArcade: {
@@ -12,7 +12,7 @@ const buttons: { [key: string]: IButton } = {
     selectable: false,
     onClick: function(game: Game) {
       game.playMode = "arcade";
-      if (game.lastCompletedLevel || game.hasCompletedGame) window.toggleModal(true, "arcadeStart");
+      if (game.lastCompletedLevel || game.hasCompletedGame) openModal("arcadeStart");
       else game.publish("start", game.firstLevel);
     },
     tags: ["menu", "main"],
@@ -87,7 +87,7 @@ const buttons: { [key: string]: IButton } = {
       try {
         let l = await getLastCompletedLevel();
         if (game.playMode === "arcade" && game.lastCompletedLevel > l) {
-          window.toggleModal(true, "quitGameConfirmation");
+          openModal("quitGameConfirmation");
         } else game.publish("quit");
       } catch (err) {
         console.error(err);
@@ -208,7 +208,7 @@ const buttons: { [key: string]: IButton } = {
     selectable: false,
     onClick: function(game: Game) {
       if (!game.designModule.saved) {
-        window.toggleModal(true, "quitDesignConfirmation");
+        openModal("quitDesignConfirmation");
       } else game.publish("quit");
     },
     tags: ["menu", "design", "admin"],
@@ -300,7 +300,7 @@ const buttons: { [key: string]: IButton } = {
       if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Settings" });
     },
     onClick: function(game: Game) {
-      window.toggleModal(true, "settings");
+      openModal("settings");
     },
     tags: ["menu", "main", "square"],
   },
@@ -312,7 +312,7 @@ const buttons: { [key: string]: IButton } = {
       if (!this.has("Tooltip")) this.addComponent("Tooltip", { text: "Help" });
     },
     onClick: function(game: Game) {
-      window.toggleModal(true, "rulesHelp");
+      openModal("rulesHelp");
     },
     tags: ["menu", "main", "square"],
   },

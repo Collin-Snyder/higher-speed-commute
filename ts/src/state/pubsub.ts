@@ -2,7 +2,8 @@ import { Entity } from "@fritzy/ecs";
 import { Game } from "../main";
 import { centerWithin } from "gameMath";
 import { SandboxMap } from "./map";
-import { updateLastCompletedLevel, userHasCompletedGame } from "./localDb";
+import { updateLastCompletedLevel, userHasCompletedGame } from "../localDb";
+import {openModal} from "gameHelpers";
 
 class PubSub {
   public baseEventHandlers: { [name: string]: Function };
@@ -182,7 +183,7 @@ class PubSub {
         // console.log("running onchooseDifficulty");
         let { Renderable } = game.ecs.getEntity("map");
         Renderable.visible = false;
-        window.toggleModal(true, "levelStart");
+        openModal("levelStart");
       },
       onstartingAnimation: function(game: Game) {
         const { Renderable } = game.ecs.getEntity("map");

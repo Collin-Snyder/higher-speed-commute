@@ -1,4 +1,5 @@
 import React, { useEffect, useContext } from "react";
+import { openModal } from "gameHelpers";
 import { ModalInputContext } from "../contexts/modalInputContext";
 
 const RulesHelpContent = () => {
@@ -7,7 +8,7 @@ const RulesHelpContent = () => {
   useEffect(() => {
       dispatch({type: "SET_SUBMIT_ACTIONS", payload: {
           next: () => {
-              window.toggleModal(true, "controlsHelp");
+              openModal("controlsHelp");
           }
       }})
 

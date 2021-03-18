@@ -1,6 +1,6 @@
 import ECS, { Entity, BaseComponent } from "@fritzy/ecs";
 import { Game, InputEvents } from "../main";
-import keyCodes from "../keyCodes";
+import keyCodes from "../staticData/keyCodes";
 import { checkForMouseCollision, normalize } from "gameMath";
 
 export class InputSystem extends ECS.System {

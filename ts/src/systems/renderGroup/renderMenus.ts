@@ -2,7 +2,7 @@ import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { Game } from "../../main";
 import { menuButtons, designMenuButtons } from "../../state/buttonFactory";
 import { centerWithin, alignItems, justifyItems } from "gameMath";
-import * as breakpoints from "../../modules/breakpoints";
+import * as breakpoints from "../../staticData/breakpointData";
 import SpriteMap from "../../spriteMapModule";
 
 class RenderMenus extends EntityComponentSystem.System {

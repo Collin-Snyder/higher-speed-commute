@@ -1,6 +1,6 @@
-import { capitalize } from "gameHelpers";
+import { capitalize, openModal } from "gameHelpers";
 import Editor, { commands } from "./editor";
-import { deleteUserMap, loadUserMap } from "../state/localDb";
+import { deleteUserMap, loadUserMap } from "../localDb";
 
 class DesignModule {
   private _game: any;
@@ -163,11 +163,11 @@ class DesignModule {
 
   openSaveAsModal() {
     if (!this.verifyValidMap()) this.openInvalidMapModal();
-    else window.toggleModal(true, "save");
+    else openModal("save");
   }
 
   openInvalidMapModal() {
-    window.toggleModal(true, "missingKeySquares");
+    openModal("missingKeySquares");
   }
 
   async saveAsAsync(name: string) {
@@ -186,7 +186,7 @@ class DesignModule {
   }
 
   openLoadSavedModal() {
-    window.toggleModal(true, "loadMap");
+    openModal("loadMap");
   }
 
   async loadSaved(levelId: number) {
@@ -248,7 +248,7 @@ class DesignModule {
   }
 
   openResetModal() {
-    window.toggleModal(true, "reset");
+    openModal("reset");
   }
 
   resetMap(resetChoice: "save" | "overwrite") {

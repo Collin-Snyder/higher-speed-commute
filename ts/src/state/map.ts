@@ -1,6 +1,6 @@
 import { calculateSurroundingSquareCount, randomNumBtwn } from "gameMath";
 import Editor from "../modules/editor";
-import { updateUserMap, saveNewUserMap } from "./localDb";
+import { updateUserMap, saveNewUserMap } from "../localDb";
 
 export class Square implements ISquare {
   public drivable: boolean;

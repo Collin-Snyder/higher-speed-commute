@@ -1,8 +1,8 @@
 import Dexie from "dexie";
-import { ArcadeMap, SandboxMap } from "./map";
+import { ArcadeMap, SandboxMap } from "./state/map";
 //@ts-ignore
-import seedData from "./seedData.ts";
-import { extraMinify, minify } from "./levelCompression";
+import seedData from "./staticData/seedData";
+import { extraMinify, minify } from "./state/levelCompression";
 
 export class LocalDB extends Dexie {
   userMaps: Dexie.Table<SandboxMap>;

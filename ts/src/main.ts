@@ -1,15 +1,20 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
-import { getCenterPoint, scaleVector, findRotatedVertex, calculateSpeedConstant } from "gameMath";
-import * as breakpoints from "./modules/breakpoints";
+import {
+  getCenterPoint,
+  scaleVector,
+  findRotatedVertex,
+  calculateSpeedConstant,
+} from "gameMath";
+import * as breakpoints from "./staticData/breakpointData";
 //@ts-ignore
 import axios from "axios";
 import bgMap from "./bgMap";
 import modalButtonMap from "./modalButtonMap";
-import keyCodes from "./keyCodes";
+import keyCodes from "./staticData/keyCodes";
 import DesignModule from "./modules/designModule";
 import LogTimers from "./modules/logger";
 import { ArcadeMap } from "./state/map";
-import PubSub from "./state/pubsub";
+// import PubSub from "./state/pubsub";
 import Race from "./modules/raceData";
 // import { MenuButtons } from "./state/menuButtons";
 import makeButtonEntities from "./state/buttonFactory";
@@ -36,11 +41,13 @@ import {
   getLastCompletedLevel,
   updateGraphicsSettings,
   getUserInfo,
-} from "./state/localDb";
+} from "./localDb";
 import SpriteMap from "./spriteMapModule";
 import { forEachMapTile } from "./modules/tileDrawer";
 import { cars, neighborhoods } from "./react/modalContents/settingsContent";
 import { TooltipSystem } from "./systems/tooltips";
+import { baseEvents, baseEventHandlers } from "./staticData/baseEvents";
+import { nonBaseEvents } from "./staticData/nonBaseEvents";
 
 Number.prototype.times = function(
   cb: (currentNum: number) => any,
@@ -99,7 +106,7 @@ export class Game {
   // MODE //
   public mode: TMode;
   public playMode: TPlayMode;
-  public pubSub: PubSub;
+  // public pubSub: PubSub;
 
   // EVENTS //
   public inputs: InputEvents;
@@ -174,7 +181,7 @@ export class Game {
     this.tickTimes = [];
     this.mode = "init";
     this.playMode = "";
-    this.pubSub = new PubSub("init");
+    // this.pubSub = new PubSub("init");
     this.ecs = new EntityComponentSystem.ECS();
     this.firstLevel = 1;
     this.arcadeLevels = 9;
@@ -340,9 +347,9 @@ export class Game {
     this.playerEntity = this.ecs.createEntity({
       id: "player",
       Coordinates: {
-          // ...(this.map.getSquare(this.map.playerHome)
-          //   ? this.map.getSquare(this.map.playerHome).coordinates
-          //   : { X: 0, Y: 0 }),
+        // ...(this.map.getSquare(this.map.playerHome)
+        //   ? this.map.getSquare(this.map.playerHome).coordinates
+        //   : { X: 0, Y: 0 }),
       },
       Car: {
         color: "blue",
@@ -436,7 +443,10 @@ export class Game {
       "caffeine",
       new CaffeineSystem(this, this.ecs, this.step)
     );
-    this.ecs.addSystem("tooltips", new TooltipSystem(this, this.ecs, this.step))
+    this.ecs.addSystem(
+      "tooltips",
+      new TooltipSystem(this, this.ecs, this.step)
+    );
     this.ecs.addSystem("input", new InputSystem(this, this.ecs));
     this.ecs.addSystem("move", new MovementSystem(this, this.ecs));
     this.ecs.addSystem("collision", new CollisionSystem(this, this.ecs));
@@ -473,24 +483,25 @@ export class Game {
 
   registerSubscribers(): void {
     console.info("Subscribing events...");
-    let validate = this.pubSub.baseEventHandlers.validate;
-    for (let event of this.pubSub.baseEvents) {
+    let { validate } = baseEventHandlers;
+
+    for (let event of baseEvents) {
       //this must be first
       this.subscribe(
         event.name,
         validate.bind(this, this, event.name, event.from)
       );
 
-      let onbefore = this.pubSub.baseEventHandlers[`onbefore${event.name}`];
-      let on = this.pubSub.baseEventHandlers[`on${event.name}`];
-      let onNewState = this.pubSub.baseEventHandlers[`on${event.to}`];
+      let onBefore = baseEventHandlers[`onbefore${event.name}`];
+      let on = baseEventHandlers[`on${event.name}`];
+      let onNewState = baseEventHandlers[`on${event.to}`];
 
       this.subscribe(event.name, () => {
-        let onleave = this.pubSub.baseEventHandlers[`onleave${this.mode}`];
-        if (onleave) onleave.call(this, this);
+        let onLeave = baseEventHandlers[`onleave${this.mode}`];
+        if (onLeave) onLeave.call(this, this);
       });
-      if (onbefore) {
-        this.subscribe(event.name, onbefore.bind(this, this));
+      if (onBefore) {
+        this.subscribe(event.name, onBefore.bind(this, this));
       }
       if (on) {
         this.subscribe(event.name, on.bind(this, this));
@@ -503,14 +514,8 @@ export class Game {
       }
     }
 
-    for (let name in this.pubSub.nonBaseEventHandlers) {
-      this.pubSub.nonBaseEventHandlers[name] = this.pubSub.nonBaseEventHandlers[
-        name
-      ].bind(this, this);
-    }
-
-    for (let event of this.pubSub.nonBaseEvents) {
-      this.subscribe(event.name, event.action);
+    for (let event of nonBaseEvents) {
+      this.subscribe(event.name, event.action.bind(this, this));
     }
   }
 
@@ -705,7 +710,12 @@ export class Game {
       mapInfo.name = name;
       MapData.map = ArcadeMap.fromMapObject(mapInfo);
 
-      if (!this.difficulty || this.playMode === "custom" || this.playMode === "completed") this.publish("chooseDifficulty");
+      if (
+        !this.difficulty ||
+        this.playMode === "custom" ||
+        this.playMode === "completed"
+      )
+        this.publish("chooseDifficulty");
       else this.publish("startingAnimation");
     } catch (err) {
       console.error(err);

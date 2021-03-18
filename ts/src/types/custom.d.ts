@@ -101,6 +101,19 @@ declare global {
     | "coffee"
     | "eraser";
   type TLoggerUnit = "ms" | "ticks";
+  type TModalName =
+    | "save"
+    | "levelStart"
+    | "missingKeySquares"
+    | "settings"
+    | "loadMap"
+    | "arcadeStart"
+    | "reset"
+    | "quitGameConfirmation"
+    | "quitDesignConfirmation"
+    | "rulesHelp"
+    | "controlsHelp"
+    | "saveHelp";
 
   // game math //
   type TEntityArrayItem = Entity | Array<Entity>;

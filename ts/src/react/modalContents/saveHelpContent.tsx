@@ -1,4 +1,5 @@
 import React, { useEffect, useContext } from "react";
+import { openModal } from "gameHelpers";
 import { ModalInputContext } from "../contexts/modalInputContext";
 
 const SaveHelpContent = () => {
@@ -9,7 +10,7 @@ const SaveHelpContent = () => {
       type: "SET_SUBMIT_ACTIONS",
       payload: {
         back: () => {
-          window.toggleModal(true, "controlsHelp");
+          openModal("controlsHelp");
         },
       },
     });
