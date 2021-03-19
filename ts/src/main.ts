@@ -1,22 +1,24 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
+//@ts-ignore
+import axios from "axios";
 import {
   getCenterPoint,
   scaleVector,
   findRotatedVertex,
   calculateSpeedConstant,
 } from "gameMath";
+import { forEachMapTile } from "gameHelpers";
+import InputEventsService from "./services/inputEventsService";
+import DesignService from "./services/designService";
+import LogTimerService from "./services/loggerService";
+import RaceDataService from "./services/raceDataService";
+import { ArcadeMap } from "./state/map";
 import * as breakpoints from "./staticData/breakpointData";
-//@ts-ignore
-import axios from "axios";
 import bgMap from "./bgMap";
 import modalButtonMap from "./modalButtonMap";
-import keyCodes from "./staticData/keyCodes";
 import DesignModule from "./modules/designModule";
-import LogTimers from "./modules/logger";
-import { ArcadeMap } from "./state/map";
-// import PubSub from "./state/pubsub";
-import Race from "./modules/raceData";
 // import { MenuButtons } from "./state/menuButtons";
+// import PubSub from "./state/pubsub";
 import makeButtonEntities from "./state/buttonFactory";
 import Components from "./components/index";
 import Tags from "./tags/tags";
@@ -43,7 +45,6 @@ import {
   getUserInfo,
 } from "./localDb";
 import SpriteMap from "./spriteMapModule";
-import { forEachMapTile } from "./modules/tileDrawer";
 import { cars, neighborhoods } from "./react/modalContents/settingsContent";
 import { TooltipSystem } from "./systems/tooltips";
 import { baseEvents, baseEventHandlers } from "./staticData/baseEvents";
@@ -109,7 +110,7 @@ export class Game {
   // public pubSub: PubSub;
 
   // EVENTS //
-  public inputs: InputEvents;
+  public inputs: InputEventsService;
   public subscribers: { [key: string]: Function[] };
 
   // GRAPHICS //
@@ -161,14 +162,14 @@ export class Game {
   public defaultGameZoom: number;
   public zoomFactor: number;
   public currentZoom: number;
-  public currentRace: Race | null;
+  public raceData: RaceDataService | null;
   public recordRaceData: boolean;
 
   // DESIGN //
   public designModule: DesignModule;
 
   // DEV HELPERS //
-  public logTimers: LogTimers;
+  public logTimers: LogTimerService;
   public autopilot: boolean;
   public windowWidth: number;
   public windowHeight: number;
@@ -192,7 +193,7 @@ export class Game {
       nextLevelId: null,
       description: "",
     };
-    this.currentRace = null;
+    this.raceData = null;
     this.recordRaceData = false;
     this.difficulty = "";
     this.focusView = "player";
@@ -202,7 +203,7 @@ export class Game {
     this.defaultGameZoom = 4;
     this.lastCompletedLevel = 0;
     this.hasCompletedGame = false;
-    this.inputs = new InputEvents();
+    this.inputs = new InputEventsService();
     // this.sounds = new Sounds(this);
     this.UICanvas = <HTMLCanvasElement>document.getElementById("ui");
     this.uictx = <CanvasRenderingContext2D>this.UICanvas.getContext("2d");
@@ -223,7 +224,7 @@ export class Game {
     );
     this.osectx = <CanvasRenderingContext2D>this.OSEntCanvas.getContext("2d");
     this.subscribers = {};
-    this.logTimers = new LogTimers(this);
+    this.logTimers = new LogTimerService(this);
     this.map = new ArcadeMap(40, 25);
     this.designModule = new DesignModule(this);
     this.spriteSheet = new Image();
@@ -260,7 +261,7 @@ export class Game {
       id: "global",
       Global: {
         game: this,
-        inputs: new InputEvents(),
+        inputs: new InputEventsService(),
       },
     });
 
@@ -806,11 +807,11 @@ export class Game {
     } = this.ecs.getEntity("map");
     let { color } = this.ecs.getEntity("player").Car;
 
-    this.currentRace = new Race(id, this.difficulty, color, this.step);
+    this.raceData = new RaceDataService(id, this.difficulty, color, this.step);
   }
 
   endRace() {
-    this.currentRace = null;
+    this.raceData = null;
   }
 
   resetLastCompletedLevel() {
@@ -820,8 +821,8 @@ export class Game {
   }
 
   saveRaceData(outcome: "won" | "lost" | "crash") {
-    if (!this.currentRace) return;
-    let raceData = this.currentRace.exportForSave(outcome);
+    if (!this.raceData) return;
+    let raceData = this.raceData.exportForSave(outcome);
     // axios
     //   .post("/races", raceData)
     //   .then((data: any) => {
@@ -938,108 +939,6 @@ export class Game {
     console.info(this.gameFont.family, " loaded successfully.");
     this.fontIsLoaded = true;
     if (this.backgroundIsLoaded && this.spriteSheetIsLoaded) this.buildWorld();
-  }
-}
-
-export class InputEvents {
-  public UICanvas: HTMLCanvasElement;
-  public mouseX: number;
-  public mouseY: number;
-  public mouseDown: boolean;
-  public dragging: boolean;
-  public modifiableKeycodes: number[];
-  public shift: boolean;
-  public ctrl: boolean;
-  public keyPressMap: { [keyCode: number]: boolean };
-
-  constructor() {
-    this.UICanvas = <HTMLCanvasElement>document.getElementById("ui");
-    this.mouseX = 0;
-    this.mouseY = 0;
-    this.mouseDown = false;
-    this.keyPressMap = {};
-    this.dragging = false;
-    this.modifiableKeycodes = [keyCodes.S, keyCodes.Q, keyCodes.L, keyCodes.Z];
-    this.shift = false;
-    this.ctrl = false;
-
-    for (let keyName in keyCodes) {
-      this.keyPressMap[keyCodes[keyName]] = false;
-    }
-
-    document.addEventListener("keydown", (e) => this.handleKeypress(e));
-    document.addEventListener("keyup", (e) => this.handleKeypress(e));
-    document.addEventListener("keypress", (e) => this.handleKeypress(e));
-    this.UICanvas.addEventListener("mousedown", (e) =>
-      this.handleUIMouseEvent(e)
-    );
-    this.UICanvas.addEventListener("mouseup", (e) =>
-      this.handleUIMouseEvent(e)
-    );
-    this.UICanvas.addEventListener("mousemove", (e) =>
-      this.handleUIMouseEvent(e)
-    );
-    document.addEventListener("pointerdown", (e: PointerEvent) => {
-      //@ts-ignore
-      e.target.setPointerCapture(e.pointerId);
-    });
-
-    document.addEventListener("pointerup", (e: PointerEvent) => {
-      //@ts-ignore
-      e.target.releasePointerCapture(e.pointerId);
-    });
-  }
-
-  private handleKeypress = (e: KeyboardEvent) => {
-    if ((e.target as HTMLElement)?.tagName == "INPUT") return;
-
-    this.shift = e.getModifierState("Shift");
-    this.ctrl = e.getModifierState("Control");
-
-    switch (e.type) {
-      case "keydown":
-        this.keyPressMap[e.keyCode] = true;
-        if (this.modifiableKeycodes.includes(e.keyCode) && this.ctrl)
-          e.preventDefault();
-        break;
-      case "keyup":
-        this.keyPressMap[e.keyCode] = false;
-        break;
-      default:
-        return;
-    }
-  };
-
-  private handleUIMouseEvent = (e: MouseEvent) => {
-    this.mouseX = e.clientX;
-    this.mouseY = e.clientY;
-    //@ts-ignore
-    let id = e.currentTarget.id;
-
-    switch (e.type) {
-      case "mousedown":
-        // console.log(`MOUSE DOWN AT ${this.mouseX}x${this.mouseY} on ${id}`);
-        this.mouseDown = true;
-        break;
-      case "mouseup":
-        // console.log(`MOUSE UP AT ${this.mouseX}x${this.mouseY} on ${id}`);
-        this.mouseDown = false;
-        break;
-      case "mousemove":
-
-      default:
-        return;
-    }
-  };
-
-  startDrag() {
-    // console.log("DRAG START");
-    this.dragging = true;
-  }
-
-  endDrag() {
-    // console.log("DRAG END");
-    this.dragging = false;
   }
 }
 

@@ -1,6 +1,6 @@
 import EntityComponentSystem, { Entity, ECS, BaseComponent } from "@fritzy/ecs";
 import { Game } from "../../main";
-import { drawTileMap } from "../../modules/tileDrawer";
+import { drawTileMap } from "gameHelpers";
 
 class RenderSandboxMap extends EntityComponentSystem.System {
   private tileColors: { [type: string]: string };

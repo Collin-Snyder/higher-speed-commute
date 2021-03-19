@@ -192,6 +192,10 @@ declare global {
     findPath: Function;
   }
 
+  interface ISandboxMap extends IArcadeMap {
+    [key: string]: any;
+  }
+
   interface IMapObject {
     squares: ISquare[];
     boardWidth: number;

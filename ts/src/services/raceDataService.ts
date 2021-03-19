@@ -1,8 +1,6 @@
 import { Entity } from "@fritzy/ecs";
-//@ts-ignore
-import axios from "axios";
 
-class Race {
+class RaceDataService {
   step: number;
   levelId: number;
   outcome: "win" | "loss" | "crash" | null;
@@ -82,4 +80,4 @@ class Race {
   }
 }
 
-export default Race;
+export default RaceDataService;

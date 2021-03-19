@@ -242,13 +242,13 @@ function onCaffeinate(game: Game, driver: Entity, coffee: Entity) {
   if (driver.id === "player") {
     let coffeeId = coffee.id.match(/\d+/g);
     if (coffeeId && coffeeId[0])
-      game.currentRace?.logCoffee(Number(coffeeId[0]));
+      game.raceData?.logCoffee(Number(coffeeId[0]));
   }
 }
 
 function onRedLight(game: Game, driver: Entity, light: Entity) {
   if (driver.id === "player") {
-    game.currentRace?.logRedLight(light);
+    game.raceData?.logRedLight(light);
   }
 }
 function onFocusSelector(

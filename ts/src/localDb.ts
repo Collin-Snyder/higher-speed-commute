@@ -5,7 +5,7 @@ import seedData from "./staticData/seedData";
 import { extraMinify, minify } from "./state/levelCompression";
 
 export class LocalDB extends Dexie {
-  userMaps: Dexie.Table<SandboxMap>;
+  userMaps: Dexie.Table<ISandboxMap>;
   arcadeMaps: Dexie.Table<any>;
   mapTestData: Dexie.Table<any>;
   userInfo: Dexie.Table<any>;

@@ -1,12 +1,9 @@
 import React, { useState, useCallback } from "react";
-//@ts-ignore
-import axios from "axios";
+import { GameContextProvider } from "./contexts/gameContext";
+import { ModalInputContextProvider } from "./contexts/modalInputContext";
 import Modal from "./modal";
 import ModalButtons from "./modalButtons";
 import ModalContent from "./modalContent";
-import LoadMapContent from "./modalContents/loadMapContent";
-import { ModalInputContextProvider } from "./contexts/modalInputContext";
-import { GameContextProvider } from "./contexts/gameContext";
 
 let toggleModal = (isOpen: boolean, modalName: string) => {
   console.error(new Error("! Original toggleModal is running !"));

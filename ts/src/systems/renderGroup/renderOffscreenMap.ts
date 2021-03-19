@@ -1,7 +1,7 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { Game } from "../../main";
 import { getCenterPoint, degreesToRadians } from "gameMath";
-import { drawTileMap } from "../../modules/tileDrawer";
+import { drawTileMap } from "gameHelpers";
 
 class RenderOffscreenMap extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {

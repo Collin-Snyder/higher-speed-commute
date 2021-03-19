@@ -13,7 +13,7 @@ export class RaceTimerSystem extends ECS.System {
     update(tick: number, entities: Set<Entity>) {
         if (this._game.mode !== "playing") return;
 
-        let race = this._game.currentRace;
+        let race = this._game.raceData;
 
         if (!race) return;
 

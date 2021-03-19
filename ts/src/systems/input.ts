@@ -1,5 +1,6 @@
 import ECS, { Entity, BaseComponent } from "@fritzy/ecs";
-import { Game, InputEvents } from "../main";
+import { Game } from "../main";
+import InputEventsService from "../services/inputEventsService";
 import keyCodes from "../staticData/keyCodes";
 import { checkForMouseCollision, normalize } from "gameMath";
 
@@ -239,7 +240,7 @@ export class InputSystem extends ECS.System {
     });
   }
 
-  handleDesignKeypress(inputs: InputEvents) {
+  handleDesignKeypress(inputs: InputEventsService) {
     let { shift, ctrl } = inputs;
 
     this.debounceKeypress(
