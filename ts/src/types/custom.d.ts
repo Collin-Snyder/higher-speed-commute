@@ -268,7 +268,7 @@ declare global {
     refreshLights: Function;
   }
 
-  interface ICommand {
+  interface IEditorCommand {
     execute: Function;
     undo: Function;
   }
@@ -313,6 +313,17 @@ declare global {
     onStep: Function;
     onDone: Function;
     [key: string]: any;
+  }
+
+  interface IMapEditorService {
+    addCommand: (name: string, command: IEditorCommand) => void;
+    beginGroup: () => boolean;
+    endGroup: () => boolean;
+    execute: (name: string, ...args: any[]) => void;
+    undo: () => boolean;
+    redo: () => boolean;
+    restart: () => void;
+    usePrevGroup: () => void;
   }
 
   ///// REACT INTERFACES /////

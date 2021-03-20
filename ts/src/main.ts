@@ -16,7 +16,7 @@ import { ArcadeMap } from "./state/map";
 import * as breakpoints from "./staticData/breakpointData";
 import bgMap from "./bgMap";
 import modalButtonMap from "./modalButtonMap";
-import DesignModule from "./modules/designModule";
+// import DesignModule from "./modules/designModule";
 // import { MenuButtons } from "./state/menuButtons";
 // import PubSub from "./state/pubsub";
 import makeButtonEntities from "./state/buttonFactory";
@@ -166,7 +166,7 @@ export class Game {
   public recordRaceData: boolean;
 
   // DESIGN //
-  public designModule: DesignModule;
+  public designModule: DesignService;
 
   // DEV HELPERS //
   public logTimers: LogTimerService;
@@ -226,7 +226,7 @@ export class Game {
     this.subscribers = {};
     this.logTimers = new LogTimerService(this);
     this.map = new ArcadeMap(40, 25);
-    this.designModule = new DesignModule(this);
+    this.designModule = new DesignService(this);
     this.spriteSheet = new Image();
     this.background = new Image();
     this.gameFont = new FontFace(

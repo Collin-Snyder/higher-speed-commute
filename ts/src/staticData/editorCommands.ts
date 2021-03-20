@@ -43,7 +43,7 @@ const actions = {
   },
 };
 
-const commands: { [name: string]: ICommand } = {
+const commands: { [name: string]: IEditorCommand } = {
   makeDrivable: {
     execute: actions.makeDrivable,
     undo: actions.makeNotDrivable,

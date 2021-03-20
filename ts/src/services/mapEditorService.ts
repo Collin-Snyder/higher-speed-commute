@@ -1,7 +1,7 @@
-export default class MapEditorService {
+export default class MapEditorService implements IMapEditorService {
   private _game: any;
   private _group: boolean;
-  private _commands: { [key: string]: ICommand };
+  private _commands: { [name: string]: IEditorCommand };
   private _history: IHistory[][];
   private _current: number;
   private _currentActionGroup() {
@@ -16,7 +16,7 @@ export default class MapEditorService {
     this._group = false;
   }
 
-  addCommand(name: string, command: ICommand) {
+  addCommand(name: string, command: IEditorCommand) {
     command.execute = command.execute.bind(this._game, this._game);
     command.undo = command.undo.bind(this._game, this._game);
     this._commands[name] = command;
@@ -49,11 +49,11 @@ export default class MapEditorService {
     return true;
   }
 
-  canUndo() {
+  private canUndo() {
     return this._current > 0;
   }
 
-  canRedo() {
+  private canRedo() {
     return this._current < this._history.length;
   }
 
