@@ -1,5 +1,5 @@
 import Game from "../main";
-import { SandboxMap } from "../state/map";
+import SandboxMap from "../dataStructures/sandboxMap";
 import { validateBaseEventTransition, openModal } from "gameHelpers";
 import { centerWithin } from "gameMath";
 
@@ -260,11 +260,6 @@ export const baseEventHandlers: { [name: string]: Function } = {
   },
   ondesigning: function(game: Game) {
     game.playMode = "";
-  },
-  onbeforeleaveDesign: function(game: Game) {
-    if (!game.designModule.saved) {
-      game.designModule.confirmUnsaved();
-    }
   },
   onleavedesigning: function(game: Game) {
     let mapEntity = game.ecs.getEntity("map");

@@ -12,7 +12,7 @@ import InputEventsService from "./services/inputEventsService";
 import DesignService from "./services/designService";
 import LogTimerService from "./services/loggerService";
 import RaceDataService from "./services/raceDataService";
-import { ArcadeMap } from "./state/map";
+import ArcadeMap from "./dataStructures/arcadeMap";
 import * as breakpoints from "./staticData/breakpointData";
 import bgMap from "./bgMap";
 import modalButtonMap from "./modalButtonMap";

@@ -131,6 +131,14 @@ declare global {
     | "purple"
     | "aqua"
     | "tan";
+  type TKeySquare = "playerHome" | "bossHome" | "office";
+  type TDesignActionHandlerName =
+    | "handleKeySquareAction"
+    | "handleStreetAction"
+    | "handleSchoolZoneAction"
+    | "handleLightAction"
+    | "handleCoffeeAction"
+    | "handleEraserAction";
 
   ///// INTERFACES /////
   interface Window {
@@ -322,6 +330,25 @@ declare global {
     execute: (name: string, ...args: any[]) => void;
     undo: () => boolean;
     redo: () => boolean;
+    restart: () => void;
+    usePrevGroup: () => void;
+  }
+
+  interface IMapEditor {
+    makeDrivable: (squareId: number) => void;
+    makeSchoolZone: (squareId: number) => void;
+    addLight: (squareId: number, timer: number) => void;
+    addCoffee: (squareId: number) => void;
+    makeNotDrivable: (squareId: number) => void;
+    makeNotSchoolZone: (squareId: number) => void;
+    removeLight: (squareId: number) => void;
+    removeCoffee: (squareId: number) => void;
+    makeKeySquare: (keySquare: TKeySquare, squareId: number) => void;
+    removeKeySquare: (keySquare: TKeySquare) => void;
+    beginActionGroup: () => void;
+    endActionGroup: () => void;
+    undo: () => void;
+    redo: () => void;
     restart: () => void;
     usePrevGroup: () => void;
   }

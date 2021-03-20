@@ -1,7 +1,5 @@
-import { randomNumBtwn } from "gameMath";
 import ArcadeMap from "./arcadeMap";
-import Editor from "../modules/editor";
-import { updateUserMap, saveNewUserMap } from "../localDb";
+// import { updateUserMap, saveNewUserMap } from "../localDb";
 
 export default class SandboxMap extends ArcadeMap {
   static fromUserMapObject(mapObj: any) {
@@ -35,12 +33,12 @@ export default class SandboxMap extends ArcadeMap {
     });
   }
 
-  tileIndex(id: number): number {
-    return id - 1;
+  tileIndex(squareId: number): number {
+    return squareId - 1;
   }
 
-  isKeySquare(id: number): boolean {
-    return this.playerHome == id || this.bossHome == id || this.office == id;
+  isKeySquare(squareId: number): boolean {
+    return this.playerHome == squareId || this.bossHome == squareId || this.office == squareId;
   }
 
   determineTileValue(id: number): TTile | TTile[] {
@@ -61,160 +59,6 @@ export default class SandboxMap extends ArcadeMap {
       return tiles.length > 1 ? tiles : tiles[0];
     }
     return "";
-  }
-
-  handleKeySquareAction(
-    editor: IMapEditorService,
-    square: ISquare,
-    drawing: boolean,
-    tool: "playerHome" | "bossHome" | "office"
-  ) {
-    // console.log(`Adding ${tool}!`);
-    let id = square.id;
-    let keySquareId = this[tool];
-    let tileChanges = [];
-    let isKeySquare = keySquareId === square.id;
-    let keySquareExists = keySquareId > 0;
-
-    if (isKeySquare) {
-      editor.execute("makeNotDrivable", id);
-      editor.execute("removeKeySquare", tool, id);
-    } else {
-      if (keySquareExists) {
-        tileChanges.push(keySquareId);
-        editor.execute("makeNotDrivable", keySquareId);
-        editor.execute("removeKeySquare", tool, keySquareId);
-      }
-      if (!square.drivable) editor.execute("makeDrivable", id);
-      if (square.schoolZone) editor.execute("makeNotSchoolZone", id);
-      editor.execute("makeKeySquare", tool, id);
-    }
-    tileChanges.push(id);
-    return tileChanges;
-  }
-
-  handleStreetAction(editor: IMapEditorService, square: ISquare, drawing: boolean) {
-    let id = square.id;
-    let tileChanges = [];
-    let isPlayerHome = this.playerHome === id;
-    let isBossHome = this.bossHome === id;
-    let isOffice = this.office === id;
-    let hasLight = this.lights.hasOwnProperty(id);
-    let hasCoffee = this.coffees.hasOwnProperty(id);
-
-    if (isPlayerHome) {
-      editor.execute("removeKeySquare", "playerHome", id);
-      editor.execute("makeNotDrivable", id);
-    }
-    if (isBossHome) {
-      editor.execute("removeKeySquare", "bossHome", id);
-      editor.execute("makeNotDrivable", id);
-    }
-    if (isOffice) {
-      editor.execute("removeKeySquare", "office", id);
-      editor.execute("makeNotDrivable", id);
-    }
-    if (hasLight) {
-      editor.execute("removeLight", id);
-    }
-    if (hasCoffee) {
-      editor.execute("removeCoffee", id);
-    }
-    if (square.drivable && square.schoolZone) {
-      editor.execute("makeNotSchoolZone", id);
-    } else if (square.drivable && !drawing) {
-      editor.execute("makeNotDrivable", id);
-    } else if (!square.drivable) {
-      editor.execute("makeDrivable", id);
-    }
-
-    tileChanges.push(id);
-    return tileChanges;
-  }
-
-  handleSchoolZoneAction(editor: IMapEditorService, square: ISquare, drawing: boolean) {
-    let id = square.id;
-    let tileChanges = [];
-    let isKeySquare = this.isKeySquare(id);
-
-    if (square.drivable && square.schoolZone && !drawing) {
-      editor.execute("makeNotSchoolZone", id);
-      editor.execute("makeNotDrivable", id);
-    } else if (square.drivable && !square.schoolZone && !isKeySquare) {
-      editor.execute("makeSchoolZone", id);
-    } else if (!square.drivable && !square.schoolZone) {
-      editor.execute("makeDrivable", id);
-      editor.execute("makeSchoolZone", id);
-    }
-    tileChanges.push(id);
-    return tileChanges;
-  }
-
-  handleLightAction(editor: IMapEditorService, square: ISquare) {
-    let id = square.id;
-    let tileChanges = [];
-    let hasLight = this.lights.hasOwnProperty(id);
-    let hasCoffee = this.coffees.hasOwnProperty(id);
-    let isKeySquare = this.isKeySquare(id);
-
-    if (hasLight) {
-      editor.execute("removeLight", id);
-    } else {
-      if (hasCoffee) {
-        editor.execute("removeCoffee", id);
-      }
-      if (!isKeySquare && square.drivable) {
-        editor.execute("addLight", id, randomNumBtwn(4, 12) * 1000);
-      }
-    }
-
-    tileChanges.push(id);
-    return tileChanges;
-  }
-
-  handleCoffeeAction(editor: IMapEditorService, square: ISquare) {
-    let id = square.id;
-    let tileChanges = [];
-    let hasLight = this.lights.hasOwnProperty(id);
-    let hasCoffee = this.coffees.hasOwnProperty(id);
-    let isKeySquare = this.isKeySquare(id);
-
-    if (hasCoffee) {
-      editor.execute("removeCoffee", id);
-    } else {
-      if (hasLight) {
-        editor.execute("removeLight", id);
-      }
-      if (!isKeySquare && square.drivable) {
-        editor.execute("addCoffee", id);
-      }
-    }
-
-    tileChanges.push(id);
-    return tileChanges;
-  }
-
-  handleEraserAction(editor: IMapEditorService, square: ISquare) {
-    let id = square.id;
-    let tileChanges = [];
-    let isPlayerHome = this.playerHome === id;
-    let isBossHome = this.bossHome === id;
-    let isOffice = this.office === id;
-    let hasLight = this.lights.hasOwnProperty(id);
-    let hasCoffee = this.coffees.hasOwnProperty(id);
-
-    if (isPlayerHome) editor.execute("removeKeySquare", "playerHome", id);
-    else if (isBossHome) editor.execute("removeKeySquare", "bossHome", id);
-    else if (isOffice) editor.execute("removeKeySquare", "office", id);
-
-    if (square.schoolZone) editor.execute("makeNotSchoolZone", id);
-    if (square.drivable) editor.execute("makeNotDrivable", id);
-
-    if (hasLight) editor.execute("removeLight", id);
-    if (hasCoffee) editor.execute("removeCoffee", id);
-
-    tileChanges.push(id);
-    return tileChanges;
   }
 
   compressSquares() {
@@ -290,26 +134,26 @@ export default class SandboxMap extends ArcadeMap {
     return mapObj;
   }
 
-  async saveMapAsync(): Promise<any> {
-    if (!this.id)
-      throw new Error(
-        "You are trying to use saveMapAsync to save a map that does not already have an associated id. Please use saveNewMapAsync instead"
-      );
-    let updatedMap = <SandboxMap>this.exportForLocalSaveAs();
-    updatedMap.id = this.id;
-    // console.log("Current map with id ", this.id, " is being updated");
-    return updateUserMap(updatedMap);
-  }
+  // async saveMapAsync(): Promise<any> {
+  //   if (!this.id)
+  //     throw new Error(
+  //       "You are trying to use saveMapAsync to save a map that does not already have an associated id. Please use saveNewMapAsync instead"
+  //     );
+  //   let updatedMap = <SandboxMap>this.exportForLocalSaveAs();
+  //   updatedMap.id = this.id;
+  //   // console.log("Current map with id ", this.id, " is being updated");
+  //   return updateUserMap(updatedMap);
+  // }
 
-  async saveNewMapAsync(name: string): Promise<any> {
-    this.name = name;
-    let newSandboxMap = <SandboxMap>this.exportForLocalSaveAs();
-    let newId = await saveNewUserMap(newSandboxMap);
-    this.id = newId;
-    // console.log(
-    //   `This map is now called ${this.name} and was saved under id ${this.id}`
-    // );
-  }
+  // async saveNewMapAsync(name: string): Promise<any> {
+  //   this.name = name;
+  //   let newSandboxMap = <SandboxMap>this.exportForLocalSaveAs();
+  //   let newId = await saveNewUserMap(newSandboxMap);
+  //   this.id = newId;
+  //   // console.log(
+  //   //   `This map is now called ${this.name} and was saved under id ${this.id}`
+  //   // );
+  // }
 
   compress() {
     let compressedSq = this.squares.map((square) => {
@@ -356,18 +200,5 @@ export default class SandboxMap extends ArcadeMap {
     });
     this.squares = decompressed;
     return this;
-  }
-
-  clear(editor: IMapEditorService) {
-    editor.execute("removeKeySquare", "playerHome");
-    editor.execute("removeKeySquare", "bossHome");
-    editor.execute("removeKeySquare", "office");
-    for (let square of this.squares) {
-      let id = square.id;
-      editor.execute("makeNotSchoolZone", id);
-      editor.execute("makeNotDrivable", id);
-      editor.execute("removeLight", id);
-      editor.execute("removeCoffee", id);
-    }
   }
 }

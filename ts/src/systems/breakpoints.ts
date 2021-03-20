@@ -1,7 +1,7 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { centerWithin } from "gameMath";
-import { SandboxMap } from "../state/map";
-import {Game} from "../main";
+import SandboxMap from "../dataStructures/sandboxMap";
+import { Game } from "../main";
 
 export class BreakpointSystem extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -80,7 +80,7 @@ export class BreakpointSystem extends EntityComponentSystem.System {
       TileData,
       Border,
       Coordinates,
-      MapData: {map}
+      MapData: { map },
     } = mapEntity;
 
     TileData.tileWidth = this.bpData.tileSize;
@@ -98,7 +98,7 @@ export class BreakpointSystem extends EntityComponentSystem.System {
       renderW,
       renderH
     );
-    
+
     if (map instanceof SandboxMap) y += y / 3;
 
     Coordinates.X = x;

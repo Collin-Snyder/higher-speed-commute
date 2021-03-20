@@ -1,5 +1,5 @@
 import Dexie from "dexie";
-import { ArcadeMap, SandboxMap } from "./state/map";
+import SandboxMap from "./dataStructures/sandboxMap";
 //@ts-ignore
 import seedData from "./staticData/seedData";
 import { extraMinify, minify } from "./state/levelCompression";

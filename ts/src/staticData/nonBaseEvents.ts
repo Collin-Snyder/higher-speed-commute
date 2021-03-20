@@ -211,7 +211,7 @@ function onSetDesignTool(game: Game, tool: TDesignTool) {
 }
 
 function onSave(game: Game) {
-  game.designModule.save();
+  game.designModule.saveAsync().catch((err) => console.error(err));
 }
 
 function onSaveAs(game: Game) {
@@ -241,8 +241,7 @@ function onCaffeinate(game: Game, driver: Entity, coffee: Entity) {
 
   if (driver.id === "player") {
     let coffeeId = coffee.id.match(/\d+/g);
-    if (coffeeId && coffeeId[0])
-      game.raceData?.logCoffee(Number(coffeeId[0]));
+    if (coffeeId && coffeeId[0]) game.raceData?.logCoffee(Number(coffeeId[0]));
   }
 }
 
