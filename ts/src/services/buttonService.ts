@@ -1,6 +1,7 @@
 import ECS from "../ecsSetup/ecs";
 import { Entity } from "@fritzy/ecs";
 import { openModal, noOp } from "gameHelpers";
+import {ButtonError} from "customErrors";
 import Game from "../main";
 import { getLastCompletedLevel } from "../localDb";
 import {
@@ -467,7 +468,7 @@ class ButtonService {
 
   getMainMenuButtons() {
     if (!this._entitiesPopulated) {
-      console.error(new Error("Main menu button entities are not populated"));
+      console.error(new ButtonError());
       return [];
     }
     this._mainMenuButtons.deepEach(this.enableButton);
@@ -476,7 +477,7 @@ class ButtonService {
 
   getWonMenuButtons(playMode: TPlayMode) {
     if (!this._entitiesPopulated) {
-      console.error(new Error("Won menu button entities are not populated"));
+      console.error(new ButtonError());
       return [];
     }
     this._wonMenuButtons[playMode]?.forEach(this.enableButton);
@@ -485,7 +486,7 @@ class ButtonService {
 
   getLostMenuButtons(playMode: TPlayMode) {
     if (!this._entitiesPopulated) {
-      console.error(new Error("Lost menu button entities are not populated"));
+      console.error(new ButtonError());
       return [];
     }
     this._lostMenuButtons[playMode]?.forEach(this.enableButton);
@@ -494,7 +495,7 @@ class ButtonService {
 
   getCrashMenuButtons(playMode: TPlayMode) {
     if (!this._entitiesPopulated) {
-      console.error(new Error("Crash menu button entities are not populated"));
+      console.error(new ButtonError());
       return [];
     }
     this._crashMenuButtons[playMode]?.forEach(this.enableButton);
@@ -503,7 +504,7 @@ class ButtonService {
 
   getPausedMenuButtons() {
     if (!this._entitiesPopulated) {
-      console.error(new Error("Paused menu button entities are not populated"));
+      console.error(new ButtonError());
       return [];
     }
     this._pausedMenuButtons.forEach(this.enableButton);
@@ -512,7 +513,7 @@ class ButtonService {
 
   getEndMenuButtons() {
     if (!this._entitiesPopulated) {
-      console.error(new Error("End menu button entities are not populated"));
+      console.error(new ButtonError());
       return [];
     }
     this._endMenuButtons.forEach(this.enableButton);
@@ -521,7 +522,7 @@ class ButtonService {
 
   getDesignMenuButtons(subMenu: TDesignMenuName) {
     if (!this._entitiesPopulated) {
-      console.error(new Error("Design menu button entities are not populated"));
+      console.error(new ButtonError());
       return [];
     }
     this._designMenuButtons[subMenu]?.deepEach(this.enableButton);

@@ -20,9 +20,8 @@ import modalButtonMap from "./modalButtonMap";
 // import DesignModule from "./modules/designModule";
 // import { MenuButtons } from "./state/menuButtons";
 // import PubSub from "./state/pubsub";
-import makeButtonEntities from "./state/buttonFactory";
-import Components from "./components/index";
-import Tags from "./tags/tags";
+import Components from "./ecsSetup/components";
+import Tags from "./ecsSetup/tags";
 import { BreakpointSystem } from "./systems/breakpoints";
 import { MapSystem } from "./systems/map";
 import { LightTimerSystem } from "./systems/lights";
@@ -380,7 +379,10 @@ export class Game {
       Collision: { hb, cp },
       Breakpoint: [
         { name: "smallBreakpoint", scale: breakpoints.smallBreakpoint.scale },
-        { name: "regularBreakpoint", scale: breakpoints.regularBreakpoint.scale },
+        {
+          name: "regularBreakpoint",
+          scale: breakpoints.regularBreakpoint.scale,
+        },
       ],
     });
 
@@ -403,7 +405,10 @@ export class Game {
       Collision: { hb, cp },
       Breakpoint: [
         { name: "smallBreakpoint", scale: breakpoints.smallBreakpoint.scale },
-        { name: "regularBreakpoint", scale: breakpoints.regularBreakpoint.scale },
+        {
+          name: "regularBreakpoint",
+          scale: breakpoints.regularBreakpoint.scale,
+        },
       ],
     });
 
@@ -607,6 +612,12 @@ export class Game {
     ///// all set! /////
     this.publish("ready");
   }
+
+  createMapEntity() {}
+
+  createDriverEntities() {}
+
+  addBehaviorSystems() {}
 
   addGraphicsSystems() {
     let {
@@ -919,7 +930,8 @@ export class Game {
   updateCanvasSize() {
     let newW = Math.ceil(window.innerWidth);
     let newH = Math.ceil(window.innerHeight);
-    let size: "smallBreakpoint" | "regularBreakpoint" = newW < 1440 ? "smallBreakpoint" : "regularBreakpoint";
+    let size: "smallBreakpoint" | "regularBreakpoint" =
+      newW < 1440 ? "smallBreakpoint" : "regularBreakpoint";
 
     this.uictx.canvas.style.width = `${newW}px`;
     this.uictx.canvas.style.height = `${newH}px`;

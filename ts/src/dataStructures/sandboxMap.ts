@@ -1,4 +1,5 @@
 import ArcadeMap from "./arcadeMap";
+import { UndefinedBorderError } from "customErrors";
 // import { updateUserMap, saveNewUserMap } from "../localDb";
 
 export default class SandboxMap extends ArcadeMap {
@@ -38,7 +39,11 @@ export default class SandboxMap extends ArcadeMap {
   }
 
   isKeySquare(squareId: number): boolean {
-    return this.playerHome == squareId || this.bossHome == squareId || this.office == squareId;
+    return (
+      this.playerHome == squareId ||
+      this.bossHome == squareId ||
+      this.office == squareId
+    );
   }
 
   determineTileValue(id: number): TTile | TTile[] {
@@ -74,13 +79,7 @@ export default class SandboxMap extends ArcadeMap {
           square.borders[dir] = borderId;
         }
         if (square.borders[dir] === undefined) {
-          console.error(
-            new Error(
-              "Found undefined border data for square " +
-                square.id +
-                " during compression"
-            )
-          );
+          console.error(new UndefinedBorderError(square.id));
         }
       }
       return square;
@@ -186,14 +185,8 @@ export default class SandboxMap extends ArcadeMap {
           square.borders[dir] = this.squares[borderId - 1];
         }
         if (square.borders[dir] === undefined) {
-          console.error(
-            new Error(
-              "Found undefined border data for square " +
-                square.id +
-                " during decompress"
-            )
-          );
-          debugger;
+          console.error(new UndefinedBorderError(square.id));
+          // debugger;
         }
       }
       return square;

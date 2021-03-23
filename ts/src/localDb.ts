@@ -1,4 +1,5 @@
 import Dexie from "dexie";
+import { LoadSavedError } from "customErrors";
 import SandboxMap from "./dataStructures/sandboxMap";
 //@ts-ignore
 import seedData from "./staticData/seedData";
@@ -68,7 +69,7 @@ db.on("populate", async function() {
 db.userMaps.mapToClass(SandboxMap);
 
 db.open().catch((err) => {
-  console.error(new Error(`Open failed: ${err.stack}`));
+  console.error(err);
 });
 
 export default db;
@@ -126,7 +127,8 @@ export async function loadArcadeLevel(levelNum: number) {
 export async function loadCustomLevel(levelId: number) {
   let level = await db.userMaps.get(Number(levelId));
 
-  if (!level) throw new Error(`There is no user level with id ${levelId}`);
+  // if (!level) throw new Error(`There is no user level with id ${levelId}`);
+  if (!level) throw new LoadSavedError(levelId);
 
   let {
     id,

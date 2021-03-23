@@ -1,4 +1,10 @@
 import { calculateSurroundingSquareCount } from "gameMath";
+import {
+  SquareIdError,
+  MapSquareAttributeError,
+  PathError,
+  CoordinatesError,
+} from "customErrors";
 import Square from "./mapSquare";
 import PathQueue from "./pathQueue";
 
@@ -137,7 +143,7 @@ export default class ArcadeMap implements IArcadeMap {
 
   getSquare(s: number): ISquare | null {
     if (!this.squares[s - 1]) {
-      console.error(new Error("Invalid square id"));
+      console.error(new SquareIdError(s));
       return null;
     }
     //@ts-ignore
@@ -146,7 +152,7 @@ export default class ArcadeMap implements IArcadeMap {
 
   setSquare(s: number, key: string, val: any) {
     if (!this.squares[s - 1]) {
-      console.error(new Error("Invalid square id"));
+      console.error(new SquareIdError(s));
       return undefined;
     }
     this.squares[s - 1][key] = val;
@@ -177,7 +183,7 @@ export default class ArcadeMap implements IArcadeMap {
           type = "house";
         } else if (Math.random() < 0.7) {
           if (Math.random() < 0.8)
-          //@ts-ignore
+            //@ts-ignore
             type = "smallObj" + Math.round(Math.random() * 3 + 1);
           //@ts-ignore
           else type = "medObj" + Math.round(Math.random() + 1);
@@ -254,19 +260,12 @@ export default class ArcadeMap implements IArcadeMap {
     let square = this.getSquareByCoords(X, Y);
     let attrVals: object = {};
     if (!square) {
-      console.error(
-        new Error("Invalid coordinates - no valid square at this location.")
-      );
+      console.error(new CoordinatesError(X, Y));
       return null;
     }
     for (let attribute of attributes) {
       if (!square.hasOwnProperty(attribute)) {
-        console.error(
-          new Error(
-            "Invalid attribute name. Accessible attributes are: " +
-              [...Object.keys(square)].join(", ")
-          )
-        );
+        console.error(new MapSquareAttributeError(attribute));
         continue;
       }
       //@ts-ignore
@@ -325,11 +324,7 @@ export default class ArcadeMap implements IArcadeMap {
     }
 
     if (!foundTarget) {
-      console.error(
-        new Error(
-          `No valid path from square ${startSquare.id} to square ${endSquare.id}`
-        )
-      );
+      console.error(new PathError(startSquare.id, endSquare.id));
       return [[0, 0]];
     }
 

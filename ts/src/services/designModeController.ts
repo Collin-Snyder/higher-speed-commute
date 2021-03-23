@@ -1,5 +1,6 @@
 import { capitalize, openModal } from "gameHelpers";
 import { randomNumBtwn } from "gameMath";
+import { CoordinatesError, NoMapIdError, LoadSavedError } from "customErrors";
 import MapEditor from "./mapEditor";
 import {
   deleteUserMap,
@@ -111,11 +112,7 @@ class DesignModule {
     );
 
     if (!square) {
-      console.error(
-        new Error(
-          `You tried to edit a square at coordinates (${mx}x${my}) but there is no valid square there.`
-        )
-      );
+      console.error(new CoordinatesError(mx, my));
     }
 
     return square;
@@ -356,10 +353,7 @@ class DesignModule {
   async saveAsync() {
     if (!this.verifyValidMap()) this.openInvalidMapModal();
     else if (this.map?.id) {
-      if (!this.map.id)
-        throw new Error(
-          "You are trying to save a map that does not already have an associated id. Please use saveAsAsync instead"
-        );
+      if (!this.map.id) throw new NoMapIdError();
       let updatedMap = <ISandboxMap>this.map.exportForLocalSaveAs();
       updatedMap.id = this.map.id;
       // console.log("Current map with id ", this.id, " is being updated");
@@ -391,8 +385,7 @@ class DesignModule {
     if (levelId) {
       try {
         let savedMap = await loadUserMap(levelId);
-        if (!savedMap)
-          throw new Error(`There is no user map with id ${levelId}`);
+        if (!savedMap) throw new LoadSavedError(levelId);
         let decompressed = savedMap.decompress();
 
         let { MapData, TileData } = this._game.ecs.getEntity("map");
