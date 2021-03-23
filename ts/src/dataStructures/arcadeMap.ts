@@ -11,9 +11,9 @@ import PathQueue from "./pathQueue";
 export default class ArcadeMap implements IArcadeMap {
   public squareCount: number;
   public squares: ISquare[];
-  public playerHome: number;
-  public bossHome: number;
-  public office: number;
+  public _playerHome: number;
+  public _bossHome: number;
+  public _office: number;
   public lights: { [key: string]: number };
   public coffees: { [key: string]: boolean };
   public name: string;
@@ -76,9 +76,9 @@ export default class ArcadeMap implements IArcadeMap {
   constructor(public boardWidth: number, public boardHeight: number) {
     this.squares = [];
     this.squareCount = boardWidth * boardHeight;
-    this.playerHome = 0;
-    this.bossHome = 0;
-    this.office = 0;
+    this._playerHome = 0;
+    this._bossHome = 0;
+    this._office = 0;
     this.lights = {};
     this.coffees = {};
     this.name = "";
@@ -105,6 +105,33 @@ export default class ArcadeMap implements IArcadeMap {
 
   get pixelHeight() {
     return this.height * 25;
+  }
+
+  get playerHome() {
+    return this._playerHome;
+  }
+
+  set playerHome(val: number) {
+    console.log("Updating player home to ", val);
+    this._playerHome = val;
+  }
+
+  get bossHome() {
+    return this._bossHome;
+  }
+
+  set bossHome(val: number) {
+    console.log("Updating boss home to ", val);
+    this._bossHome = val;
+  }
+
+  get office() {
+    return this._office;
+  }
+
+  set office(val: number) {
+    console.log("Updating office to ", val);
+    this._office = val;
   }
 
   generateSquares() {

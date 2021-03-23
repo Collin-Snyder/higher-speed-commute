@@ -22,7 +22,7 @@ export class MovementSystem extends ECS.System {
 
     for (let entity of entities) {
       if (entity.has("Path")) this.handleNPCMovement(entity);
-      else if (focusView === "player" && !mapView)
+      else if (!entity.has("Path") && focusView === "player" && !mapView)
         this.handlePlayerMovement(entity);
     }
   }

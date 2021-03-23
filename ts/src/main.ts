@@ -5,7 +5,8 @@ import {
   getCenterPoint,
   scaleVector,
   findRotatedVertex,
-  calculateSpeedConstant,
+  getCurrentHb,
+  getCurrentCp,
 } from "gameMath";
 import { forEachMapTile } from "gameHelpers";
 import GameECS from "./ecsSetup/ecs";
@@ -147,9 +148,6 @@ export class Game {
 
   // ECS //
   public ecs: ECS;
-  public globalEntity: Entity;
-  private playerEntity: Entity;
-  private bossEntity: Entity;
 
   // LEVELS //
   public firstLevel: number;
@@ -191,17 +189,23 @@ export class Game {
   public windowHeight: number;
 
   constructor() {
+    // GAME LOOP
     this.start = this.timestamp();
     this.lastTick = this.start;
     this.totalElapsedTime = 0;
     this.frameElapsedTime = 0;
     this.tickTimes = [];
+
+    // ECS
+    this.ecs = GameECS;
+
+    // STATIC GAME CHARACTERISTICS
+    this.arcadeLevels = 9;
+    this.firstLevel = 1;
+
+    // GAME STATE
     this.mode = "init";
     this._playMode = "";
-    // this.pubSub = new PubSub("init");
-    this.ecs = GameECS;
-    this.firstLevel = 1;
-    this.arcadeLevels = 9;
     this.currentLevel = {
       id: null,
       number: null,
@@ -209,18 +213,26 @@ export class Game {
       nextLevelId: null,
       description: "",
     };
-    this.raceData = null;
-    this.recordRaceData = false;
     this.difficulty = "";
     this.focusView = "player";
     this.mapView = false;
     this.zoomFactor = 4;
     this.currentZoom = 1;
+    this.recordRaceData = false;
+    this.raceData = null;
     this.defaultGameZoom = 4;
     this.lastCompletedLevel = 0;
     this.hasCompletedGame = false;
-    this.inputs = new InputEventsService();
-    // this.sounds = new Sounds(this);
+    this.fontIsLoaded = false;
+    this.carColor = "blue";
+    this.terrainStyle = "default";
+    this.breakpoint = "regularBreakpoint";
+    this.backgroundIsLoaded = false;
+    this.spriteSheetIsLoaded = false;
+    this.fontIsLoaded = false;
+    this.autopilot = false;
+
+    // CANVASES
     this.UICanvas = <HTMLCanvasElement>document.getElementById("ui");
     this.uictx = <CanvasRenderingContext2D>this.UICanvas.getContext("2d");
     this.OSMapBackgroundCanvas = <HTMLCanvasElement>(
@@ -239,41 +251,48 @@ export class Game {
       document.getElementById("ents-offscreen")
     );
     this.osectx = <CanvasRenderingContext2D>this.OSEntCanvas.getContext("2d");
-    this.subscribers = {};
-    this.logTimers = new LogTimerService(this);
-    this.designModule = new DesignService(this);
-    this.buttonService = ButtonService;
+    this.uictx.textBaseline = "top";
+
+    // IMAGES AND GRAPHICS
+    this.spriteMap = new SpriteMap(this);
     this.spriteSheet = new Image();
+    this.spriteSheet.src = "./spritesheet.png";
+    this.spriteSheet.onload = () => {
+      this.spriteSheetIsLoaded = true;
+      if (this.backgroundIsLoaded && this.fontIsLoaded) this.buildWorld();
+    };
     this.background = new Image();
+    this.background.src = "./bgsheet-sm.png";
+    this.background.onload = () => {
+      this.backgroundIsLoaded = true;
+      if (this.spriteSheetIsLoaded && this.fontIsLoaded) this.buildWorld();
+    };
     this.gameFont = new FontFace(
       "8-bit-pusab-regular",
       "url('./8-bit-pusab.ttf')"
     );
-    document.fonts.add(this.gameFont);
-    this.uictx.textBaseline = "top";
-    this.spriteSheetIsLoaded = false;
-    this.backgroundIsLoaded = false;
-    this.fontIsLoaded = false;
-    this.carColor = "blue";
-    this.terrainStyle = "snow";
-    this.spriteMap = new SpriteMap(this);
-    this.autopilot = false;
+
+    // SERVICES AND CONTROLLERS
+    this.inputs = new InputEventsService();
+    this.designModule = new DesignService(this);
+    this.logTimers = new LogTimerService(this);
+    this.buttonService = ButtonService;
+
+    // EVENT SYSTEM
+    this.subscribers = {};
+
+    // ?
     this.windowWidth = window.innerWidth;
     this.windowHeight = window.innerHeight;
-    this.breakpoint = "regularBreakpoint";
 
-    this.background.src = "./bgsheet-sm.png";
-    this.spriteSheet.src = "./spritesheet.png";
-    // this.uictx.canvas.width = window.innerWidth;
-    // this.uictx.canvas.height = window.innerHeight;
-    // this.uictx.imageSmoothingEnabled = false;
-
+    // GAME SETUP
     this.registerComponents();
     this.registerTags();
     this.registerSubscribers();
     this.updateCanvasSize();
+    this.loadGameFont();
 
-    this.globalEntity = this.ecs.createEntity({
+    this.ecs.createEntity({
       id: "global",
       Global: {
         game: this,
@@ -281,136 +300,9 @@ export class Game {
       },
     });
 
-    this.ecs.createEntity({
-      id: "map",
-      MapData: {},
-      TileData: {},
-      Coordinates: {},
-      Renderable: {
-        renderW: 1000,
-        renderH: 625,
-        visible: false,
-      },
-      Border: {
-        weight: 20,
-        radius: 20,
-      },
-      ViewBox: {
-        w: 1000 / this.currentZoom,
-        h: 625 / this.currentZoom,
-      },
-      Breakpoint: [
-        {
-          name: "smallBreakpoint",
-          width: breakpoints.smallBreakpoint.mapWidth,
-          height: breakpoints.smallBreakpoint.mapHeight,
-          tileSize: breakpoints.smallBreakpoint.tileSize,
-          scale: breakpoints.smallBreakpoint.scale,
-        },
-        {
-          name: "regularBreakpoint",
-          width: breakpoints.regularBreakpoint.mapWidth,
-          height: breakpoints.regularBreakpoint.mapHeight,
-          tileSize: breakpoints.regularBreakpoint.tileSize,
-          scale: breakpoints.regularBreakpoint.scale,
-        },
-      ],
-    });
-
-    let hb = [];
-    hb.push(scaleVector({ X: 6, Y: 2 }, 2 / 3));
-    hb.push(scaleVector({ X: 19, Y: 2 }, 2 / 3));
-    hb.push(scaleVector({ X: 19, Y: 23 }, 2 / 3));
-    hb.push(scaleVector({ X: 6, Y: 23 }, 2 / 3));
-    let cp = getCenterPoint(
-      hb[0].X,
-      hb[0].Y,
-      hb[1].X - hb[0].X,
-      hb[3].Y - hb[0].Y
-    );
-
-    let getCurrentHb = function(degrees?: number) {
-      //@ts-ignore
-      let entity = <Entity>(<unknown>this);
-      let { hb, cp } = entity.Collision;
-      let c = entity.Coordinates;
-
-      hb = hb.map((v: IVector) => ({
-        X: v.X + c.X,
-        Y: v.Y + c.Y,
-      }));
-
-      let cpx = cp.X + c.X;
-      let cpy = cp.Y + c.Y;
-
-      let deg = degrees ?? entity.Renderable.degrees;
-      if (deg === 0) return hb;
-
-      return hb.map(({ X, Y }: IVector) =>
-        findRotatedVertex(X, Y, cpx, cpy, deg)
-      );
-    };
-
-    let getCurrentCp = function() {
-      //@ts-ignore
-      let entity = <Entity>(<unknown>this);
-      let { hb, cp } = entity.Collision;
-      let c = entity.Coordinates;
-      let cpx = cp.X + c.X;
-      let cpy = cp.Y + c.Y;
-      return { X: cpx, Y: cpy };
-    };
-
-    this.playerEntity = this.ecs.createEntity({
-      id: "player",
-      Coordinates: {
-        // ...(this.map.getSquare(this.map.playerHome)
-        //   ? this.map.getSquare(this.map.playerHome).coordinates
-        //   : { X: 0, Y: 0 }),
-      },
-      Car: {
-        color: "blue",
-      },
-      Velocity: {},
-      Renderable: {
-        renderW: 25 * (2 / 3),
-        renderH: 25 * (2 / 3),
-      },
-      Collision: { hb, cp },
-      Breakpoint: [
-        { name: "smallBreakpoint", scale: breakpoints.smallBreakpoint.scale },
-        {
-          name: "regularBreakpoint",
-          scale: breakpoints.regularBreakpoint.scale,
-        },
-      ],
-    });
-
-    this.bossEntity = this.ecs.createEntity({
-      id: "boss",
-      Coordinates: {},
-      Car: {
-        color: "red",
-      },
-      Velocity: {
-        speedConstant: 1,
-      },
-      Path: {
-        driver: "boss",
-      },
-      Renderable: {
-        renderW: 25 * (2 / 3),
-        renderH: 25 * (2 / 3),
-      },
-      Collision: { hb, cp },
-      Breakpoint: [
-        { name: "smallBreakpoint", scale: breakpoints.smallBreakpoint.scale },
-        {
-          name: "regularBreakpoint",
-          scale: breakpoints.regularBreakpoint.scale,
-        },
-      ],
-    });
+    this.createMapEntity();
+    this.createDriverEntity("player");
+    this.createDriverEntity("boss");
 
     getOrCreateUser()
       .then((user) => {
@@ -422,64 +314,10 @@ export class Game {
       })
       .catch((err) => console.error(err));
 
-    this.playerEntity.Collision.currentHb = getCurrentHb.bind(
-      this.playerEntity
-    );
-    this.playerEntity.Collision.currentCp = getCurrentCp.bind(
-      this.playerEntity
-    );
     // window.getPlayerSpeedConstant = () => calculateSpeedConstant(this.playerEntity);
     // window.setStartingLevel = (num: number) => this.firstLevel = num;
-    this.bossEntity.Collision.currentHb = getCurrentHb.bind(this.bossEntity);
-    this.bossEntity.Collision.currentCp = getCurrentCp.bind(this.bossEntity);
 
-    this.globalEntity.Global.player = this.playerEntity;
-
-    this.ecs.addSystem("render", new BreakpointSystem(this, this.ecs));
-
-    this.logFontLoaded = this.logFontLoaded.bind(this);
-
-    this.gameFont
-      .load()
-      .then(this.logFontLoaded)
-      .catch((err) => console.error(err));
-
-    this.background.onload = () => {
-      this.backgroundIsLoaded = true;
-      if (this.spriteSheetIsLoaded && this.fontIsLoaded) this.buildWorld();
-    };
-
-    this.spriteSheet.onload = () => {
-      this.spriteSheetIsLoaded = true;
-      if (this.backgroundIsLoaded && this.fontIsLoaded) this.buildWorld();
-    };
-
-    this.ecs.addSystem(
-      "timers",
-      new RaceTimerSystem(this, this.ecs, this.step)
-    );
-    this.ecs.addSystem(
-      "lights",
-      new LightTimerSystem(this, this.ecs, this.step)
-    );
-    this.ecs.addSystem(
-      "caffeine",
-      new CaffeineSystem(this, this.ecs, this.step)
-    );
-    this.ecs.addSystem(
-      "tooltips",
-      new TooltipSystem(this, this.ecs, this.step)
-    );
-    this.ecs.addSystem("input", new InputSystem(this, this.ecs));
-    this.ecs.addSystem("move", new MovementSystem(this, this.ecs));
-    this.ecs.addSystem("collision", new CollisionSystem(this, this.ecs));
-    this.ecs.addSystem("map", new MapSystem(this, this.ecs));
-    this.ecs.addSystem(
-      "animations",
-      new LevelStartAnimation(this, this.ecs, this.step, this.uictx)
-    );
-    this.ecs.addSystem("animations", new Animation(this, this.ecs));
-
+    this.addBehaviorSystems();
     // this.enableAutopilot();
   }
 
@@ -551,8 +389,9 @@ export class Game {
   }
 
   buildWorld(): void {
-    this.globalEntity.Global.bgSheet = this.background;
-    this.globalEntity.Global.bgMap = bgMap;
+    let global = this.ecs.getEntity("global");
+    global.Global.bgSheet = this.background;
+    global.Global.bgMap = bgMap;
 
     this.generateModalButtonCSSClasses();
     this.generateSettingsMenuCSSClasses();
@@ -596,12 +435,14 @@ export class Game {
 
     ///// set driver entity sprite info /////
     let playerSpriteCoords = this.spriteMap.getPlayerCarSprite();
-    this.playerEntity.Renderable.spriteX = playerSpriteCoords.x;
-    this.playerEntity.Renderable.spriteY = playerSpriteCoords.y;
+    let player = this.ecs.getEntity("player");
+    player.Renderable.spriteX = playerSpriteCoords.x;
+    player.Renderable.spriteY = playerSpriteCoords.y;
 
     let bossSpriteCoords = this.spriteMap.getBossCarSprite();
-    this.bossEntity.Renderable.spriteX = bossSpriteCoords.x;
-    this.bossEntity.Renderable.spriteY = bossSpriteCoords.y;
+    let boss = this.ecs.getEntity("boss");
+    boss.Renderable.spriteX = bossSpriteCoords.x;
+    boss.Renderable.spriteY = bossSpriteCoords.y;
 
     ///// make all button entities /////
     this.buttonService.createButtonEntities(this);
@@ -613,11 +454,125 @@ export class Game {
     this.publish("ready");
   }
 
-  createMapEntity() {}
+  createMapEntity() {
+    let mapEntity = this.ecs.createEntity({
+      id: "map",
+      MapData: {},
+      TileData: {},
+      Coordinates: {},
+      Renderable: {
+        renderW: 1000,
+        renderH: 625,
+        visible: false,
+      },
+      Border: {
+        weight: 20,
+        radius: 20,
+      },
+      ViewBox: {
+        w: 1000 / this.currentZoom,
+        h: 625 / this.currentZoom,
+      },
+      Breakpoint: [
+        {
+          name: "smallBreakpoint",
+          width: breakpoints.smallBreakpoint.mapWidth,
+          height: breakpoints.smallBreakpoint.mapHeight,
+          tileSize: breakpoints.smallBreakpoint.tileSize,
+          scale: breakpoints.smallBreakpoint.scale,
+        },
+        {
+          name: "regularBreakpoint",
+          width: breakpoints.regularBreakpoint.mapWidth,
+          height: breakpoints.regularBreakpoint.mapHeight,
+          tileSize: breakpoints.regularBreakpoint.tileSize,
+          scale: breakpoints.regularBreakpoint.scale,
+        },
+      ],
+    });
+    return mapEntity;
+  }
 
-  createDriverEntities() {}
+  findInitialDriverHitbox() {
+    let hb = [];
+    hb.push(scaleVector({ X: 6, Y: 2 }, 2 / 3));
+    hb.push(scaleVector({ X: 19, Y: 2 }, 2 / 3));
+    hb.push(scaleVector({ X: 19, Y: 23 }, 2 / 3));
+    hb.push(scaleVector({ X: 6, Y: 23 }, 2 / 3));
+    return hb;
+  }
 
-  addBehaviorSystems() {}
+  findInitialDriverCenterpoint(hb: IVector[]) {
+    return getCenterPoint(
+      hb[0].X,
+      hb[0].Y,
+      hb[1].X - hb[0].X,
+      hb[3].Y - hb[0].Y
+    );
+  }
+
+  createDriverEntity(name: "player" | "boss") {
+    let hb = this.findInitialDriverHitbox();
+    let cp = this.findInitialDriverCenterpoint(hb);
+
+    let entity = this.ecs.createEntity({
+      id: name,
+      Coordinates: {},
+      Car: {
+        color: name === "player" ? "blue" : "red",
+      },
+      Velocity: {},
+      Renderable: {
+        renderW: 25 * (2 / 3),
+        renderH: 25 * (2 / 3),
+      },
+      Collision: { hb, cp },
+      Breakpoint: [
+        { name: "smallBreakpoint", scale: breakpoints.smallBreakpoint.scale },
+        {
+          name: "regularBreakpoint",
+          scale: breakpoints.regularBreakpoint.scale,
+        },
+      ],
+    });
+
+    entity.Collision.currentHb = getCurrentHb.bind(entity);
+    entity.Collision.currentCp = getCurrentCp.bind(entity);
+
+    if (name !== "player" || this.autopilot) {
+      entity.addComponent("Path", { driver: name });
+    }
+
+    return entity;
+  }
+
+  addBehaviorSystems() {
+    this.ecs.addSystem(
+      "timers",
+      new RaceTimerSystem(this, this.ecs, this.step)
+    );
+    this.ecs.addSystem(
+      "lights",
+      new LightTimerSystem(this, this.ecs, this.step)
+    );
+    this.ecs.addSystem(
+      "caffeine",
+      new CaffeineSystem(this, this.ecs, this.step)
+    );
+    this.ecs.addSystem(
+      "tooltips",
+      new TooltipSystem(this, this.ecs, this.step)
+    );
+    this.ecs.addSystem("input", new InputSystem(this, this.ecs));
+    this.ecs.addSystem("move", new MovementSystem(this, this.ecs));
+    this.ecs.addSystem("collision", new CollisionSystem(this, this.ecs));
+    this.ecs.addSystem("map", new MapSystem(this, this.ecs));
+    this.ecs.addSystem(
+      "animations",
+      new LevelStartAnimation(this, this.ecs, this.step, this.uictx)
+    );
+    this.ecs.addSystem("animations", new Animation(this, this.ecs));
+  }
 
   addGraphicsSystems() {
     let {
@@ -632,6 +587,7 @@ export class Game {
     } = RenderGroup;
 
     this.ecs.addSystem("animations", new BackgroundAnimation(this, this.ecs));
+    this.ecs.addSystem("render", new BreakpointSystem(this, this.ecs));
     this.ecs.addSystem(
       "render",
       new RenderBackground(this, this.ecs, this.uictx)
@@ -927,6 +883,17 @@ export class Game {
     Renderable.spriteH = sprite.h;
   }
 
+  loadGameFont() {
+    document.fonts.add(this.gameFont);
+
+    this.logFontLoaded = this.logFontLoaded.bind(this);
+
+    this.gameFont
+      .load()
+      .then(this.logFontLoaded)
+      .catch((err) => console.error(err));
+  }
+
   updateCanvasSize() {
     let newW = Math.ceil(window.innerWidth);
     let newH = Math.ceil(window.innerHeight);
@@ -949,14 +916,20 @@ export class Game {
       MapData: { map },
     } = this.ecs.getEntity("map");
     if (map && !p.Path.length) {
+      let playerCoords = p.Collision.currentHb()[0];
       let currentSquareCoords = map.getSquareByCoords(
-        p.Coordinates.X,
-        p.Coordinates.Y
+        playerCoords.X,
+        playerCoords.Y
       ).coordinates;
       let officeCoords = map.getKeySquare("office").coordinates;
+
+      p.Coordinates.X = currentSquareCoords.X;
+      p.Coordinates.Y = currentSquareCoords.Y;
+      p.Velocity.vector = { X: 0, Y: 0 };
+
       p.Path.path = map.findPath(
-        currentSquareCoords.X,
-        currentSquareCoords.Y,
+        p.Coordinates.X,
+        p.Coordinates.Y,
         officeCoords.X,
         officeCoords.Y
       );
@@ -980,6 +953,16 @@ export class Game {
 }
 
 export const game = new Game();
+
+window.game = game;
+
+window.autopilotOn = function() {
+  game.enableAutopilot();
+};
+
+window.autopilotOff = function() {
+  game.disableAutopilot();
+};
 
 requestAnimationFrame(game.tick.bind(game));
 

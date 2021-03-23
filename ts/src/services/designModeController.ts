@@ -161,13 +161,17 @@ class DesignModule {
     let id = square.id;
     let keySquareId = this.map[this.selectedTool as TKeySquare];
     let tileChanges = [];
-    let isKeySquare = keySquareId === square.id;
+    let replaceKeySquare = this.map.whichKeySquare(id);
+    let isSameKeySquare = replaceKeySquare === this.selectedTool;
     let keySquareExists = keySquareId > 0;
 
-    if (isKeySquare) {
+    if (isSameKeySquare) {
       this._editor.makeNotDrivable(id);
       this._editor.removeKeySquare(this.selectedTool as TKeySquare);
     } else {
+      if (replaceKeySquare) {
+        this._editor.removeKeySquare(replaceKeySquare);
+      }
       if (keySquareExists) {
         tileChanges.push(keySquareId);
         this._editor.makeNotDrivable(keySquareId);

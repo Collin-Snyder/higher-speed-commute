@@ -144,6 +144,7 @@ declare global {
 
   ///// INTERFACES /////
   interface Window {
+    game: Game;
     toggleModal: Function;
     // recreateLocalDb: Function;
     // deleteUserMap: Function;
@@ -152,6 +153,8 @@ declare global {
     // updateLevelDescription: Function;
     // getPlayerSpeedConstant: Function;
     // setStartingLevel: Function;
+    autopilotOn: Function;
+    autopilotOff: Function;
   }
 
   interface Number {

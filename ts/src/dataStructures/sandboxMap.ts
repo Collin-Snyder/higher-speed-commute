@@ -46,6 +46,13 @@ export default class SandboxMap extends ArcadeMap {
     );
   }
 
+  whichKeySquare(squareId: number): TKeySquare | null {
+    if (this.playerHome == squareId) return "playerHome";
+    if (this.bossHome == squareId) return "bossHome";
+    if (this.office == squareId) return "office";
+    return null;
+  }
+ 
   determineTileValue(id: number): TTile | TTile[] {
     let square = <ISquare>this.getSquare(id);
     if (square.drivable) {
