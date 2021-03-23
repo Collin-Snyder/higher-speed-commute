@@ -1,9 +1,9 @@
 import EntityComponentSystem, { Entity, ECS, BaseComponent } from "@fritzy/ecs";
 import { Game } from "../../main";
-import {
-  getCenterPoint,
-  degreesToRadians,
-} from "gameMath";
+import { getCenterPoint, degreesToRadians } from "gameMath";
+import { objectValueMap } from "gameHelpers";
+import * as breakpointData from "../../staticData/breakpointData";
+import { carColorValues } from "../../staticData/customColors";
 
 class RenderViewBox extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -26,8 +26,8 @@ class RenderViewBox extends EntityComponentSystem.System {
     this.refColors = {
       playerHome: "#0058cf",
       player: "#007eff",
-      bossHome: "#eb3626",
-      boss: "#ff3600",
+      bossHome: carColorValues.red,
+      boss: carColorValues.red,
       office: "#f0d31a",
       street: "#878787",
     };
@@ -54,6 +54,7 @@ class RenderViewBox extends EntityComponentSystem.System {
     let { X, Y } = Coordinates;
 
     if (mapView) {
+      this.updateRefColors();
       this.renderReferenceMap(
         map,
         X,
@@ -323,24 +324,29 @@ class RenderViewBox extends EntityComponentSystem.System {
   }
 
   drawRefViewbox(vb: any, mapx: number, mapy: number) {
-    let x = vb.x + mapx;
-    let y = vb.y + mapy;
+    let { scale } = breakpointData[this._game.breakpoint];
+    let scaledVb = objectValueMap(vb, (val: number) => val * scale);
+    let x = scaledVb.x + mapx;
+    let y = scaledVb.y + mapy;
     this.ctx.save();
     this.ctx.beginPath();
     this.ctx.strokeStyle = "#fff";
     this.ctx.lineWidth = 3;
     this.ctx.moveTo(x, y);
-    this.ctx.lineTo(x + vb.w, y);
-    this.ctx.lineTo(x + vb.w, y + vb.h);
-    this.ctx.lineTo(x, y + vb.h);
+    this.ctx.lineTo(x + scaledVb.w, y);
+    this.ctx.lineTo(x + scaledVb.w, y + scaledVb.h);
+    this.ctx.lineTo(x, y + scaledVb.h);
     this.ctx.lineTo(x, y);
     this.ctx.stroke();
     this.ctx.restore();
   }
 
   drawRefCar(entity: Entity, mapx: number, mapy: number, tick: number) {
+    let { refMapDotRadius, scale } = breakpointData[this._game.breakpoint];
     let { X, Y } = entity.Collision.currentCp();
-    let dotr = 9;
+    X *= scale;
+    Y *= scale;
+    let dotr = refMapDotRadius;
     let { pulser, pulsea } = this.calculateDotPulse(tick, dotr);
     this.ctx.save();
     this.ctx.beginPath();
@@ -354,6 +360,12 @@ class RenderViewBox extends EntityComponentSystem.System {
     this.ctx.lineWidth = 2;
     this.ctx.stroke();
     this.ctx.restore();
+  }
+
+  updateRefColors() {
+    let playerColor = this.ecs.getEntity("player").Car.color as TCarColor;
+    this.refColors.player = carColorValues[playerColor];
+    this.refColors.playerHome = carColorValues[playerColor];
   }
 
   calculateDotPulse(tick: number, dotr: number) {

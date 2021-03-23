@@ -130,7 +130,8 @@ declare global {
     | "white"
     | "purple"
     | "aqua"
-    | "tan";
+    | "tan"
+    | "red";
   type TKeySquare = "playerHome" | "bossHome" | "office";
   type TDesignActionHandlerName =
     | "handleKeySquareAction"
@@ -139,8 +140,6 @@ declare global {
     | "handleLightAction"
     | "handleCoffeeAction"
     | "handleEraserAction";
-
-
 
   ///// INTERFACES /////
   interface Window {

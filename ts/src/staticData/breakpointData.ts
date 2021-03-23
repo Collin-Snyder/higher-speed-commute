@@ -8,6 +8,7 @@ export const smallBreakpoint = {
   countdownSize: 304,
   carScale: 1 / 2,
   scale: 0.76,
+  refMapDotRadius: 7
 };
 
 export const regularBreakpoint = {
@@ -20,4 +21,5 @@ export const regularBreakpoint = {
   countdownSize: 400,
   carScale: 2 / 3,
   scale: 1,
+  refMapDotRadius: 9
 };

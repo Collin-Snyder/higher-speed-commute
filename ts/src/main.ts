@@ -156,7 +156,7 @@ export class Game {
   // USER //
   public lastCompletedLevel: number;
   public hasCompletedGame: boolean;
-  public carColor: string;
+  public carColor: TCarColor;
   public terrainStyle: TTerrainStyle;
 
   // GAMEPLAY //
@@ -744,7 +744,7 @@ export class Game {
   }
 
   update(step: number) {
-    this.logTimers.update();
+    // this.logTimers.update();
     this.ecs.runSystemGroup("input");
     this.ecs.runSystemGroup("tooltips");
     if (this.mode === "playing") {
