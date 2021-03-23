@@ -53,16 +53,17 @@ export const baseEventHandlers: { [name: string]: Function } = {
     if (game.mode !== "menu") return;
     game.playMode = "";
 
-    let entities = game.ecs.queryEntities({ has: ["menu", "main"] });
-    for (let entity of entities) {
-      entity.Interactable.enabled = true;
-    }
+    // let entities = game.ecs.queryEntities({ has: ["menu", "main"] });
+    // for (let entity of entities) {
+    //   entity.Interactable.enabled = true;
+    // }
   },
   onleavemenu: function(game: Game) {
-    let entities = game.ecs.queryEntities({ has: ["menu", "main"] });
-    for (let entity of entities) {
-      entity.Interactable.enabled = false;
-    }
+    // let entities = game.ecs.queryEntities({ has: ["menu", "main"] });
+    // for (let entity of entities) {
+    //   entity.Interactable.enabled = false;
+    // }
+    game.buttonService.disableActiveButtons();
   },
   onstart: function(game: Game, level: number) {
     game.loadLevel(level);
@@ -116,22 +117,24 @@ export const baseEventHandlers: { [name: string]: Function } = {
     if (wonGraphic) wonGraphic.Renderable.visible = false;
     const mapEntity = game.ecs.getEntity("map");
     mapEntity.Renderable.visible = false;
-    let entities = game.ecs.queryEntities({
-      has: ["menu", "gameplay", "won"],
-    });
-    for (let entity of entities) {
-      entity.Interactable.enabled = false;
-    }
+    // let entities = game.ecs.queryEntities({
+    //   has: ["menu", "gameplay", "won"],
+    // });
+    // for (let entity of entities) {
+    //   entity.Interactable.enabled = false;
+    // }
+    game.buttonService.disableActiveButtons();
   },
   onleavelost: function(game: Game) {
     const mapEntity = game.ecs.getEntity("map");
     mapEntity.Renderable.visible = false;
-    let entities = game.ecs.queryEntities({
-      has: ["menu", "gameplay", "lost"],
-    });
-    for (let entity of entities) {
-      entity.Interactable.enabled = false;
-    }
+    // let entities = game.ecs.queryEntities({
+    //   has: ["menu", "gameplay", "lost"],
+    // });
+    // for (let entity of entities) {
+    //   entity.Interactable.enabled = false;
+    // }
+    game.buttonService.disableActiveButtons();
   },
   oncrash: function(game: Game) {
     // console.log("CRASH! YOU LOSE BIG TIME");
@@ -161,50 +164,54 @@ export const baseEventHandlers: { [name: string]: Function } = {
     if (crashGraphic) crashGraphic.Renderable.visible = false;
     const mapEntity = game.ecs.getEntity("map");
     mapEntity.Renderable.visible = false;
-    let entities = game.ecs.queryEntities({
-      has: ["menu", "gameplay", "crash"],
-    });
-    for (let entity of entities) {
-      entity.Interactable.enabled = false;
-    }
+    // let entities = game.ecs.queryEntities({
+    //   has: ["menu", "gameplay", "crash"],
+    // });
+    // for (let entity of entities) {
+    //   entity.Interactable.enabled = false;
+    // }
+    game.buttonService.disableActiveButtons();
   },
   onpause: function(game: Game) {
     let { Renderable } = game.ecs.getEntity("map");
 
-    let entities = game.ecs.queryEntities({
-      has: ["menu", "gameplay", "paused"],
-    });
-    for (let entity of entities) {
-      entity.Interactable.enabled = true;
-    }
+    // let entities = game.ecs.queryEntities({
+    //   has: ["menu", "gameplay", "paused"],
+    // });
+    // for (let entity of entities) {
+    //   entity.Interactable.enabled = true;
+    // }
 
     Renderable.bgColor = "lightgray";
   },
   onleavepaused: function(game: Game) {
-    let entities = game.ecs.queryEntities({
-      has: ["menu", "gameplay", "paused"],
-    });
-    for (let entity of entities) {
-      entity.Interactable.enabled = false;
-    }
+    // let entities = game.ecs.queryEntities({
+    //   has: ["menu", "gameplay", "paused"],
+    // });
+    // for (let entity of entities) {
+    //   entity.Interactable.enabled = false;
+    // }
+    game.buttonService.disableActiveButtons();
   },
   onresume: function(game: Game) {
     let { Renderable } = game.ecs.getEntity("map");
 
-    let entities = game.ecs.queryEntities({
-      has: ["menu", "gameplay", "paused"],
-    });
-    for (let entity of entities) {
-      entity.Interactable.enabled = false;
-    }
+    // let entities = game.ecs.queryEntities({
+    //   has: ["menu", "gameplay", "paused"],
+    // });
+    // for (let entity of entities) {
+    //   entity.Interactable.enabled = false;
+    // }
+    // game.buttonService.disableActiveButtons();
     Renderable.bgColor = "#81c76d";
     game.mapView = false;
   },
   onrestart: function(game: Game) {
-    let entities = game.ecs.queryEntities({ has: ["menu", "gameplay"] });
-    for (let entity of entities) {
-      entity.Interactable.enabled = false;
-    }
+    // let entities = game.ecs.queryEntities({ has: ["menu", "gameplay"] });
+    // for (let entity of entities) {
+    //   entity.Interactable.enabled = false;
+    // }
+    game.buttonService.disableActiveButtons();
     if (!game.difficulty || game.playMode === "custom")
       game.publish("chooseDifficulty");
     else game.publish("startingAnimation");
@@ -251,10 +258,10 @@ export const baseEventHandlers: { [name: string]: Function } = {
     Coordinates.Y = y + y / 3;
     Renderable.visible = true;
 
-    let entities = game.ecs.queryEntities({ has: ["menu", "design"] });
-    for (let entity of entities) {
-      entity.Interactable.enabled = true;
-    }
+    // let entities = game.ecs.queryEntities({ has: ["menu", "design"] });
+    // for (let entity of entities) {
+    //   entity.Interactable.enabled = true;
+    // }
 
     game.designModule.setDesignTool("street");
   },
@@ -267,12 +274,13 @@ export const baseEventHandlers: { [name: string]: Function } = {
       game.designModule.clearMap();
       game.designModule.saved = true;
     }
-    let designMenuButtons = game.ecs.queryEntities({
-      has: ["menu", "design"],
-    });
-    for (let entity of designMenuButtons) {
-      entity.Interactable.enabled = false;
-    }
+    // let designMenuButtons = game.ecs.queryEntities({
+    //   has: ["menu", "design"],
+    // });
+    // for (let entity of designMenuButtons) {
+    //   entity.Interactable.enabled = false;
+    // }
+    game.buttonService.disableActiveButtons();
     if (mapEntity.has("Interactable"))
       mapEntity.removeComponentByType("Interactable");
   },
@@ -280,12 +288,12 @@ export const baseEventHandlers: { [name: string]: Function } = {
     game.playMode = "";
     game.difficulty = "";
 
-    let gameplayMenuButtons = game.ecs.queryEntities({
-      has: ["menu", "gameplay"],
-    });
-    for (let entity of gameplayMenuButtons) {
-      entity.Interactable.enabled = false;
-    }
+    // let gameplayMenuButtons = game.ecs.queryEntities({
+    //   has: ["menu", "gameplay"],
+    // });
+    // for (let entity of gameplayMenuButtons) {
+    //   entity.Interactable.enabled = false;
+    // }
 
     let mapEntity = game.ecs.getEntity("map");
     let { MapData, Renderable } = mapEntity;

@@ -16,7 +16,7 @@ export class InputSystem extends ECS.System {
   public mouseDown: boolean;
   public dragging: boolean;
   public focusedEntity: Entity | null;
-  public collisions: Map<string, boolean>
+  public collisions: Map<string, boolean>;
   static query: { has?: string[]; hasnt?: string[] } = {
     has: ["Car", "Velocity"],
   };
@@ -50,9 +50,11 @@ export class InputSystem extends ECS.System {
     let mode = this._game.mode;
 
     //handle mouse inputs
-    let interactable = this.ecs.queryEntities({
-      has: ["Interactable"],
-    });
+    let interactable = [
+      ...this.ecs.queryEntities({
+        has: ["Interactable"],
+      }),
+    ].filter((e: Entity) => e.Interactable.enabled);
 
     let dragStarting = this.dragIsStarting();
     let dragEnding = this.dragIsEnding();

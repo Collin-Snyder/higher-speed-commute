@@ -16,7 +16,7 @@ export class BreakpointSystem extends EntityComponentSystem.System {
   constructor(private _game: Game, ecs: ECS) {
     super(ecs);
     this.bpData = {};
-    this.bp = "regular";
+    this.bp = "regularBreakpoint";
     this.prevBP = "";
     this.prevGroupSize = 0;
   }
@@ -40,11 +40,11 @@ export class BreakpointSystem extends EntityComponentSystem.System {
 
       if (entity.has("Text")) {
         entity.Text.textRenderW =
-          this.bp === "small"
+          this.bp === "smallBreakpoint"
             ? entity.Text.textSpriteW
             : entity.Text.textSpriteW / 0.76;
         entity.Text.textRenderH =
-          this.bp === "small"
+          this.bp === "smallBreakpoint"
             ? entity.Text.textSpriteH
             : entity.Text.textSpriteH / 0.76;
       }

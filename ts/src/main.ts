@@ -1,4 +1,4 @@
-import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
+import { Entity, ECS } from "@fritzy/ecs";
 //@ts-ignore
 import axios from "axios";
 import {
@@ -8,8 +8,9 @@ import {
   calculateSpeedConstant,
 } from "gameMath";
 import { forEachMapTile } from "gameHelpers";
+import GameECS from "./ecsSetup/ecs";
 import InputEventsService from "./services/inputEventsService";
-import DesignService from "./services/designService";
+import DesignService from "./services/designModeController";
 import LogTimerService from "./services/loggerService";
 import RaceDataService from "./services/raceDataService";
 import ArcadeMap from "./dataStructures/arcadeMap";
@@ -49,6 +50,7 @@ import { cars, neighborhoods } from "./react/modalContents/settingsContent";
 import { TooltipSystem } from "./systems/tooltips";
 import { baseEvents, baseEventHandlers } from "./staticData/baseEvents";
 import { nonBaseEvents } from "./staticData/nonBaseEvents";
+import ButtonService from "./services/buttonService";
 
 Number.prototype.times = function(
   cb: (currentNum: number) => any,
@@ -88,6 +90,19 @@ Array.prototype.deepMap = function(
   return output;
 };
 
+Array.prototype.deepEach = function(
+  cb: (currentElement: any, i: number, currentArray: Array<any>) => any
+): void {
+  for (let i = 0; i < this.length; i++) {
+    let el = this[i];
+    if (Array.isArray(el)) {
+      el.deepEach(cb);
+    } else {
+      cb(el, i, this);
+    }
+  }
+};
+
 // window.makeSeedData = function() {
 //   axios
 //     .post("/generate_seed_data")
@@ -106,7 +121,7 @@ export class Game {
 
   // MODE //
   public mode: TMode;
-  public playMode: TPlayMode;
+  private _playMode: TPlayMode;
   // public pubSub: PubSub;
 
   // EVENTS //
@@ -155,7 +170,6 @@ export class Game {
     description: string;
     nextLevelId?: number | null;
   };
-  private map: IArcadeMap;
   public difficulty: "easy" | "medium" | "hard" | "";
   public focusView: "player" | "boss";
   public mapView: boolean;
@@ -167,6 +181,9 @@ export class Game {
 
   // DESIGN //
   public designModule: DesignService;
+
+  // OTHER SERVICES //
+  public buttonService: typeof ButtonService;
 
   // DEV HELPERS //
   public logTimers: LogTimerService;
@@ -181,9 +198,9 @@ export class Game {
     this.frameElapsedTime = 0;
     this.tickTimes = [];
     this.mode = "init";
-    this.playMode = "";
+    this._playMode = "";
     // this.pubSub = new PubSub("init");
-    this.ecs = new EntityComponentSystem.ECS();
+    this.ecs = GameECS;
     this.firstLevel = 1;
     this.arcadeLevels = 9;
     this.currentLevel = {
@@ -225,8 +242,8 @@ export class Game {
     this.osectx = <CanvasRenderingContext2D>this.OSEntCanvas.getContext("2d");
     this.subscribers = {};
     this.logTimers = new LogTimerService(this);
-    this.map = new ArcadeMap(40, 25);
     this.designModule = new DesignService(this);
+    this.buttonService = ButtonService;
     this.spriteSheet = new Image();
     this.background = new Image();
     this.gameFont = new FontFace(
@@ -244,7 +261,7 @@ export class Game {
     this.autopilot = false;
     this.windowWidth = window.innerWidth;
     this.windowHeight = window.innerHeight;
-    this.breakpoint = "regular";
+    this.breakpoint = "regularBreakpoint";
 
     this.background.src = "./bgsheet-sm.png";
     this.spriteSheet.src = "./spritesheet.png";
@@ -285,18 +302,18 @@ export class Game {
       },
       Breakpoint: [
         {
-          name: "small",
-          width: breakpoints.small.mapWidth,
-          height: breakpoints.small.mapHeight,
-          tileSize: breakpoints.small.tileSize,
-          scale: breakpoints.small.scale,
+          name: "smallBreakpoint",
+          width: breakpoints.smallBreakpoint.mapWidth,
+          height: breakpoints.smallBreakpoint.mapHeight,
+          tileSize: breakpoints.smallBreakpoint.tileSize,
+          scale: breakpoints.smallBreakpoint.scale,
         },
         {
-          name: "regular",
-          width: breakpoints.regular.mapWidth,
-          height: breakpoints.regular.mapHeight,
-          tileSize: breakpoints.regular.tileSize,
-          scale: breakpoints.regular.scale,
+          name: "regularBreakpoint",
+          width: breakpoints.regularBreakpoint.mapWidth,
+          height: breakpoints.regularBreakpoint.mapHeight,
+          tileSize: breakpoints.regularBreakpoint.tileSize,
+          scale: breakpoints.regularBreakpoint.scale,
         },
       ],
     });
@@ -362,8 +379,8 @@ export class Game {
       },
       Collision: { hb, cp },
       Breakpoint: [
-        { name: "small", scale: breakpoints.small.scale },
-        { name: "regular", scale: breakpoints.regular.scale },
+        { name: "smallBreakpoint", scale: breakpoints.smallBreakpoint.scale },
+        { name: "regularBreakpoint", scale: breakpoints.regularBreakpoint.scale },
       ],
     });
 
@@ -385,8 +402,8 @@ export class Game {
       },
       Collision: { hb, cp },
       Breakpoint: [
-        { name: "small", scale: breakpoints.small.scale },
-        { name: "regular", scale: breakpoints.regular.scale },
+        { name: "smallBreakpoint", scale: breakpoints.smallBreakpoint.scale },
+        { name: "regularBreakpoint", scale: breakpoints.regularBreakpoint.scale },
       ],
     });
 
@@ -459,6 +476,14 @@ export class Game {
     this.ecs.addSystem("animations", new Animation(this, this.ecs));
 
     // this.enableAutopilot();
+  }
+
+  get playMode() {
+    return this._playMode;
+  }
+
+  set playMode(playMode: TPlayMode) {
+    this._playMode = playMode;
   }
 
   timestamp(): number {
@@ -574,7 +599,7 @@ export class Game {
     this.bossEntity.Renderable.spriteY = bossSpriteCoords.y;
 
     ///// make all button entities /////
-    makeButtonEntities(this);
+    this.buttonService.createButtonEntities(this);
 
     ///// add all animation/render systems /////
     this.addGraphicsSystems();
@@ -894,7 +919,7 @@ export class Game {
   updateCanvasSize() {
     let newW = Math.ceil(window.innerWidth);
     let newH = Math.ceil(window.innerHeight);
-    let size: "small" | "regular" = newW < 1440 ? "small" : "regular";
+    let size: "smallBreakpoint" | "regularBreakpoint" = newW < 1440 ? "smallBreakpoint" : "regularBreakpoint";
 
     this.uictx.canvas.style.width = `${newW}px`;
     this.uictx.canvas.style.height = `${newH}px`;

@@ -1,4 +1,4 @@
-export const small = {
+export const smallBreakpoint = {
   mapWidth: 760,
   mapHeight: 475,
   tileSize: 19,
@@ -10,7 +10,7 @@ export const small = {
   scale: 0.76,
 };
 
-export const regular = {
+export const regularBreakpoint = {
   mapWidth: 1000,
   mapHeight: 625,
   tileSize: 25,

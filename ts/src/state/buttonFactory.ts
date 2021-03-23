@@ -1,7 +1,7 @@
 import { Entity } from "@fritzy/ecs";
 import { Game } from "../main";
 import { getLastCompletedLevel } from "../localDb";
-import { small, regular } from "../staticData/breakpointData";
+import { smallBreakpoint, regularBreakpoint } from "../staticData/breakpointData";
 import { noOp, openModal } from "gameHelpers";
 
 const buttons: { [key: string]: IButton } = {
@@ -383,14 +383,14 @@ function makeButtonEntities(game: Game) {
       },
       Breakpoint: [
         {
-          name: "small",
-          width: square ? small.buttonHeight : small.buttonWidth,
-          height: small.buttonHeight,
+          name: "smallBreakpoint",
+          width: square ? smallBreakpoint.buttonHeight : smallBreakpoint.buttonWidth,
+          height: smallBreakpoint.buttonHeight,
         },
         {
-          name: "regular",
-          width: square ? regular.buttonHeight : regular.buttonWidth,
-          height: regular.buttonHeight,
+          name: "regularBreakpoint",
+          width: square ? regularBreakpoint.buttonHeight : regularBreakpoint.buttonWidth,
+          height: regularBreakpoint.buttonHeight,
         },
       ],
     });

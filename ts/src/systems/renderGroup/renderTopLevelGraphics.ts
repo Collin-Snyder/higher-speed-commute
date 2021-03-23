@@ -81,7 +81,7 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
         Coordinates,
       } = entity;
 
-      if (this._game.breakpoint === "small") gap = 12;
+      if (this._game.breakpoint === "smallBreakpoint") gap = 12;
 
       let selectorWidth = focusEntity.Renderable.renderW + gap * 2;
       let selectorHeight = focusEntity.Renderable.renderH + gap * 2;

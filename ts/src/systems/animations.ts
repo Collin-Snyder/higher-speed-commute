@@ -1,6 +1,6 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { getCenterPoint } from "gameMath";
-import { small, regular } from "../staticData/breakpointData";
+import { smallBreakpoint, regularBreakpoint } from "../staticData/breakpointData";
 const { floor } = Math;
 import {Game} from "../main";
 
@@ -204,8 +204,8 @@ export class LevelStartAnimation extends StateAnimation {
       let cd = this.ecs.getEntity("countdown");
       let sprite = <ISprite>spriteMap.getSprite("countdown1");
       for (let bp of cd.Breakpoint) {
-        if (bp.name === "small") bp.width = (sprite.w * small.countdownSize) / sprite.h;
-        else if (bp.name === "regular") bp.width = (sprite.w * regular.countdownSize) / sprite.h;
+        if (bp.name === "smallBreakpoint") bp.width = (sprite.w * smallBreakpoint.countdownSize) / sprite.h;
+        else if (bp.name === "regularBreakpoint") bp.width = (sprite.w * regularBreakpoint.countdownSize) / sprite.h;
       }
       cd.Renderable.spriteX = sprite.x;
       cd.Renderable.spriteY = sprite.y;
@@ -219,8 +219,8 @@ export class LevelStartAnimation extends StateAnimation {
       let cd = this.ecs.getEntity("countdown");
       let sprite = <ISprite>spriteMap.getSprite("countdown2");
       for (let bp of cd.Breakpoint) {
-        if (bp.name === "small") bp.width = (sprite.w * small.countdownSize) / sprite.h;
-        else if (bp.name === "regular") bp.width = (sprite.w * regular.countdownSize) / sprite.h;
+        if (bp.name === "smallBreakpoint") bp.width = (sprite.w * smallBreakpoint.countdownSize) / sprite.h;
+        else if (bp.name === "regularBreakpoint") bp.width = (sprite.w * regularBreakpoint.countdownSize) / sprite.h;
       }
       cd.Renderable.spriteX = sprite.x;
       cd.Renderable.spriteY = sprite.y;
@@ -246,14 +246,14 @@ export class LevelStartAnimation extends StateAnimation {
           },
           Breakpoint: [
             {
-              name: "small",
-              width: (sprite.w * small.countdownSize) / sprite.h,
-              height: small.countdownSize,
+              name: "smallBreakpoint",
+              width: (sprite.w * smallBreakpoint.countdownSize) / sprite.h,
+              height: smallBreakpoint.countdownSize,
             },
             {
-              name: "regular",
-              width: (sprite.w * regular.countdownSize) / sprite.h,
-              height: regular.countdownSize,
+              name: "regularBreakpoint",
+              width: (sprite.w * regularBreakpoint.countdownSize) / sprite.h,
+              height: regularBreakpoint.countdownSize,
             },
           ],
         })

@@ -46,7 +46,7 @@ export const Renderable = {
 export const Breakpoint = {
   multiset: true,
   properties: {
-    name: "regular",
+    name: "regularBreakpoint",
     width: 0,
     height: 0,
     tileSize: 0,

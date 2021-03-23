@@ -74,7 +74,7 @@ declare global {
     | "tree3"
     | "";
   type TTerrainStyle = "default" | "desert" | "snow" | "underwater";
-  type TBreakpoint = "small" | "regular";
+  type TBreakpoint = "smallBreakpoint" | "regularBreakpoint";
   type TLightColor = "green" | "yellow" | "red";
   type TMode =
     | "init"
@@ -140,6 +140,8 @@ declare global {
     | "handleCoffeeAction"
     | "handleEraserAction";
 
+
+
   ///// INTERFACES /////
   interface Window {
     toggleModal: Function;
@@ -161,6 +163,9 @@ declare global {
     deepMap: (
       cb: (currentElement: any, i: number, currentArray: Array<any>) => any
     ) => Array<any>;
+    deepEach: (
+      cb: (currentElement: any, i: number, currentArray: Array<any>) => any
+    ) => void;
   }
 
   interface IBaseEvent {

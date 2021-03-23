@@ -464,6 +464,7 @@ class DesignModule {
   }
 
   openLoadSavedModal() {
+    console.log("Running openLoadSavedModal in designModule");
     openModal("loadMap");
   }
 
