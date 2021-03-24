@@ -42,7 +42,6 @@ const ModalContainer = () => {
                 <ModalContent modalName={modalName} />
                 <ModalButtons
                   modalName={modalName}
-                  toggleModal={setModalOpen}
                 />
               </ModalInputContextProvider>
             </Modal>

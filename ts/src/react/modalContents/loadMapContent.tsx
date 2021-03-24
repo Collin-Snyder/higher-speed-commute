@@ -5,7 +5,7 @@ import { loadAllUserMaps, loadCompletedLevels } from "../../localDb";
 import { useGame } from "../contexts/gameContext";
 
 const LoadMapContent = () => {
-  let [inputState, dispatch] = useContext(ModalInputContext);
+  let [, dispatch] = useContext(ModalInputContext);
   let [mapOptions, setMapOptions] = useState<IModalOption[]>([]);
   const game = useGame();
 

@@ -3,7 +3,6 @@ import { ModalInputContext } from "./contexts/modalInputContext";
 
 const TextInput = ({ submitAction }: ITextInputProps) => {
   let [inputState, dispatch] = useContext(ModalInputContext);
-  let { toggleModal } = window;
   let { submitActions, inputValue } = inputState;
 
   return (

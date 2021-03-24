@@ -88,8 +88,6 @@ export class BreakpointSystem extends EntityComponentSystem.System {
     Border.weight = renderW * 0.02;
     Border.radius = renderW * 0.02;
 
-    // if (!visible) return;
-
     let { x, y } = centerWithin(
       0,
       0,

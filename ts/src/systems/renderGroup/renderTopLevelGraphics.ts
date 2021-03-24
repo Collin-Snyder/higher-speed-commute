@@ -2,7 +2,7 @@ import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { Game } from "../../main";
 import { centerWithin, degreesToRadians } from "gameMath";
 import { capitalize } from "gameHelpers";
-const { abs } = Math;
+const { floor, max } = Math;
 
 class RenderTopLevelGraphics extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -125,8 +125,8 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
 
       for (let corner of corners) {
         this.ctx.save();
-        let transX = Math.floor(corner.x + Renderable.renderW / 2);
-        let transY = Math.floor(corner.y + Renderable.renderH / 2);
+        let transX = floor(corner.x + Renderable.renderW / 2);
+        let transY = floor(corner.y + Renderable.renderH / 2);
 
         this.ctx.translate(transX, transY);
         this.ctx.rotate(degreesToRadians(corner.deg));
@@ -138,10 +138,10 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
           sprite.y,
           sprite.w,
           sprite.h,
-          Math.floor(corner.x),
-          Math.floor(corner.y),
-          Math.floor(Renderable.renderW),
-          Math.floor(Renderable.renderH)
+          floor(corner.x),
+          floor(corner.y),
+          floor(Renderable.renderW),
+          floor(Renderable.renderH)
         );
         this.ctx.restore();
       }
@@ -159,7 +159,7 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
       let {
         Tooltip: { text, textSize, opacity },
         Coordinates: { X, Y },
-        Renderable: {renderW, renderH}
+        Renderable: { renderW, renderH },
       } = entity;
       this.ctx.save();
       this.ctx.font = `${textSize}px '${this._game.gameFont.family}'`;
@@ -180,8 +180,8 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
           actualBoundingBoxAscent
         );
       let tooltip = this.toolTipCanvases[entity.id];
-      let tooltipX = Math.floor(X + (renderW / 2) - (tooltip.width / 2));
-      let tooltipY = Math.floor(Y + renderH);
+      let tooltipX = floor(X + renderW / 2 - tooltip.width / 2);
+      let tooltipY = floor(Y + renderH);
 
       this.ctx.drawImage(
         tooltip,
@@ -214,10 +214,10 @@ class RenderTopLevelGraphics extends EntityComponentSystem.System {
     let paddingH = textH + this.toolTipPadding;
     let paddingW = textW + this.toolTipPadding;
 
-    let height = Math.max(16,paddingH + (8 - (paddingH % 8)));
+    let height = max(16, paddingH + (8 - (paddingH % 8)));
     height += 8; //for the carat
 
-    let width = Math.max(24, paddingW + (8 - paddingW % 8));
+    let width = max(24, paddingW + (8 - (paddingW % 8)));
     if ((width / 8) % 2 === 0) width += 8; //so the carat is centered
 
     canvas.width = width;

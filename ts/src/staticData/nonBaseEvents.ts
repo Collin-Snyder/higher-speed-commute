@@ -2,90 +2,6 @@ import Game from "../main";
 import { Entity } from "@fritzy/ecs";
 import { userHasCompletedGame, updateLastCompletedLevel } from "../localDb";
 
-// export const nonBaseEvents = [
-//     {
-//       name: "raceFinished",
-//       action: function(outcome: "won" | "lost" | "crash") {
-//         nonBaseEventHandlers.onRaceFinished(outcome);
-//       },
-//     },
-//     {
-//       name: "nextLevel",
-//       action: function() {
-//         nonBaseEventHandlers.onNextLevel();
-//       },
-//     },
-//     {
-//       name: "saveProgress",
-//       action: function() {
-//         nonBaseEventHandlers.onSaveProgress();
-//       },
-//     },
-//     {
-//       name: "redLight",
-//       action: function(driver: Entity, light: Entity) {
-//         nonBaseEventHandlers.onRedLight(driver, light);
-//       },
-//     },
-//     {
-//       name: "caffeinate",
-//       action: function(driver: Entity, coffee: Entity) {
-//         nonBaseEventHandlers.onCaffeinate(driver, coffee);
-//       },
-//     },
-//     {
-//       name: "setDesignTool",
-//       action: function(tool: TDesignTool) {
-//         nonBaseEventHandlers.onSetDesignTool(tool);
-//       },
-//     },
-//     {
-//       name: "save",
-//       action: function() {
-//         nonBaseEventHandlers.onSave();
-//       },
-//     },
-//     {
-//       name: "saveAs",
-//       action: function() {
-//         nonBaseEventHandlers.onSaveAs();
-//       },
-//     },
-//     {
-//       name: "loadSaved",
-//       action: function() {
-//         nonBaseEventHandlers.onLoadSaved();
-//       },
-//     },
-//     {
-//       name: "undo",
-//       action: function() {
-//         nonBaseEventHandlers.onUndo();
-//       },
-//     },
-//     {
-//       name: "redo",
-//       action: function() {
-//         nonBaseEventHandlers.onRedo();
-//       },
-//     },
-//     {
-//       name: "resetMap",
-//       action: function() {
-//         nonBaseEventHandlers.onResetMap();
-//       },
-//     },
-//     {
-//       name: "focusSelector",
-//       action: function(selectorName: string, focusEntity: Entity) {
-//         nonBaseEventHandlers.onFocusSelector(
-//           selectorName,
-//           focusEntity
-//         );
-//       },
-//     },
-//   ];
-
 export const nonBaseEvents: INonBaseEvent[] = [
   {
     name: "raceFinished",
@@ -142,7 +58,6 @@ export const nonBaseEvents: INonBaseEvent[] = [
 ];
 
 function onRaceFinished(game: Game, outcome: "won" | "lost" | "crash") {
-  //decaffeinate everybody
   let caffeinated = game.ecs.queryEntities({
     has: ["Car", "CaffeineBoost"],
   });
@@ -152,13 +67,10 @@ function onRaceFinished(game: Game, outcome: "won" | "lost" | "crash") {
     }
   }
 
-  //reset the zoom and focus
   game.resetGameView();
 
-  //save race data if applicable
   if (game.recordRaceData) game.saveRaceData(outcome);
 
-  //fire outcome-specific event
   if (outcome === "won") {
     if (game.currentLevel.number === game.arcadeLevels)
       game.publish("endOfGame");
@@ -169,7 +81,6 @@ function onRaceFinished(game: Game, outcome: "won" | "lost" | "crash") {
 }
 
 function onNextLevel(game: Game) {
-  console.log("running onNextLevel event handler")
   let next = game.currentLevel.number ? game.currentLevel.number + 1 : 1;
 
   if (next > game.arcadeLevels) game.publish("endOfGame");
@@ -205,7 +116,6 @@ function onSaveAs(game: Game) {
 }
 
 function onLoadSaved(game: Game) {
-  console.log("Running onLoadSaved event handler")
   game.designModule.openLoadSavedModal();
 }
 

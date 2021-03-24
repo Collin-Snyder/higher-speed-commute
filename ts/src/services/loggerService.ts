@@ -7,11 +7,9 @@ class LogTimer {
   public ticksRemaining: number;
 
   constructor(
-    // public game: Game,
     public unitsPerStep: number,
     public unit: TLoggerUnit
   ) {
-    // this.game = game;
     this.ready = false;
     this.running = true;
     this.unit = unit;

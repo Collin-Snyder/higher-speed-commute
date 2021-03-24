@@ -1,10 +1,11 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { getCenterPoint } from "gameMath";
-import { smallBreakpoint, regularBreakpoint } from "../staticData/breakpointData";
+import {
+  smallBreakpoint,
+  regularBreakpoint,
+} from "../staticData/breakpointData";
 const { floor } = Math;
-import {Game} from "../main";
-
-
+import { Game } from "../main";
 
 abstract class StateAnimation extends EntityComponentSystem.System {
   public gameStep: number;
@@ -24,7 +25,6 @@ abstract class StateAnimation extends EntityComponentSystem.System {
 
   update(tick: number, entities: Set<Entity>) {
     if (!this.isAnimationRunning()) return;
-    // if (this.currentState === "start") this.onStart();
     else if (this.currentTimeRemaining > 0) this.nextStep();
     else this.transition();
   }
@@ -71,7 +71,12 @@ export class LevelStartAnimation extends StateAnimation {
   private revealElapsedTime: number;
   private zoomStep: number;
 
-  constructor(private _game: Game, ecs: any, step: number, ctx: CanvasRenderingContext2D) {
+  constructor(
+    private _game: Game,
+    ecs: any,
+    step: number,
+    ctx: CanvasRenderingContext2D
+  ) {
     super(ecs, step);
     this.ctx = ctx;
     this.states = {
@@ -138,7 +143,7 @@ export class LevelStartAnimation extends StateAnimation {
     this.gameboardAlphaStep = Number(
       (
         1 /
-        Math.floor(this.states.gameboard.duration / this.states.gameboard.step)
+        floor(this.states.gameboard.duration / this.states.gameboard.step)
       ).toFixed(3)
     );
     this.map = this.ecs.getEntity("map").MapData.map;
@@ -151,7 +156,7 @@ export class LevelStartAnimation extends StateAnimation {
     this.countdownNum = 3;
     this.countdownAlpha = 1;
     this.countdownAlphaStep = Number(
-      (1 / Math.floor(1000 / this.states.countdown.step)).toFixed(3)
+      (1 / floor(1000 / this.states.countdown.step)).toFixed(3)
     );
     this.shrinkDuration =
       (this.states.reveal.duration * 2) / (this.map?.width || 40);
@@ -204,8 +209,10 @@ export class LevelStartAnimation extends StateAnimation {
       let cd = this.ecs.getEntity("countdown");
       let sprite = <ISprite>spriteMap.getSprite("countdown1");
       for (let bp of cd.Breakpoint) {
-        if (bp.name === "smallBreakpoint") bp.width = (sprite.w * smallBreakpoint.countdownSize) / sprite.h;
-        else if (bp.name === "regularBreakpoint") bp.width = (sprite.w * regularBreakpoint.countdownSize) / sprite.h;
+        if (bp.name === "smallBreakpoint")
+          bp.width = (sprite.w * smallBreakpoint.countdownSize) / sprite.h;
+        else if (bp.name === "regularBreakpoint")
+          bp.width = (sprite.w * regularBreakpoint.countdownSize) / sprite.h;
       }
       cd.Renderable.spriteX = sprite.x;
       cd.Renderable.spriteY = sprite.y;
@@ -219,8 +226,10 @@ export class LevelStartAnimation extends StateAnimation {
       let cd = this.ecs.getEntity("countdown");
       let sprite = <ISprite>spriteMap.getSprite("countdown2");
       for (let bp of cd.Breakpoint) {
-        if (bp.name === "smallBreakpoint") bp.width = (sprite.w * smallBreakpoint.countdownSize) / sprite.h;
-        else if (bp.name === "regularBreakpoint") bp.width = (sprite.w * regularBreakpoint.countdownSize) / sprite.h;
+        if (bp.name === "smallBreakpoint")
+          bp.width = (sprite.w * smallBreakpoint.countdownSize) / sprite.h;
+        else if (bp.name === "regularBreakpoint")
+          bp.width = (sprite.w * regularBreakpoint.countdownSize) / sprite.h;
       }
       cd.Renderable.spriteX = sprite.x;
       cd.Renderable.spriteY = sprite.y;
@@ -231,32 +240,33 @@ export class LevelStartAnimation extends StateAnimation {
     } else if (this.currentTimeRemaining === 3000) {
       this.countdownNum = 3;
       this.countdownAlpha = 1;
-      let sprite = <ISprite>spriteMap.getSprite(`countdown${this.countdownNum}`);
-      this.ecs
-        .createEntity({
-          id: "countdown",
-          tags: ["anim"],
-          Coordinates: {},
-          Renderable: {
-            spriteX: sprite.x,
-            spriteY: sprite.y,
-            spriteW: sprite.w,
-            spriteH: sprite.h,
-            alpha: this.countdownAlpha,
+      let sprite = <ISprite>(
+        spriteMap.getSprite(`countdown${this.countdownNum}`)
+      );
+      this.ecs.createEntity({
+        id: "countdown",
+        tags: ["anim"],
+        Coordinates: {},
+        Renderable: {
+          spriteX: sprite.x,
+          spriteY: sprite.y,
+          spriteW: sprite.w,
+          spriteH: sprite.h,
+          alpha: this.countdownAlpha,
+        },
+        Breakpoint: [
+          {
+            name: "smallBreakpoint",
+            width: (sprite.w * smallBreakpoint.countdownSize) / sprite.h,
+            height: smallBreakpoint.countdownSize,
           },
-          Breakpoint: [
-            {
-              name: "smallBreakpoint",
-              width: (sprite.w * smallBreakpoint.countdownSize) / sprite.h,
-              height: smallBreakpoint.countdownSize,
-            },
-            {
-              name: "regularBreakpoint",
-              width: (sprite.w * regularBreakpoint.countdownSize) / sprite.h,
-              height: regularBreakpoint.countdownSize,
-            },
-          ],
-        })
+          {
+            name: "regularBreakpoint",
+            width: (sprite.w * regularBreakpoint.countdownSize) / sprite.h,
+            height: regularBreakpoint.countdownSize,
+          },
+        ],
+      });
       return;
     }
 
@@ -361,7 +371,7 @@ export class LevelStartAnimation extends StateAnimation {
     this.gameboardAlphaStep = Number(
       (
         1 /
-        Math.floor(this.states.gameboard.duration / this.states.gameboard.step)
+        floor(this.states.gameboard.duration / this.states.gameboard.step)
       ).toFixed(3)
     );
     this.keySquaresVisible = {

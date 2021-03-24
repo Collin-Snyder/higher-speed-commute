@@ -1,9 +1,9 @@
 import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { Game } from "../../main";
-import { menuButtons, designMenuButtons } from "../../staticData/buttonData";
 import { centerWithin, alignItems, justifyItems } from "gameMath";
 import * as breakpoints from "../../staticData/breakpointData";
 import { capitalize } from "gameHelpers";
+const { floor, PI } = Math;
 
 type TGetGameplayMenuButtonsMethodName =
   | "getWonMenuButtons"
@@ -17,15 +17,10 @@ class RenderMenus extends EntityComponentSystem.System {
   };
   private ctx: CanvasRenderingContext2D;
   private spriteSheet: HTMLImageElement;
-  private spriteMap: {
-    [key: string]: { x: number; y: number; w: number; h: number };
-  };
   private menuTags: { [key: string]: Array<string> };
   private modeNames: string[];
   private global: Entity;
   private menuText: { [key: string]: string };
-  // private menuFont: FontFace;
-  // private fontReady: boolean;
 
   constructor(private _game: Game, ecs: ECS, ctx: CanvasRenderingContext2D) {
     super(ecs);
@@ -33,7 +28,6 @@ class RenderMenus extends EntityComponentSystem.System {
     this.global = this.ecs.getEntity("global");
     let { spriteSheet, spriteMap } = this.global.Global.game;
     this.spriteSheet = spriteSheet;
-    this.spriteMap = spriteMap;
     this.menuTags = {
       menu: ["main"],
       designing: ["design"],
@@ -56,7 +50,6 @@ class RenderMenus extends EntityComponentSystem.System {
   update(tick: number, entities: Set<Entity>) {
     let { mode, playMode } = this._game;
 
-    //calculate coordinates for buttons using button spacing logic and current state/size of game
     if (!this.modeNames.includes(mode)) return;
 
     let {
@@ -176,10 +169,10 @@ class RenderMenus extends EntityComponentSystem.System {
         entity.Renderable.spriteY,
         entity.Renderable.spriteW,
         entity.Renderable.spriteH,
-        Math.floor(entity.Coordinates.X),
-        Math.floor(entity.Coordinates.Y),
-        Math.floor(entity.Renderable.renderW),
-        Math.floor(entity.Renderable.renderH)
+        floor(entity.Coordinates.X),
+        floor(entity.Coordinates.Y),
+        floor(entity.Renderable.renderW),
+        floor(entity.Renderable.renderH)
       );
     }
     this.drawButtonText(buttonEntities);
@@ -247,7 +240,7 @@ class RenderMenus extends EntityComponentSystem.System {
     let shineSprite = startSprite;
     let spriteW = shineSprite.w;
     let spriteH = shineSprite.h;
-    let radians = (degOffset * Math.PI) / 180;
+    let radians = (degOffset * PI) / 180;
     let transX = graphicX + graphicW / 2;
     let transY = graphicY + graphicH / 2;
     let shineRenderW = graphicW > graphicH ? graphicW : graphicH;
@@ -324,7 +317,7 @@ class RenderMenus extends EntityComponentSystem.System {
     let l2Y = l1Y + bigTextH + lineGap;
     let l3Y = l2Y + textH + lineGap;
 
-    let fontStr = `${Math.floor(bigTextH)}px '${this._game.gameFont.family}'`;
+    let fontStr = `${floor(bigTextH)}px '${this._game.gameFont.family}'`;
 
     this.ctx.save();
     this.ctx.font = fontStr;

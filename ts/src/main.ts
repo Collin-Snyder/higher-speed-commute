@@ -44,6 +44,7 @@ import { TooltipSystem } from "./systems/tooltips";
 import { baseEvents, baseEventHandlers } from "./staticData/baseEvents";
 import { nonBaseEvents } from "./staticData/nonBaseEvents";
 import ButtonService from "./services/buttonService";
+const { ceil, min, random } = Math;
 
 Number.prototype.times = function(
   cb: (currentNum: number) => any,
@@ -305,11 +306,7 @@ export class Game {
       })
       .catch((err) => console.error(err));
 
-    // window.getPlayerSpeedConstant = () => calculateSpeedConstant(this.playerEntity);
-    // window.setStartingLevel = (num: number) => this.firstLevel = num;
-
     this.addBehaviorSystems();
-    // this.enableAutopilot();
   }
 
   get playMode() {
@@ -627,7 +624,7 @@ export class Game {
     let spriteSheet = this.spriteSheet;
 
     forEachMapTile((i, x, y, w, h) => {
-      let sprite = Math.random() < 0.5 ? sprite1 : sprite2;
+      let sprite = random() < 0.5 ? sprite1 : sprite2;
       this.osmbgctx.drawImage(
         spriteSheet,
         sprite.x,
@@ -680,18 +677,10 @@ export class Game {
     }
   }
 
-  testCurrentSandboxMap() {
-    let { MapData } = this.ecs.getEntity("map");
-    //??? - Just replacing the map with a new copy of itself
-    let mapInfo = MapData.map.exportMapObject();
-    MapData.map = ArcadeMap.fromMapObject(mapInfo);
-    this.publish("chooseDifficulty");
-  }
-
   tick() {
     let now = this.timestamp();
     this.totalElapsedTime = now - this.start;
-    this.frameElapsedTime += Math.min(1000, now - this.lastTick);
+    this.frameElapsedTime += min(1000, now - this.lastTick);
 
     while (this.frameElapsedTime > this.step) {
       this.frameElapsedTime -= this.step;
@@ -863,8 +852,8 @@ export class Game {
   }
 
   updateCanvasSize() {
-    let newW = Math.ceil(window.innerWidth);
-    let newH = Math.ceil(window.innerHeight);
+    let newW = ceil(window.innerWidth);
+    let newH = ceil(window.innerHeight);
     let size: "smallBreakpoint" | "regularBreakpoint" =
       newW < 1440 ? "smallBreakpoint" : "regularBreakpoint";
 

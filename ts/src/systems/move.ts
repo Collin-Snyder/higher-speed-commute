@@ -6,6 +6,7 @@ import {
   getTileHitbox,
 } from "gameMath";
 import { Game } from "../main";
+const { abs, sign } = Math;
 
 export class MovementSystem extends ECS.System {
   static query: { has?: string[]; hasnt?: string[] } = {

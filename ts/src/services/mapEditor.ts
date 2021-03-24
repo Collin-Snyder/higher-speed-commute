@@ -1,4 +1,4 @@
-import History from "./history";
+import History from "../helperClasses/history";
 
 export default class MapEditor implements IMapEditor {
   private _game: any;

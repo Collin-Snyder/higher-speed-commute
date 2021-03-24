@@ -1,4 +1,4 @@
-import ECS, { Entity, BaseComponent } from "@fritzy/ecs";
+import ECS, { Entity } from "@fritzy/ecs";
 import { Game } from "../main";
 
 export class TooltipSystem extends ECS.System {

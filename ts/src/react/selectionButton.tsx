@@ -5,7 +5,6 @@ const SelectionButton = ({
   name,
   label,
   selected,
-  willSubmit,
   handleChange,
 }: ISelectionButtonProps) => {
   let isMapSelector = name === "loadMap";

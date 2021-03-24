@@ -3,6 +3,7 @@ import { Game } from "../main";
 import InputEventsService from "../services/inputEventsService";
 import keyCodes from "../staticData/keyCodes";
 import { checkForMouseCollision, normalize } from "gameMath";
+const { abs } = Math;
 
 export class InputSystem extends ECS.System {
   public keyPressMap: { [key: string]: boolean };
@@ -163,8 +164,8 @@ export class InputSystem extends ECS.System {
       !this.dragging &&
       this.mouseDown &&
       this.lastMousedown &&
-      (Math.abs(this.mx - this.startMouseX) > 5 ||
-        Math.abs(this.my - this.startMouseY) > 5)
+      (abs(this.mx - this.startMouseX) > 5 ||
+        abs(this.my - this.startMouseY) > 5)
     )
       return true;
 

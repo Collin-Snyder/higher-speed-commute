@@ -1,5 +1,4 @@
-import React, { useContext, useEffect } from "react";
-import Game from "../main";
+import React, { useContext } from "react";
 import ActionButton from "./actionButton";
 import { useGame } from "./contexts/gameContext";
 import { ModalInputContext } from "./contexts/modalInputContext";
@@ -56,8 +55,7 @@ const modalButtons: { [key: string]: IModalButton[] } = {
 };
 
 const ModalButtonContainer = ({
-  modalName,
-  toggleModal,
+  modalName
 }: IModalButtonContainerProps) => {
   const game = useGame();
   let [inputState] = useContext(ModalInputContext);
@@ -81,7 +79,6 @@ const ModalButtonContainer = ({
           <ActionButton
             buttonName={name}
             buttonType={type}
-            toggleModal={toggleModal}
             buttonAction={action}
             key={name}
           />

@@ -257,9 +257,8 @@ export class CollisionSystem extends ECS.System {
   prioritizeAltVectors(entity: Entity, hb: IVector[]) {
     let { Velocity } = entity;
 
-    // let hb = entity.Collision.currentHb(findDegFromVector(Velocity.vector));
-
-    //if X is positive, then the hb's front vertex with the higher X value is the furthest horizontal coordinate in the direction of travel
+    //if X is positive, then the hb's front vertex with the higher X value is 
+    //the furthest horizontal coordinate in the direction of travel
     //else, the vertex with the lower X value is
     let determiner =
       Velocity.vector.X > 0
@@ -329,7 +328,6 @@ export class CollisionSystem extends ECS.System {
 
   revertToValidPosition(entity: Entity, collisionType: "map" | "entity") {
     let { Coordinates, Velocity } = entity;
-    // if (entity.has("SchoolZone")) debugger;
     const speedConstant = calculateSpeedConstant(entity);
     let prevCoord = this.getPreviousCoordinate(
       Coordinates.X,
@@ -341,7 +339,6 @@ export class CollisionSystem extends ECS.System {
 
     let revertDistance = 0;
     let moved = false;
-    // if (speedConstant >= 25) debugger;
 
     do {
       revertDistance++;

@@ -4,6 +4,7 @@ import { getCenterPoint, degreesToRadians } from "gameMath";
 import { objectValueMap } from "gameHelpers";
 import * as breakpointData from "../../staticData/breakpointData";
 import { carColorValues } from "../../staticData/customColors";
+const { PI } = Math;
 
 class RenderViewBox extends EntityComponentSystem.System {
   static query: { has?: string[]; hasnt?: string[] } = {
@@ -241,9 +242,9 @@ class RenderViewBox extends EntityComponentSystem.System {
     this.ctx.save();
     this.ctx.beginPath();
     this.ctx.fillStyle = "#FFFF00";
-    this.ctx.arc(scaledHb[0].X, scaledHb[0].Y, 4, 0, 2 * Math.PI);
+    this.ctx.arc(scaledHb[0].X, scaledHb[0].Y, 4, 0, 2 * PI);
     this.ctx.fill();
-    this.ctx.arc(scaledHb[1].X, scaledHb[1].Y, 4, 0, 2 * Math.PI);
+    this.ctx.arc(scaledHb[1].X, scaledHb[1].Y, 4, 0, 2 * PI);
     this.ctx.fill();
     this.ctx.restore();
   }
@@ -374,12 +375,12 @@ class RenderViewBox extends EntityComponentSystem.System {
     let { pulser, pulsea } = this.calculateDotPulse(tick, dotr);
     this.ctx.save();
     this.ctx.beginPath();
-    this.ctx.arc(X + mapx, Y + mapy, dotr, 0, 2 * Math.PI);
+    this.ctx.arc(X + mapx, Y + mapy, dotr, 0, 2 * PI);
     this.ctx.fillStyle = this.refColors[entity.id];
     this.ctx.fill();
     this.ctx.beginPath();
     this.ctx.globalAlpha = pulsea;
-    this.ctx.arc(X + mapx, Y + mapy, pulser, 0, 2 * Math.PI);
+    this.ctx.arc(X + mapx, Y + mapy, pulser, 0, 2 * PI);
     this.ctx.strokeStyle = this.refColors[entity.id];
     this.ctx.lineWidth = 2;
     this.ctx.stroke();

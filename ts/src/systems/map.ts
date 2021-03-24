@@ -184,32 +184,5 @@ export class MapSystem extends EntityComponentSystem.System {
       this.mapOffscreen.width,
       this.mapOffscreen.height
     );
-
-    // drawTileMap(
-    //   tileMap.tiles,
-    //   newMap.width,
-    //   (
-    //     type: Tile,
-    //     x: number,
-    //     y: number,
-    //     w: number,
-    //     h: number,
-    //     a: number,
-    //     deg: number
-    //   ) => {
-    //     let tileCoords = global.spriteMap[type];
-    //     this.mapCtx.drawImage(
-    //       global.spriteSheet,
-    //       tileCoords.X,
-    //       tileCoords.Y,
-    //       tileMap.tileWidth,
-    //       tileMap.tileHeight,
-    //       x * tileMap.tileWidth,
-    //       y * tileMap.tileHeight,
-    //       tileMap.tileWidth,
-    //       tileMap.tileHeight
-    //     );
-    //   }
-    // );
   }
 }

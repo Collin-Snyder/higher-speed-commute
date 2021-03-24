@@ -1,6 +1,5 @@
 import ArcadeMap from "./arcadeMap";
 import { UndefinedBorderError } from "customErrors";
-// import { updateUserMap, saveNewUserMap } from "../localDb";
 
 export default class SandboxMap extends ArcadeMap {
   static fromUserMapObject(mapObj: any) {

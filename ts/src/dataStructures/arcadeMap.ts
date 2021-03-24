@@ -7,6 +7,7 @@ import {
 } from "customErrors";
 import Square from "./mapSquare";
 import PathQueue from "./pathQueue";
+const { random, floor, ceil, round } = Math;
 
 export default class ArcadeMap implements IArcadeMap {
   public squareCount: number;
@@ -112,7 +113,6 @@ export default class ArcadeMap implements IArcadeMap {
   }
 
   set playerHome(val: number) {
-    console.log("Updating player home to ", val);
     this._playerHome = val;
   }
 
@@ -121,7 +121,6 @@ export default class ArcadeMap implements IArcadeMap {
   }
 
   set bossHome(val: number) {
-    console.log("Updating boss home to ", val);
     this._bossHome = val;
   }
 
@@ -130,7 +129,6 @@ export default class ArcadeMap implements IArcadeMap {
   }
 
   set office(val: number) {
-    console.log("Updating office to ", val);
     this._office = val;
   }
 
@@ -139,9 +137,9 @@ export default class ArcadeMap implements IArcadeMap {
       this.squares.push(
         new Square(
           s,
-          Math.ceil(s / this.width),
-          Math.floor(s % this.width) > 0
-            ? Math.floor(s % this.width)
+          ceil(s / this.width),
+          floor(s % this.width) > 0
+            ? floor(s % this.width)
             : this.width
         )
       );
@@ -197,23 +195,23 @@ export default class ArcadeMap implements IArcadeMap {
         else if (this.office === s.id) type = "office";
         else type = "street";
       } else if (!isRefMap) {
-        if (Math.random() < 0.4) {
+        if (random() < 0.4) {
           // @ts-ignore
-          if (Math.random() <= 0.07) type = "tree1";
+          if (random() <= 0.07) type = "tree1";
           // @ts-ignore
-          else type = "tree" + Math.round(Math.random() + 2);
+          else type = "tree" + round(random() + 2);
         } else if (
-          Math.random() < 0.3 &&
+          random() < 0.3 &&
           typeof s.borders.down != "number" &&
           s.borders.down?.drivable
         ) {
           type = "house";
-        } else if (Math.random() < 0.7) {
-          if (Math.random() < 0.8)
+        } else if (random() < 0.7) {
+          if (random() < 0.8)
             //@ts-ignore
-            type = "smallObj" + Math.round(Math.random() * 3 + 1);
+            type = "smallObj" + round(random() * 3 + 1);
           //@ts-ignore
-          else type = "medObj" + Math.round(Math.random() + 1);
+          else type = "medObj" + round(random() + 1);
         }
       }
 
@@ -241,9 +239,13 @@ export default class ArcadeMap implements IArcadeMap {
     });
   }
 
-  getSquareByCoords(X: number, Y: number, squareSize: number = 25): ISquare | null {
-    X = Math.floor(X / squareSize) * squareSize;
-    Y = Math.floor(Y / squareSize) * squareSize;
+  getSquareByCoords(
+    X: number,
+    Y: number,
+    squareSize: number = 25
+  ): ISquare | null {
+    X = floor(X / squareSize) * squareSize;
+    Y = floor(Y / squareSize) * squareSize;
     let row = Y / squareSize;
     let col = X / squareSize + 1;
     let id = row * 40 + col;

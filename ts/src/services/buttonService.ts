@@ -421,7 +421,6 @@ class ButtonService {
   }
 
   set _activeButtons(val: Set<Entity>) {
-    console.log("Setting active buttons to ", val);
     this.activeButtons = val;
   }
 

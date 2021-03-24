@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import LoadMapContent from "./modalContents/loadMapContent";
 import SaveMapContent from "./modalContents/saveMapContent";
 import ResetMapContent from "./modalContents/resetMapContent";

@@ -364,7 +364,6 @@ declare global {
   interface IActionButtonProps {
     buttonName: string;
     buttonType: string;
-    toggleModal: Function;
     buttonAction: Function;
   }
 
@@ -376,7 +375,6 @@ declare global {
 
   interface IModalButtonContainerProps {
     modalName: string;
-    toggleModal: Function;
   }
 
   interface IModalButton {
@@ -412,7 +410,6 @@ declare global {
     name: string;
     label: string;
     selected: boolean;
-    willSubmit: boolean;
     handleChange: (e: ChangeEvent<HTMLInputElement>) => void;
   }
 

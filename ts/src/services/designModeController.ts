@@ -9,7 +9,6 @@ import {
   updateUserMap,
   saveNewUserMap,
 } from "../localDb";
-import * as breakpointData from "../staticData/breakpointData";
 
 class DesignModule {
   private _game: Game;
@@ -457,7 +456,6 @@ class DesignModule {
   }
 
   openLoadSavedModal() {
-    console.log("Running openLoadSavedModal in designModule");
     openModal("loadMap");
   }
 

@@ -63,7 +63,7 @@ db.on("populate", async function() {
   );
 
   await db.arcadeMaps.bulkAdd(arcadeMaps);
-  console.log("Arcade levels seeded");
+  console.info("Arcade levels seeded");
 });
 
 db.userMaps.mapToClass(SandboxMap);
@@ -248,48 +248,6 @@ export async function getLastCompletedLevel() {
 /////////////////////////////////
 ///// DEV HELPER FUNCTIONS /////
 ////////////////////////////////
-
-// window.updateLevelName = async function(levelId: number, newName: string) {
-//   try {
-//     let result = await db.arcadeMaps.update(levelId, { name: newName });
-//     console.log(`${result} record successfully updated`);
-//   } catch (err) {
-//     console.error(err);
-//   }
-// };
-
-// window.updateLevelDescription = async function(
-//   levelId: number,
-//   newDesc: string
-// ) {
-//   try {
-//     let result = await db.arcadeMaps.update(levelId, { description: newDesc });
-//     console.log(`${result} record successfully updated`);
-//   } catch (err) {
-//     console.error(err);
-//   }
-// };
-
-// window.deleteUserMap = async function(map: number | string) {
-//   try {
-//     let result;
-//     if (typeof map == "string") {
-//       result = await db.userMaps
-//         .where("name")
-//         .equals(map)
-//         .delete();
-//       console.log(`${result} map successfully deleted`);
-//     } else if (typeof map == "number") {
-//       result = await db.userMaps
-//         .where("id")
-//         .equals(map)
-//         .delete();
-//       console.log(`${result} map successfully deleted`);
-//     }
-//   } catch (err) {
-//     console.error(err);
-//   }
-// };
 
 // window.recreateLocalDb = async function() {
 //   try {

@@ -57,7 +57,6 @@ const OptionList = ({
           value={value}
           label={label}
           selected={inputState.inputValue == value}
-          willSubmit={optionsWillSubmit}
           handleChange={handleChange}
           key={value}
         />

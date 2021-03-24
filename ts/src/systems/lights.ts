@@ -1,5 +1,5 @@
 import ECS, { Entity, BaseComponent } from "@fritzy/ecs";
-import {Game} from "../main";
+import { Game } from "../main";
 
 export class LightTimerSystem extends ECS.System {
   public states: { [state: string]: IState };

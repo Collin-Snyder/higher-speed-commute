@@ -1,4 +1,4 @@
-import EntityComponentSystem, { Entity, ECS, BaseComponent } from "@fritzy/ecs";
+import EntityComponentSystem, { Entity, ECS } from "@fritzy/ecs";
 import { Game } from "../../main";
 import { drawTileMap } from "gameHelpers";
 

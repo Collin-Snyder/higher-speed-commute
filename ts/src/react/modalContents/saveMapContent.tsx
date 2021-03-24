@@ -5,7 +5,7 @@ import TextInput from "../textInput";
 
 const SaveMapContent = () => {
   const game = useGame();
-  let [inputState, dispatch] = useContext(ModalInputContext);
+  let [, dispatch] = useContext(ModalInputContext);
   let [duplicateName, setDuplicateName] = useState(false);
   let [otherError, setOtherError] = useState(false);
 
