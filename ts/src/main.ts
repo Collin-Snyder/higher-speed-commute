@@ -883,6 +883,12 @@ export class Game {
     Renderable.spriteH = sprite.h;
   }
 
+  resetGameView() {
+    this.focusView = "player";
+    this.currentZoom = 1;
+    this.mapView = false;
+  }
+
   loadGameFont() {
     document.fonts.add(this.gameFont);
 

@@ -152,18 +152,8 @@ function onRaceFinished(game: Game, outcome: "won" | "lost" | "crash") {
     }
   }
 
-  //make all upcoming menu buttons interactible
-  // let buttons = game.ecs.queryEntities({
-  //   has: ["menu", "gameplay", outcome],
-  // });
-  // for (let button of buttons) {
-  //   button.Interactable.enabled = true;
-  // }
-
   //reset the zoom and focus
-  game.currentZoom = 1;
-  game.focusView = "player";
-  game.mapView = false;
+  game.resetGameView();
 
   //save race data if applicable
   if (game.recordRaceData) game.saveRaceData(outcome);
@@ -181,11 +171,6 @@ function onRaceFinished(game: Game, outcome: "won" | "lost" | "crash") {
 function onNextLevel(game: Game) {
   console.log("running onNextLevel event handler")
   let next = game.currentLevel.number ? game.currentLevel.number + 1 : 1;
-
-  // let entities = game.ecs.queryEntities({ has: ["menu", "gameplay"] });
-  // for (let entity of entities) {
-  //   entity.Interactable.enabled = false;
-  // }
 
   if (next > game.arcadeLevels) game.publish("endOfGame");
   else game.publish("start", next);

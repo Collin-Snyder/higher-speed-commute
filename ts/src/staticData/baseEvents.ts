@@ -160,6 +160,7 @@ export const baseEventHandlers: { [name: string]: Function } = {
   },
   onrestart: function(game: Game) {
     game.buttonService.disableActiveButtons();
+    game.resetGameView();
     if (!game.difficulty || game.playMode === "custom")
       game.publish("chooseDifficulty");
     else game.publish("startingAnimation");
@@ -224,6 +225,7 @@ export const baseEventHandlers: { [name: string]: Function } = {
   onquit: function(game: Game) {
     game.playMode = "";
     game.difficulty = "";
+    game.resetGameView();
 
     let mapEntity = game.ecs.getEntity("map");
     let { MapData, Renderable } = mapEntity;
