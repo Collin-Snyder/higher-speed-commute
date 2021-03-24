@@ -302,18 +302,42 @@ class RenderViewBox extends EntityComponentSystem.System {
     let x = 0;
     let y = 0;
     let s = tileSize;
+    let officeX = 0,
+      officeY = 0;
+
     for (let tile of tiles) {
       if (tile) {
-        this.drawSquare(x * s + mapx, y * s + mapy, s, this.refColors[tile]);
+        let tileX = x * s + mapx;
+        let tileY = y * s + mapy;
+        this.drawSquare(tileX, tileY, s, this.refColors[tile]);
+
+        if (tile === "office") {
+          officeX = tileX;
+          officeY = tileY;
+        }
       }
+
       if (++x >= map.width) {
         x = 0;
         y++;
       }
     }
+
     this.drawRefViewbox(vb, mapx, mapy);
     this.drawRefCar(this.bossEntity, mapx, mapy, tick);
     this.drawRefCar(this.playerEntity, mapx, mapy, tick);
+
+    let { pulseRadius, pulseAlpha } = this.calculateRefPulse(tick, s);
+    let pulseS = pulseRadius;
+    let pulseX = officeX - (pulseS - s) / 2;
+    let pulseY = officeY - (pulseS - s) / 2;
+    this.drawSquarePulse(
+      pulseX,
+      pulseY,
+      pulseS,
+      pulseAlpha,
+      this.refColors.office
+    );
   }
 
   drawSquare(x: number, y: number, s: number, color: string) {
@@ -380,7 +404,46 @@ class RenderViewBox extends EntityComponentSystem.System {
       pulsea = 1 - pulseProgress;
       pulser = (maxr - dotr) * pulseProgress + dotr;
     }
+    if (pulsea > 1) pulsea = 1;
+    else if (pulsea < 0) pulsea = 0;
     return { pulsea, pulser };
+  }
+
+  calculateRefPulse(tick: number, radius: number) {
+    let pulseAlpha = 1,
+      pulseRadius = 0,
+      maxr = 2 * radius,
+      dur = 750,
+      int = 1000,
+      progress = (tick * this.step) % int;
+    if (progress < dur) {
+      let pulseProgress = progress / dur;
+      pulseAlpha = 1 - pulseProgress;
+      pulseRadius = (maxr - radius) * pulseProgress + radius;
+    }
+    return { pulseAlpha, pulseRadius };
+  }
+
+  drawSquarePulse(
+    x: number,
+    y: number,
+    s: number,
+    alpha: number,
+    color: string
+  ) {
+    this.ctx.save();
+    this.ctx.globalAlpha = alpha;
+    this.ctx.beginPath();
+    this.ctx.moveTo(x, y);
+    this.ctx.lineTo(x + s, y);
+    this.ctx.lineTo(x + s, y + s);
+    this.ctx.lineTo(x, y + s);
+    this.ctx.lineTo(x, y);
+    this.ctx.closePath();
+    this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = 2;
+    this.ctx.stroke();
+    this.ctx.restore();
   }
 }
 
