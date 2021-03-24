@@ -1,6 +1,4 @@
-import { Entity, ECS } from "@fritzy/ecs";
-//@ts-ignore
-import axios from "axios";
+import { ECS } from "@fritzy/ecs";
 import {
   getCenterPoint,
   scaleVector,
@@ -16,11 +14,6 @@ import LogTimerService from "./services/loggerService";
 import RaceDataService from "./services/raceDataService";
 import ArcadeMap from "./dataStructures/arcadeMap";
 import * as breakpoints from "./staticData/breakpointData";
-import bgMap from "./bgMap";
-import modalButtonMap from "./modalButtonMap";
-// import DesignModule from "./modules/designModule";
-// import { MenuButtons } from "./state/menuButtons";
-// import PubSub from "./state/pubsub";
 import Components from "./ecsSetup/components";
 import Tags from "./ecsSetup/tags";
 import { BreakpointSystem } from "./systems/breakpoints";
@@ -45,7 +38,7 @@ import {
   updateGraphicsSettings,
   getUserInfo,
 } from "./localDb";
-import SpriteMap from "./spriteMapModule";
+import SpriteMap from "./helperClasses/spriteMap";
 import { cars, neighborhoods } from "./react/modalContents/settingsContent";
 import { TooltipSystem } from "./systems/tooltips";
 import { baseEvents, baseEventHandlers } from "./staticData/baseEvents";
@@ -117,7 +110,6 @@ export class Game {
   public totalElapsedTime: number;
   public frameElapsedTime: number;
   public step: number = 1000 / 60; //17; //1/60s
-  private tickTimes: number[];
 
   // MODE //
   public mode: TMode;
@@ -194,7 +186,6 @@ export class Game {
     this.lastTick = this.start;
     this.totalElapsedTime = 0;
     this.frameElapsedTime = 0;
-    this.tickTimes = [];
 
     // ECS
     this.ecs = GameECS;
@@ -391,7 +382,6 @@ export class Game {
   buildWorld(): void {
     let global = this.ecs.getEntity("global");
     global.Global.bgSheet = this.background;
-    global.Global.bgMap = bgMap;
 
     this.generateModalButtonCSSClasses();
     this.generateSettingsMenuCSSClasses();
@@ -400,33 +390,9 @@ export class Game {
     this.ecs.createEntity({
       id: "bg",
       ParallaxLayer: [
-        {
-          name: "back",
-          X: 0,
-          Y: 162,
-          height: 130,
-          width: 480,
-          step: 0.1,
-          offset: 0,
-        },
-        {
-          name: "mid",
-          X: 0,
-          Y: 78,
-          height: 84,
-          width: 480,
-          step: 0.2,
-          offset: 0,
-        },
-        {
-          name: "fg",
-          X: 0,
-          Y: 0,
-          height: 78,
-          width: 480,
-          step: 0.3,
-          offset: 0,
-        },
+        this.spriteMap.getBackgroundLayerSprite("back"),
+        this.spriteMap.getBackgroundLayerSprite("mid"),
+        this.spriteMap.getBackgroundLayerSprite("fg"),
       ],
     });
 
@@ -434,12 +400,12 @@ export class Game {
     this.updateMapTerrainBackground();
 
     ///// set driver entity sprite info /////
-    let playerSpriteCoords = this.spriteMap.getPlayerCarSprite();
+    let playerSpriteCoords = this.spriteMap.playerCarSprite;
     let player = this.ecs.getEntity("player");
     player.Renderable.spriteX = playerSpriteCoords.x;
     player.Renderable.spriteY = playerSpriteCoords.y;
 
-    let bossSpriteCoords = this.spriteMap.getBossCarSprite();
+    let bossSpriteCoords = this.spriteMap.bossCarSprite;
     let boss = this.ecs.getEntity("boss");
     boss.Renderable.spriteX = bossSpriteCoords.x;
     boss.Renderable.spriteY = bossSpriteCoords.y;
@@ -620,10 +586,9 @@ export class Game {
     let styleEl = document.createElement("style");
     let styleHTML = "";
 
-    for (let name in modalButtonMap) {
-      let b = modalButtonMap[name];
-      styleHTML += `.${name}::after {background-position: -${b.x}px -${b.y}px;}\n`;
-    }
+    this.spriteMap.forEachModalButtonSprite((sprite, name) => {
+      styleHTML += `.${name}::after {background-position: -${sprite.x}px -${sprite.y}px;}\n`;
+    });
 
     styleEl.innerHTML = styleHTML;
     document.head.appendChild(styleEl);
@@ -737,14 +702,11 @@ export class Game {
 
     this.render();
 
-    // let newNow = window.performance.now();
-    // this.tickTimes.push(newNow - now);
-    // if (this.tickTimes.length % 60 === 0) console.log(`The new tick average time is ${average(this.tickTimes)}ms`);
     requestAnimationFrame(this.tick.bind(this));
   }
 
   update(step: number) {
-    // this.logTimers.update();
+    this.logTimers.update();
     this.ecs.runSystemGroup("input");
     this.ecs.runSystemGroup("tooltips");
     if (this.mode === "playing") {
@@ -962,13 +924,13 @@ export const game = new Game();
 
 window.game = game;
 
-window.autopilotOn = function() {
-  game.enableAutopilot();
-};
+// window.autopilotOn = function() {
+//   game.enableAutopilot();
+// };
 
-window.autopilotOff = function() {
-  game.disableAutopilot();
-};
+// window.autopilotOff = function() {
+//   game.disableAutopilot();
+// };
 
 requestAnimationFrame(game.tick.bind(game));
 

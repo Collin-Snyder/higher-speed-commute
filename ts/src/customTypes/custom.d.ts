@@ -152,8 +152,8 @@ declare global {
     // updateLevelDescription: Function;
     // getPlayerSpeedConstant: Function;
     // setStartingLevel: Function;
-    autopilotOn: Function;
-    autopilotOff: Function;
+    // autopilotOn: Function;
+    // autopilotOff: Function;
   }
 
   interface Number {

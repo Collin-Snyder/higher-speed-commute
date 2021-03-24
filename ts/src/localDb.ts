@@ -3,7 +3,7 @@ import { LoadSavedError } from "customErrors";
 import SandboxMap from "./dataStructures/sandboxMap";
 //@ts-ignore
 import seedData from "./staticData/seedData";
-import { extraMinify, minify } from "./state/levelCompression";
+import { extraMinify, minify } from "./services/levelCompression";
 
 export class LocalDB extends Dexie {
   userMaps: Dexie.Table<ISandboxMap>;

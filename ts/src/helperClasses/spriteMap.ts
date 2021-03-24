@@ -1,4 +1,4 @@
-import Game from "./main";
+import Game from "../main";
 
 class SpriteMap {
   private _game: Game;
@@ -9,6 +9,20 @@ class SpriteMap {
   public terrainSpriteData: {
     [key: string]: ISprite;
   };
+  public modalButtonSpriteData: {
+    [key: string]: ISprite;
+  };
+  public backgroundSpriteData: {
+    [key: string]: {
+      name: string;
+      X: number;
+      Y: number;
+      height: number;
+      width: number;
+      step: number;
+      offset: number;
+    };
+  };
   constructor(game: Game) {
     this._game = game;
     this._terrainRows = {
@@ -16,6 +30,35 @@ class SpriteMap {
       desert: 178,
       snow: 205,
       underwater: 232,
+    };
+    this.backgroundSpriteData = {
+      fg: {
+        name: "fg",
+        X: 0,
+        Y: 0,
+        height: 78,
+        width: 480,
+        step: 0.3,
+        offset: 0,
+      },
+      mid: {
+        name: "mid",
+        X: 0,
+        Y: 78,
+        height: 84,
+        width: 480,
+        step: 0.2,
+        offset: 0,
+      },
+      back: {
+        name: "back",
+        X: 0,
+        Y: 162,
+        height: 130,
+        width: 480,
+        step: 0.1,
+        offset: 0,
+      },
     };
     this.terrainSpriteData = {
       background1: { x: 308, y: 151, w: 25, h: 25 },
@@ -48,14 +91,14 @@ class SpriteMap {
       /// CARS ////
       blueCar: { x: 443, y: 124, w: 25, h: 25 },
       redCar: { x: 470, y: 124, w: 25, h: 25 },
-      greenCar: {x: 497, y: 124, w: 25, h: 25}, 
-      orangeCar: {x: 524, y: 124, w: 25, h: 25}, 
-      yellowCar: {x: 551, y: 124, w: 25, h: 25}, 
-      pinkCar: {x: 578, y: 124, w: 25, h: 25}, 
-      whiteCar: {x: 605, y: 124, w: 25, h: 25}, 
-      purpleCar: {x: 632, y: 124, w: 25, h: 25}, 
-      aquaCar: {x: 659, y: 124, w: 25, h: 25}, 
-      tanCar: {x: 686, y: 124, w: 25, h: 25}, 
+      greenCar: { x: 497, y: 124, w: 25, h: 25 },
+      orangeCar: { x: 524, y: 124, w: 25, h: 25 },
+      yellowCar: { x: 551, y: 124, w: 25, h: 25 },
+      pinkCar: { x: 578, y: 124, w: 25, h: 25 },
+      whiteCar: { x: 605, y: 124, w: 25, h: 25 },
+      purpleCar: { x: 632, y: 124, w: 25, h: 25 },
+      aquaCar: { x: 659, y: 124, w: 25, h: 25 },
+      tanCar: { x: 686, y: 124, w: 25, h: 25 },
       /// GAMEPLAY ENTITIES ///
       redLight: { x: 308, y: 124, w: 25, h: 25 },
       greenLight: { x: 362, y: 124, w: 25, h: 25 },
@@ -76,10 +119,10 @@ class SpriteMap {
       resetButton: { x: 924, y: 373, w: 75, h: 75 },
       undoButton: { x: 308, y: 450, w: 75, h: 75 },
       redoButton: { x: 385, y: 450, w: 75, h: 75 },
-      settingsButton: {x: 847, y: 450, w: 75, h: 75},
-      helpButton: {x: 924, y: 450, w: 75, h: 75},
-      settingsButtonSmallBreakpoint: {x: 839, y: 659, w: 57, h: 57},
-      helpButtonSmallBreakpoint: {x: 898, y: 659, w: 57, h: 57},
+      settingsButton: { x: 847, y: 450, w: 75, h: 75 },
+      helpButton: { x: 924, y: 450, w: 75, h: 75 },
+      settingsButtonSmallBreakpoint: { x: 839, y: 659, w: 57, h: 57 },
+      helpButtonSmallBreakpoint: { x: 898, y: 659, w: 57, h: 57 },
       /// COLORED BUTTONS ///
       greenButton: { x: 0, y: 0, w: 152, h: 57 },
       yellowButton: { x: 0, y: 177, w: 152, h: 57 },
@@ -102,8 +145,8 @@ class SpriteMap {
       playCustomButtonText2: { x: 0, y: 623, w: 116, h: 42 },
       playCustomButtonText: { x: 0, y: 780, w: 124, h: 22 },
       chooseMapButtonText: { x: 0, y: 667, w: 116, h: 42 },
-      settingsButtonText: {x: 0, y: 711, w: 140, h: 19},
-      helpButtonText: {x: 0, y: 732, w: 82, h: 22},
+      settingsButtonText: { x: 0, y: 711, w: 140, h: 19 },
+      helpButtonText: { x: 0, y: 732, w: 82, h: 22 },
       /// MENU GRAPHICS ///
       title: { x: 764, y: 62, w: 193, h: 53 },
       wonGraphic: { x: 308, y: 296, w: 58, h: 75 },
@@ -114,20 +157,51 @@ class SpriteMap {
       shine: { x: 462, y: 450, w: 75, h: 75 },
       badShine: { x: 539, y: 450, w: 75, h: 75 },
       /// SETTINGS MENUS ///
-      defaultTerrainPreview: {x: 721, y: 290, w: 75, h: 75},
-      desertTerrainPreview: {x: 810, y: 290, w: 75, h: 75},
-      snowTerrainPreview: {x: 899, y: 290, w: 75, h: 75},
+      defaultTerrainPreview: { x: 721, y: 290, w: 75, h: 75 },
+      desertTerrainPreview: { x: 810, y: 290, w: 75, h: 75 },
+      snowTerrainPreview: { x: 899, y: 290, w: 75, h: 75 },
       /// TOP LEVEL GRAPHICS ///
       countdown3: { x: 308, y: 527, w: 70, h: 71 },
       countdown2: { x: 380, y: 527, w: 70, h: 71 },
       countdown1: { x: 452, y: 527, w: 22, h: 71 },
-      defaultSelectorSmallBreakpoint: {x: 673, y: 338, w: 28, h: 28},
-      defaultSelectorRegularBreakpoint: {x: 673, y: 296, w: 40, h: 40},
-      tooltipCorner: {x: 916, y: 0, w: 8, h: 8},
-      tooltipEdge: {x: 926, y: 0, w: 8, h: 8},
-      tooltipMiddle: {x: 936, y: 0, w: 8, h: 8},
-      tooltipCarat: {x: 946, y: 0, w: 8, h: 16}
+      defaultSelectorSmallBreakpoint: { x: 673, y: 338, w: 28, h: 28 },
+      defaultSelectorRegularBreakpoint: { x: 673, y: 296, w: 40, h: 40 },
+      tooltipCorner: { x: 916, y: 0, w: 8, h: 8 },
+      tooltipEdge: { x: 926, y: 0, w: 8, h: 8 },
+      tooltipMiddle: { x: 936, y: 0, w: 8, h: 8 },
+      tooltipCarat: { x: 946, y: 0, w: 8, h: 16 },
     };
+    this.modalButtonSpriteData = {
+      playEasy: { x: 613, y: 659, w: 150, h: 60 },
+      playMedium: { x: 460, y: 659, w: 150, h: 60 },
+      playHard: { x: 308, y: 659, w: 150, h: 60 },
+      cancel: { x: 460, y: 62, w: 150, h: 60 },
+      load: { x: 308, y: 0, w: 150, h: 60 },
+      next: { x: 308, y: 62, w: 150, h: 60 },
+      save: { x: 764, y: 0, w: 150, h: 60 },
+      go: { x: 460, y: 0, w: 150, h: 60 },
+      ok: { x: 612, y: 0, w: 150, h: 60 },
+      delete: { x: 612, y: 62, w: 150, h: 60 },
+      spacer: { x: 850, y: 940, w: 150, h: 60 },
+      back: { x: 308, y: 722, w: 150, h: 60 },
+      done: { x: 460, y: 722, w: 150, h: 60 },
+    };
+  }
+
+  get playerHomeSprite() {
+    return this.getCurrentTerrainSprite(
+      `${this._game.ecs.getEntity("player").Car.color}PlayerHome`
+    );
+  }
+
+  get playerCarSprite() {
+    return this.spriteData[
+      `${this._game.ecs.getEntity("player").Car.color}Car`
+    ];
+  }
+
+  get bossCarSprite() {
+    return this.spriteData.redCar;
   }
 
   getSprite(spriteName: string): ISprite | null {
@@ -140,20 +214,21 @@ class SpriteMap {
 
   getCurrentTerrainSprite(name: string) {
     let { terrainStyle } = this._game;
-    let s = { ...this.terrainSpriteData[name], y: this._terrainRows[terrainStyle] };
+    let s = {
+      ...this.terrainSpriteData[name],
+      y: this._terrainRows[terrainStyle],
+    };
     return s;
   }
 
-  getPlayerHomeSprite() {
-    return this.getCurrentTerrainSprite(`${this._game.ecs.getEntity("player").Car.color}PlayerHome`);
+  getBackgroundLayerSprite(layer: "fg" | "back" | "mid") {
+    return this.backgroundSpriteData[layer];
   }
 
-  getPlayerCarSprite() {
-      return this.spriteData[`${this._game.ecs.getEntity("player").Car.color}Car`];
-  }
-
-  getBossCarSprite() {
-      return this.spriteData.redCar;
+  forEachModalButtonSprite(cb: (sprite: ISprite, name: string) => void) {
+    for (let buttonName in this.modalButtonSpriteData) {
+      cb(this.modalButtonSpriteData[buttonName], buttonName);
+    }
   }
 }
 

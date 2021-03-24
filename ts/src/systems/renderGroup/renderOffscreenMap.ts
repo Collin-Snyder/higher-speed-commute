@@ -66,7 +66,7 @@ class RenderOffscreenMap extends EntityComponentSystem.System {
           // if (type === "schoolZone") type = "street";
           let sprite;
 
-          if (type === "playerHome") sprite = <ISprite>this._game.spriteMap.getPlayerHomeSprite();
+          if (type === "playerHome") sprite = <ISprite>this._game.spriteMap.playerHomeSprite;
           else sprite = <ISprite>this._game.spriteMap.getSprite(type);
 
           let hasAlpha = a < 1;
