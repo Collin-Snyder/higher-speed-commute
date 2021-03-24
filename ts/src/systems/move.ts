@@ -50,10 +50,10 @@ export class MovementSystem extends ECS.System {
       let [newX, newY] = path[path.length - 2];
       let Xdiff = newX - X;
       let Ydiff = newY - Y;
-      if (Math.abs(Xdiff) > Math.abs(Ydiff)) {
-        entity.Velocity.vector = { X: Math.sign(Xdiff), Y: 0 };
+      if (abs(Xdiff) > abs(Ydiff)) {
+        entity.Velocity.vector = { X: sign(Xdiff), Y: 0 };
       } else {
-        entity.Velocity.vector = { X: 0, Y: Math.sign(Ydiff) };
+        entity.Velocity.vector = { X: 0, Y: sign(Ydiff) };
       }
       path.pop();
     }

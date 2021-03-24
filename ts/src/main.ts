@@ -39,7 +39,7 @@ import {
   getUserInfo,
 } from "./localDb";
 import SpriteMap from "./helperClasses/spriteMap";
-import { cars, neighborhoods } from "./react/modalContents/settingsContent";
+import { cars, neighborhoods } from "./staticData/settingsOptions";
 import { TooltipSystem } from "./systems/tooltips";
 import { baseEvents, baseEventHandlers } from "./staticData/baseEvents";
 import { nonBaseEvents } from "./staticData/nonBaseEvents";
