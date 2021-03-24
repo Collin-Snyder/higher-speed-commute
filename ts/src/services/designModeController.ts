@@ -1,3 +1,4 @@
+import Game from "../main";
 import { capitalize, openModal } from "gameHelpers";
 import { randomNumBtwn } from "gameMath";
 import { CoordinatesError, NoMapIdError, LoadSavedError } from "customErrors";
@@ -8,9 +9,10 @@ import {
   updateUserMap,
   saveNewUserMap,
 } from "../localDb";
+import * as breakpointData from "../staticData/breakpointData";
 
 class DesignModule {
-  private _game: any;
+  private _game: Game;
   private _editor: IMapEditor;
   public saved: boolean;
   public gridLoaded: boolean;
@@ -60,14 +62,8 @@ class DesignModule {
       this.mapCursor = "cell";
       return;
     }
-    let {
-      inputs: { mouseX, mouseY },
-    } = this._game.ecs.getEntity("global").Global;
-    let {
-      Coordinates: { X, Y },
-    } = this._game.ecs.getEntity("map");
-
-    let square = this.map.getSquareByCoords(mouseX - X, mouseY - Y);
+   
+    let square = this.findTargetSquare();
 
     if (square.drivable && !this.map.isKeySquare(square.id))
       this.mapCursor = "cell";

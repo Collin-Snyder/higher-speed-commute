@@ -241,11 +241,11 @@ export default class ArcadeMap implements IArcadeMap {
     });
   }
 
-  getSquareByCoords(X: number, Y: number): ISquare | null {
-    X = Math.floor(X / 25) * 25;
-    Y = Math.floor(Y / 25) * 25;
-    let row = Y / 25;
-    let col = X / 25 + 1;
+  getSquareByCoords(X: number, Y: number, squareSize: number = 25): ISquare | null {
+    X = Math.floor(X / squareSize) * squareSize;
+    Y = Math.floor(Y / squareSize) * squareSize;
+    let row = Y / squareSize;
+    let col = X / squareSize + 1;
     let id = row * 40 + col;
     if (row > 25 || col > 40) return null;
     return this.getSquare(id);
