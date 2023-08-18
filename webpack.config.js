@@ -1,7 +1,7 @@
 const path = require("path");
 // import path from "path";
 const CopyWebpackPlugin = require("copy-webpack-plugin");
-const CircularDependencyPlugin = require('circular-dependency-plugin')
+const CircularDependencyPlugin = require("circular-dependency-plugin");
 // import CopyWebpackPlugin from "copy-webpack-plugin";
 
 module.exports = {
@@ -9,7 +9,7 @@ module.exports = {
   devtool: "inline-source-map",
   entry: {
     // main: "./ts/src/main.ts",
-    main: "./ts/src/react/index.tsx"
+    main: "./ts/src/react/index.tsx",
   },
   output: {
     path: path.resolve(__dirname, "build"),
@@ -23,19 +23,25 @@ module.exports = {
     rules: [
       // all files with a `.ts` or `.tsx` extension will be handled by `ts-loader`
       // { test: /\.tsx?$/, loader: "ts-loader", options: { allowTsInNodeModules: true }, exclude: ["/node_modules/**/*.ts"]},
-      { test: /\.tsx?$/, loader: "ts-loader", options: { allowTsInNodeModules: true }},
+      {
+        test: /\.tsx?$/,
+        loader: "ts-loader",
+        options: { allowTsInNodeModules: true },
+      },
     ],
   },
   plugins: [
-    new CopyWebpackPlugin([
-      {
-        from: "./html",
-      },
-      {
-        from: "./css",
-      },
-      { from: "./assets" },
-    ]),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: "./html",
+        },
+        {
+          from: "./css",
+        },
+        { from: "./assets" },
+      ],
+    }),
     new CircularDependencyPlugin({
       // exclude detection of files based on a RegExp
       exclude: /a\.js|node_modules/,
@@ -46,7 +52,6 @@ module.exports = {
       allowAsyncCycles: false,
       // set the current working directory for displaying module paths
       cwd: process.cwd(),
-    })
+    }),
   ],
 };
-
